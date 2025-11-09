@@ -1,0 +1,49 @@
+{
+    "name": "digitalbookllm-backend",
+    "version": "1.0.0",
+    "description": "Backend API for DigitalBookLLM with RAG support",
+    "main": "dist/index.js",
+    "scripts": {
+        "dev": "nodemon --exec ts-node src/index.ts",
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "migrate": "ts-node src/db/migrate.ts",
+        "test": "jest"
+    },
+    "keywords": [
+        "rag",
+        "llm",
+        "education"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "@xenova/transformers": "^2.10.0",
+        "axios": "^1.6.2",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "express-rate-limit": "^7.1.5",
+        "helmet": "^7.1.0",
+        "mammoth": "^1.6.0",
+        "morgan": "^1.10.0",
+        "multer": "^2.0.0-rc.4",
+        "pdf-parse": "^1.1.1",
+        "pg": "^8.11.3",
+        "pgvector": "^0.1.8",
+        "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.17",
+        "@types/express": "^4.17.21",
+        "@types/morgan": "^1.9.9",
+        "@types/multer": "^1.4.11",
+        "@types/node": "^20.10.5",
+        "@types/pdf-parse": "^1.1.5",
+        "@types/pg": "^8.10.9",
+        "@types/uuid": "^9.0.7",
+        "nodemon": "^3.0.2",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.3.3"
+    }
+}

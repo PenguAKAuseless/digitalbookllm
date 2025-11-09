@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, MessageCircle, Zap, Copy, ThumbsUp, ThumbsDown } from "lucide-react"
+import { Send, MessageCircle, Zap, Copy, ThumbsUp, ThumbsDown, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ragAPI, QueryCount } from "@/lib/api/rag"
 
 interface Message {
   id: string
@@ -13,9 +14,11 @@ interface Message {
 
 interface ChatPanelProps {
   onViewChange?: (view: "document" | "chat") => void
+  documentId?: string
+  selectedText?: string
 }
 
-export function ChatPanel({ onViewChange }: ChatPanelProps) {
+export function ChatPanel({ onViewChange, documentId, selectedText }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -27,6 +30,8 @@ export function ChatPanel({ onViewChange }: ChatPanelProps) {
   ])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [queryCount, setQueryCount] = useState<QueryCount | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -37,9 +42,53 @@ export function ChatPanel({ onViewChange }: ChatPanelProps) {
     scrollToBottom()
   }, [messages])
 
-  const handleSendMessage = async () => {
-    if (!input.trim()) return
+  useEffect(() => {
+    loadQueryCount()
+  }, [])
 
+  useEffect(() => {
+    if (documentId) {
+      loadChatHistory()
+    }
+  }, [documentId])
+
+  const loadQueryCount = async () => {
+    try {
+      const count = await ragAPI.getQueryCount()
+      setQueryCount(count)
+    } catch (error) {
+      console.error('Failed to load query count:', error)
+    }
+  }
+
+  const loadChatHistory = async () => {
+    if (!documentId) return
+
+    try {
+      const history = await ragAPI.getChatHistory(documentId)
+      if (history.length > 0) {
+        const formattedMessages = history.map(msg => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: new Date(msg.created_at)
+        }))
+        setMessages(formattedMessages)
+      }
+    } catch (error) {
+      console.error('Failed to load chat history:', error)
+    }
+  }
+
+  const handleSendMessage = async () => {
+    if (!input.trim() || !documentId) {
+      if (!documentId) {
+        setError('Please select a document first')
+      }
+      return
+    }
+
+    setError(null)
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -51,25 +100,37 @@ export function ChatPanel({ onViewChange }: ChatPanelProps) {
     setInput("")
     setIsLoading(true)
 
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "The cell membrane is a selectively permeable barrier that controls what enters and exits the cell. It's made of a phospholipid bilayer with embedded proteins.",
-        "Great question! Integral proteins span the entire membrane and are involved in transport and cell signaling, while peripheral proteins are attached to the surface and provide structural support.",
-        "Here's a quiz question for you: What is the primary function of the cell membrane? A) Energy production B) Controlling what enters/exits the cell C) Protein synthesis D) DNA replication",
-      ]
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)]
+    try {
+      const response = await ragAPI.query({
+        query: input,
+        documentId,
+        selectedText,
+        topK: 3,
+      })
 
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: response.messageId,
         role: "assistant",
-        content: randomResponse,
+        content: response.response,
         timestamp: new Date(),
       }
 
       setMessages((prev) => [...prev, assistantMessage])
+      await loadQueryCount() // Update query count
+    } catch (error: any) {
+      console.error('Query failed:', error)
+      setError(error.message || 'Failed to get response. Please try again.')
+
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: `Sorry, I encountered an error: ${error.message || 'Unknown error'}. Please try again.`,
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   const quickPrompts = [
@@ -93,11 +154,10 @@ export function ChatPanel({ onViewChange }: ChatPanelProps) {
         {messages.map((message) => (
           <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
-              className={`max-w-xs md:max-w-sm lg:max-w-md px-4 py-3 rounded-lg ${
-                message.role === "user"
-                  ? "bg-primary text-primary-foreground rounded-br-none"
-                  : "bg-muted text-foreground rounded-bl-none"
-              }`}
+              className={`max-w-xs md:max-w-sm lg:max-w-md px-4 py-3 rounded-lg ${message.role === "user"
+                ? "bg-primary text-primary-foreground rounded-br-none"
+                : "bg-muted text-foreground rounded-bl-none"
+                }`}
             >
               <p className="text-sm leading-relaxed">{message.content}</p>
               <p className="text-xs mt-2 opacity-70">
@@ -166,25 +226,38 @@ export function ChatPanel({ onViewChange }: ChatPanelProps) {
 
       {/* Input Area */}
       <div className="border-t border-border p-4 space-y-3">
+        {error && (
+          <div className="bg-destructive/10 text-destructive text-sm p-2 rounded">
+            {error}
+          </div>
+        )}
         <div className="flex gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-            placeholder="Ask about the document..."
-            className="flex-1 px-4 py-2 rounded-lg bg-input text-foreground placeholder-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+            onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
+            placeholder={documentId ? "Ask about the document..." : "Select a document first..."}
+            disabled={!documentId || isLoading}
+            className="flex-1 px-4 py-2 rounded-lg bg-input text-foreground placeholder-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm disabled:opacity-50"
           />
           <Button
             onClick={handleSendMessage}
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || isLoading || !documentId}
             className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
             size="sm"
           >
-            <Send className="w-4 h-4" />
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground text-center">Free tier: 50 queries/day • Powered by Grok AI</p>
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>
+            {queryCount
+              ? `${queryCount.used}/${queryCount.limit} queries used today`
+              : 'Loading...'}
+          </span>
+          <span>Powered by Together AI</span>
+        </div>
       </div>
     </div>
   )
