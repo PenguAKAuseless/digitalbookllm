@@ -13,11 +13,47 @@ Backend API for DigitalBookLLM with PostgreSQL and RAG (Retrieval-Augmented Gene
 
 ## Prerequisites
 
+### Option 1: Docker (Recommended ⭐)
+- Docker Desktop installed and running
+- Docker Compose (included with Docker Desktop)
+
+### Option 2: Manual Setup
 - Node.js 18+ and npm
 - PostgreSQL 14+ with pgvector extension
 - (Optional) Together AI API key for real AI responses
 
 ## Installation
+
+### 🐳 Docker Setup (Recommended)
+
+**Quick Start:**
+```bash
+# 1. Copy and configure environment
+cp .env.example .env
+# Edit .env and add your TOGETHER_API_KEY
+
+# 2. Start everything with Docker
+docker-compose up -d
+
+# 3. View logs
+docker-compose logs -f
+```
+
+**Development Mode (with hot reload):**
+```bash
+docker-compose -f docker-compose.dev.yml up
+```
+
+**Stop services:**
+```bash
+docker-compose down
+```
+
+📖 **See [DOCKER_GUIDE.md](./DOCKER_GUIDE.md) for detailed Docker documentation**
+
+---
+
+### 💻 Manual Setup
 
 1. **Install dependencies:**
 ```bash
@@ -48,18 +84,32 @@ npm run migrate
 
 ## Usage
 
-### Development
+### Docker
+```bash
+# Production mode
+docker-compose up -d
+
+# Development mode (hot reload)
+docker-compose -f docker-compose.dev.yml up
+
+# View logs
+docker-compose logs -f backend
+```
+
+### Manual
+
+#### Development
 ```bash
 npm run dev
 ```
 
-Server will start on http://localhost:3001
-
-### Production
+#### Production
 ```bash
 npm run build
 npm start
 ```
+
+Server will start on http://localhost:3001
 
 ## API Endpoints
 
@@ -120,13 +170,43 @@ MAX_QUERIES_PER_DAY=50
 
 ## RAG Architecture
 
+### Docker Architecture
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Docker Network                           │
+│                                                             │
+│  ┌──────────────────┐         ┌─────────────────────┐      │
+│  │   Backend API    │────────▶│   PostgreSQL +      │      │
+│  │   (Node.js)      │         │   pgvector          │      │
+│  │                  │         │                     │      │
+│  │  - Express       │         │  - Documents        │      │
+│  │  - TypeScript    │         │  - Embeddings       │      │
+│  │  - RAG Service   │         │  - Chat History     │      │
+│  │                  │         │                     │      │
+│  └────────┬─────────┘         └─────────────────────┘      │
+│           │                                                 │
+│           │                   ┌─────────────────────┐      │
+│           └──────────────────▶│   Uploads Volume    │      │
+│                               └─────────────────────┘      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+         ▲                               ▲
+         │                               │
+    Port 3001                        Port 5433
+         │                               │
+         ▼                               ▼
+    Frontend                        DB Client
+```
+
+### RAG Pipeline
+
 1. **Document Processing:**
    - Extract text from uploaded files
    - Split into semantic chunks (500 words with 50 word overlap)
    - Generate embeddings using all-MiniLM-L6-v2
    - Store in PostgreSQL with pgvector
 
-3. **Query Processing (Prioritized RAG):**
+2. **Query Processing (Prioritized RAG):**
    - User selects text (Primary Context)
    - Embed query + selected text
    - Retrieve top-K similar chunks using cosine similarity

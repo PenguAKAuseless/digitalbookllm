@@ -1,0 +1,84 @@
+version: '3.8'
+
+# Development docker-compose with hot reload
+services:
+  # PostgreSQL Database with pgvector extension
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: digitalbookllm-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-digitalbookllm}
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./src/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./src/db/add_file_path.sql:/docker-entrypoint-initdb.d/02-add_file_path.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - digitalbookllm-network
+
+  # Backend API with hot reload for development
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: digitalbookllm-backend-dev
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3001}:3001"
+    environment:
+      # Database Configuration
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      DB_NAME: ${DB_NAME:-digitalbookllm}
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@postgres:5432/${DB_NAME:-digitalbookllm}
+      
+      # Server Configuration
+      PORT: 3001
+      NODE_ENV: development
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      
+      # LLM API Configuration
+      TOGETHER_API_KEY: ${TOGETHER_API_KEY}
+      TOGETHER_API_URL: ${TOGETHER_API_URL:-https://api.together.xyz/v1/chat/completions}
+      TOGETHER_MODEL: ${TOGETHER_MODEL:-meta-llama/Llama-3.3-70B-Instruct-Turbo-Free}
+      
+      # Rate Limiting
+      MAX_QUERIES_PER_DAY: ${MAX_QUERIES_PER_DAY:-50}
+      
+      # File Upload
+      MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-100}
+      UPLOAD_DIR: /app/uploads
+      
+      # Embeddings Configuration
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-Xenova/all-MiniLM-L6-v2}
+      EMBEDDING_DIMENSION: ${EMBEDDING_DIMENSION:-384}
+      CHUNK_SIZE: ${CHUNK_SIZE:-500}
+      CHUNK_OVERLAP: ${CHUNK_OVERLAP:-50}
+    volumes:
+      - ./src:/app/src
+      - ./uploads:/app/uploads
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - digitalbookllm-network
+
+volumes:
+  postgres_data_dev:
+    driver: local
+
+networks:
+  digitalbookllm-network:
+    driver: bridge

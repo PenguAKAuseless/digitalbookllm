@@ -1,7 +1,12 @@
 node_modules/
 dist/
 .env
+.env.local
 uploads/
 *.log
 .DS_Store
 .vscode/
+
+# Docker
+docker-compose.override.yml
+
