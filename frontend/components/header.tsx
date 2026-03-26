@@ -19,7 +19,7 @@ export function Header({ onMenuClick }: HeaderProps) {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">DB</span>
             </div>
-            <h1 className="text-lg md:text-xl font-bold text-foreground hidden sm:block">DigitalBook</h1>
+            <h1 className="text-lg md:text-xl font-bold text-foreground hidden sm:block">DigitalBookLLM</h1>
           </div>
         </div>
 

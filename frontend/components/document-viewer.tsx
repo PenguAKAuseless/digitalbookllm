@@ -31,34 +31,31 @@ export function DocumentViewer({ documentId, onTextSelect }: DocumentViewerProps
   const [pdfError, setPdfError] = useState<string>("")
 
   useEffect(() => {
-    if (documentId) {
-      loadDocument()
-    }
-  }, [documentId])
-
-  const loadDocument = async () => {
     if (!documentId) return
 
-    try {
-      setLoading(true)
-      const doc = await documentAPI.getDocument(documentId)
-      setDocumentContent(doc.full_text)
-      setDocumentName(doc.name)
-      setDocumentType(doc.file_type)
+    const loadDocument = async () => {
+      try {
+        setLoading(true)
+        const doc = await documentAPI.getDocument(documentId)
+        setDocumentContent(doc.full_text)
+        setDocumentName(doc.name)
+        setDocumentType(doc.file_type)
 
-      // If it's a PDF, set the URL to fetch it
-      if (doc.file_type === 'application/pdf') {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
-        const pdfEndpoint = `${apiUrl}/documents/${documentId}/pdf`
-        console.log('PDF URL:', pdfEndpoint)
-        setPdfUrl(pdfEndpoint)
+        if (doc.file_type === 'application/pdf') {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+          const pdfEndpoint = `${apiUrl}/documents/${documentId}/pdf`
+          console.log('PDF URL:', pdfEndpoint)
+          setPdfUrl(pdfEndpoint)
+        }
+      } catch (error) {
+        console.error('Failed to load document:', error)
+      } finally {
+        setLoading(false)
       }
-    } catch (error) {
-      console.error('Failed to load document:', error)
-    } finally {
-      setLoading(false)
     }
-  }
+
+    loadDocument()
+  }, [documentId])
 
   const handleTextSelection = () => {
     const selection = window.getSelection()
@@ -265,7 +262,7 @@ export function DocumentViewer({ documentId, onTextSelect }: DocumentViewerProps
       {selectedText && (
         <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-accent text-accent-foreground p-3 rounded-lg shadow-lg text-sm">
           <p className="font-semibold mb-1">Selected Text:</p>
-          <p className="line-clamp-2 italic">"{selectedText}"</p>
+          <p className="line-clamp-2 italic">{selectedText}</p>
           <p className="text-xs mt-2 opacity-75">Ask AI about this selection</p>
         </div>
       )}

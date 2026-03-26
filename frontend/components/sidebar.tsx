@@ -1,6 +1,6 @@
 "use client"
 
-import { FileText, Plus, Clock, Star, FolderOpen, Loader2 } from "lucide-react"
+import { FileText, Plus, FolderOpen, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect, useRef } from "react"
 import { documentAPI, Document } from "@/lib/api/documents"
@@ -14,6 +14,7 @@ export function Sidebar({ onDocumentSelect, selectedDocumentId }: SidebarProps) 
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -23,9 +24,12 @@ export function Sidebar({ onDocumentSelect, selectedDocumentId }: SidebarProps) 
   const loadDocuments = async () => {
     try {
       setLoading(true)
+      setError(null)
       const docs = await documentAPI.getDocuments()
       setDocuments(docs)
-    } catch (error) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to load documents'
+      setError(message)
       console.error('Failed to load documents:', error)
     } finally {
       setLoading(false)
@@ -38,14 +42,16 @@ export function Sidebar({ onDocumentSelect, selectedDocumentId }: SidebarProps) 
 
     try {
       setUploading(true)
+      setError(null)
       const result = await documentAPI.upload(file)
       await loadDocuments()
       if (onDocumentSelect) {
         onDocumentSelect(result.documentId)
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Upload failed:', error)
-      alert('Failed to upload document. Please try again.')
+      const message = error instanceof Error ? error.message : 'Failed to upload document. Please try again.'
+      setError(message)
     } finally {
       setUploading(false)
       if (fileInputRef.current) {
@@ -74,7 +80,7 @@ export function Sidebar({ onDocumentSelect, selectedDocumentId }: SidebarProps) 
         <input
           ref={fileInputRef}
           type="file"
-          accept=".pdf,.docx,.txt,.md"
+          accept=".pdf,.docx,.txt,.md,.markdown,.csv,.tsv,.json,.xml,.yaml,.yml,.log,.ini,.cfg,.conf,.sql,.py,.js,.ts,.tsx,.jsx,.html,.css,.scss,.sass,.java,.c,.cpp,.h,.hpp,.go,.rs,.rb,.php,.sh,.bat,.ps1,.rtf,text/*"
           onChange={handleFileUpload}
           className="hidden"
         />
@@ -95,6 +101,9 @@ export function Sidebar({ onDocumentSelect, selectedDocumentId }: SidebarProps) 
             </>
           )}
         </Button>
+        {error && (
+          <p className="mt-2 text-xs text-destructive">{error}</p>
+        )}
       </div>
 
       {/* Navigation */}

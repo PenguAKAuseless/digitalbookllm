@@ -40,12 +40,15 @@ export class RAGService {
     }
 
     private textSimilarity(text1: string, text2: string): number {
-        // Simple text similarity based on common words
         const words1 = new Set(text1.toLowerCase().split(/\s+/));
         const words2 = new Set(text2.toLowerCase().split(/\s+/));
 
         const intersection = new Set([...words1].filter(x => words2.has(x)));
         const union = new Set([...words1, ...words2]);
+
+        if (union.size === 0) {
+            return 0;
+        }
 
         return intersection.size / union.size;
     }
@@ -130,9 +133,7 @@ ${selectedText || 'None'}
 
         return `Based on the document context, here's what I can explain:\n\n` +
             `${context.substring(0, 300)}${context.length > 300 ? '...' : ''}\n\n` +
-            `This appears to relate to your question about "${query}". ` +
-            `For more accurate and detailed responses, configure TOGETHER_API_KEY in the .env file with your Together AI API key.\n\n` +
-            `**Note:** This is a mock response. With a real API key, you'll get context-aware AI explanations.`;
+            `This appears to relate to your question about "${query}". `;
     }
 
     async processQuery(
@@ -140,6 +141,7 @@ ${selectedText || 'None'}
         request: QueryRequest
     ): Promise<QueryResponse> {
         const { query, documentId, selectedText, topK = 3 } = request;
+        const safeTopK = Number.isFinite(topK) ? Math.max(1, Math.min(10, topK)) : 3;
 
         // Generate embedding for query
         const queryText = selectedText ? `${query} ${selectedText}` : query;
@@ -149,7 +151,7 @@ ${selectedText || 'None'}
         const retrievedChunks = await this.retrieveRelevantChunks(
             documentId,
             queryEmbedding,
-            topK,
+            safeTopK,
             selectedText
         );
 

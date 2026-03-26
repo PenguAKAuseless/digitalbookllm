@@ -18,17 +18,35 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    const allowedTypes = [
+    const mimeType = (file.mimetype || '').toLowerCase();
+    const extension = path.extname(file.originalname || '').toLowerCase();
+
+    const allowedMimeTypes = new Set([
         'application/pdf',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'text/plain',
-        'text/markdown'
-    ];
+        'application/json',
+        'application/xml',
+        'application/x-yaml',
+        'application/yaml',
+        'application/javascript',
+        'application/x-javascript',
+        'application/typescript'
+    ]);
 
-    if (allowedTypes.includes(file.mimetype)) {
+    const allowedTextExtensions = new Set([
+        '.pdf', '.docx', '.doc',
+        '.txt', '.md', '.markdown', '.csv', '.tsv', '.json', '.xml', '.yaml', '.yml',
+        '.log', '.ini', '.cfg', '.conf', '.sql', '.py', '.js', '.ts', '.tsx', '.jsx', '.html',
+        '.css', '.scss', '.sass', '.java', '.c', '.cpp', '.h', '.hpp', '.go', '.rs', '.rb',
+        '.php', '.sh', '.bat', '.ps1', '.rtf'
+    ]);
+
+    const isSupportedText = mimeType.startsWith('text/') || allowedMimeTypes.has(mimeType) || allowedTextExtensions.has(extension);
+
+    if (isSupportedText) {
         cb(null, true);
     } else {
-        cb(new Error('Invalid file type. Only PDF, DOCX, TXT, and MD files are allowed.'));
+        cb(new Error('Invalid file type. Supported files include PDF, DOCX, and text-based documents.'));
     }
 };
 

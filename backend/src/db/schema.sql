@@ -13,13 +13,29 @@ CREATE TABLE IF NOT EXISTS documents (
     id VARCHAR(255) PRIMARY KEY,
     user_id VARCHAR(255) REFERENCES users (id) ON DELETE CASCADE,
     name VARCHAR(500) NOT NULL,
-    file_type VARCHAR(50) NOT NULL,
+    file_type VARCHAR(255) NOT NULL,
     file_size BIGINT NOT NULL,
     full_text TEXT NOT NULL,
     file_path VARCHAR(1000), -- Store file path for PDFs to serve directly
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Ensure existing deployments with a smaller file_type column are upgraded.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'documents'
+          AND column_name = 'file_type'
+          AND character_maximum_length IS NOT NULL
+          AND character_maximum_length < 255
+    ) THEN
+        ALTER TABLE documents
+        ALTER COLUMN file_type TYPE VARCHAR(255);
+    END IF;
+END $$;
 
 -- Chunks table with vector embeddings
 CREATE TABLE IF NOT EXISTS chunks (
@@ -32,10 +48,29 @@ CREATE TABLE IF NOT EXISTS chunks (
     UNIQUE (document_id, chunk_index)
 );
 
+-- Convert existing fallback array embeddings to pgvector if needed.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'chunks'
+          AND column_name = 'embedding'
+          AND data_type = 'ARRAY'
+          AND udt_name = '_float8'
+    ) THEN
+        ALTER TABLE chunks
+        ALTER COLUMN embedding TYPE vector(384)
+        USING ('[' || array_to_string(embedding, ',') || ']')::vector(384);
+    END IF;
+END $$;
+
 -- Create index for vector similarity search
 CREATE INDEX IF NOT EXISTS chunks_embedding_idx ON chunks USING ivfflat (embedding vector_cosine_ops)
 WITH (lists = 100);
 
+-- Cleanup old fallback function if present.
+DROP FUNCTION IF EXISTS cosine_similarity(DOUBLE PRECISION[], DOUBLE PRECISION[]);
 -- Create index for document lookups
 CREATE INDEX IF NOT EXISTS chunks_document_id_idx ON chunks (document_id);
 

@@ -61,18 +61,18 @@ async function startServer() {
         // Test database connection
         const dbConnected = await testConnection();
         if (!dbConnected) {
-            console.error('❌ Failed to connect to database. Please check your configuration.');
-            console.log('💡 Make sure PostgreSQL is running and .env file is configured correctly.');
-            console.log('💡 Run: npm run migrate to create database tables.');
+            console.error('Failed to connect to database. Check configuration and database status.');
+            console.log('Make sure PostgreSQL is running and .env values are correct.');
+            console.log('Run: npm run migrate to create database tables.');
             process.exit(1);
         }
 
         app.listen(PORT, () => {
-            console.log('\n🚀 DigitalBookLLM Backend Server Started!');
-            console.log(`📍 Server running on http://localhost:${PORT}`);
-            console.log(`🔗 API endpoint: http://localhost:${PORT}/api`);
-            console.log(`💾 Upload directory: ${path.resolve(uploadDir)}`);
-            console.log(`\n📚 Available endpoints:`);
+            console.log('\nDigitalBookLLM backend server started.');
+            console.log(`Server: http://localhost:${PORT}`);
+            console.log(`API: http://localhost:${PORT}/api`);
+            console.log(`Upload directory: ${path.resolve(uploadDir)}`);
+            console.log('\nAvailable endpoints:');
             console.log(`   POST   /api/documents/upload       - Upload a document`);
             console.log(`   GET    /api/documents              - Get all documents`);
             console.log(`   GET    /api/documents/:id          - Get a specific document`);
@@ -80,11 +80,11 @@ async function startServer() {
             console.log(`   POST   /api/rag/query              - Query with RAG`);
             console.log(`   GET    /api/rag/history/:documentId - Get chat history`);
             console.log(`   GET    /api/rag/query-count        - Get query count\n`);
-            console.log(`⚙️  Environment: ${process.env.NODE_ENV || 'development'}`);
-            console.log(`🔐 Rate limit: ${process.env.MAX_QUERIES_PER_DAY || 50} queries/day\n`);
+            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`Rate limit: ${process.env.MAX_QUERIES_PER_DAY || 50} queries/day\n`);
         });
     } catch (error) {
-        console.error('❌ Failed to start server:', error);
+        console.error('Failed to start server:', error);
         process.exit(1);
     }
 }

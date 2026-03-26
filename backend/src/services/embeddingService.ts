@@ -9,9 +9,9 @@ class EmbeddingService {
 
     async initialize() {
         if (!this.embedder) {
-            console.log('🔄 Loading embedding model:', this.modelName);
+            console.log('Loading embedding model:', this.modelName);
             this.embedder = await pipeline('feature-extraction', this.modelName);
-            console.log('✅ Embedding model loaded successfully!');
+            console.log('Embedding model loaded successfully');
         }
     }
 

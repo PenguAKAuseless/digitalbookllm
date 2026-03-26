@@ -9,23 +9,54 @@ export class DocumentService {
     private chunkSize = parseInt(process.env.CHUNK_SIZE || '500');
     private chunkOverlap = parseInt(process.env.CHUNK_OVERLAP || '50');
 
-    async extractText(filePath: string, fileType: string): Promise<string> {
+    private isProbablyText(buffer: Buffer): boolean {
+        // Null bytes usually indicate binary data.
+        return !buffer.includes(0);
+    }
+
+    async extractText(filePath: string, fileType: string, fileName?: string): Promise<string> {
         const buffer = fs.readFileSync(filePath);
+        const normalizedType = (fileType || '').toLowerCase();
+        const extension = (fileName || '').toLowerCase();
+        const isPdf = normalizedType === 'application/pdf' || extension.endsWith('.pdf');
+        const isDocx =
+            normalizedType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+            extension.endsWith('.docx');
 
-        switch (fileType) {
-            case 'application/pdf':
-                const pdfData = await pdfParse(buffer);
+        if (isPdf) {
+            const pdfData = await pdfParse(buffer);
+            if (pdfData.text?.trim()) {
                 return pdfData.text;
+            }
+            throw new Error('PDF has no extractable text. OCR is required for scanned PDFs.');
+        }
 
-            case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-                const result = await mammoth.extractRawText({ buffer });
-                return result.value;
+        if (isDocx) {
+            const result = await mammoth.extractRawText({ buffer });
+            return result.value;
+        }
 
+        switch (normalizedType) {
             case 'text/plain':
             case 'text/markdown':
+            case 'application/json':
+            case 'application/xml':
+            case 'application/x-yaml':
+            case 'application/yaml':
+            case 'application/javascript':
+            case 'application/x-javascript':
+            case 'application/typescript':
                 return buffer.toString('utf-8');
 
             default:
+                if (normalizedType.startsWith('text/') || /\.(txt|md|markdown|csv|tsv|json|xml|yaml|yml|log|ini|cfg|conf|sql|py|js|ts|tsx|jsx|html|css|scss|sass|java|c|cpp|h|hpp|go|rs|rb|php|sh|bat|ps1|rtf)$/i.test(extension)) {
+                    if (!this.isProbablyText(buffer)) {
+                        throw new Error('File appears to be binary and cannot be parsed as text');
+                    }
+
+                    return buffer.toString('utf-8');
+                }
+
                 throw new Error('Unsupported file type');
         }
     }
@@ -33,8 +64,9 @@ export class DocumentService {
     chunkText(text: string): string[] {
         const chunks: string[] = [];
         const words = text.split(/\s+/);
+        const step = Math.max(1, this.chunkSize - this.chunkOverlap);
 
-        for (let i = 0; i < words.length; i += this.chunkSize - this.chunkOverlap) {
+        for (let i = 0; i < words.length; i += step) {
             const chunk = words.slice(i, i + this.chunkSize).join(' ');
             if (chunk.trim().length > 0) {
                 chunks.push(chunk.trim());
@@ -53,37 +85,47 @@ export class DocumentService {
         filePath?: string
     ): Promise<string> {
         const documentId = uuidv4();
+        const client = await pool.connect();
 
-        // Store file path for PDFs so we can serve them directly
-        const filePathToStore = fileType === 'application/pdf' ? filePath : null;
+        try {
+            await client.query('BEGIN');
 
-        await pool.query(
-            `INSERT INTO documents (id, user_id, name, file_type, file_size, full_text, file_path)
+            // Store file path for PDFs so we can serve them directly
+            const filePathToStore = fileType === 'application/pdf' ? filePath : null;
+
+            await client.query(
+                `INSERT INTO documents (id, user_id, name, file_type, file_size, full_text, file_path)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [documentId, userId, name, fileType, fileSize, fullText, filePathToStore]
-        );
-
-        // Chunk the text and generate embeddings
-        const chunks = this.chunkText(fullText);
-        console.log(`📄 Processing ${chunks.length} chunks for document ${name}`);
-
-        for (let i = 0; i < chunks.length; i++) {
-            const chunkId = uuidv4();
-            const embedding = await embeddingService.generateEmbedding(chunks[i]);
-
-            await pool.query(
-                `INSERT INTO chunks (id, document_id, chunk_index, text, embedding)
-         VALUES ($1, $2, $3, $4, $5)`,
-                [chunkId, documentId, i, chunks[i], JSON.stringify(embedding)]
+                [documentId, userId, name, fileType, fileSize, fullText, filePathToStore]
             );
 
-            if ((i + 1) % 10 === 0) {
-                console.log(`  ⏳ Processed ${i + 1}/${chunks.length} chunks`);
-            }
-        }
+            const chunks = this.chunkText(fullText);
+            console.log(`Processing ${chunks.length} chunks for document ${name}`);
 
-        console.log(`✅ Document ${name} saved successfully with ${chunks.length} chunks`);
-        return documentId;
+            for (let i = 0; i < chunks.length; i++) {
+                const chunkId = uuidv4();
+                const embedding = await embeddingService.generateEmbedding(chunks[i]);
+
+                await client.query(
+                    `INSERT INTO chunks (id, document_id, chunk_index, text, embedding)
+         VALUES ($1, $2, $3, $4, $5)`,
+                    [chunkId, documentId, i, chunks[i], JSON.stringify(embedding)]
+                );
+
+                if ((i + 1) % 10 === 0) {
+                    console.log(`Processed ${i + 1}/${chunks.length} chunks`);
+                }
+            }
+
+            await client.query('COMMIT');
+            console.log(`Document ${name} saved successfully with ${chunks.length} chunks`);
+            return documentId;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
     }
 
     async getDocument(documentId: string) {

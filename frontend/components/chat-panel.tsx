@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, MessageCircle, Zap, Copy, ThumbsUp, ThumbsDown, Loader2 } from "lucide-react"
+import { Send, MessageCircle, Zap, Copy, Loader2, Volume2, Square } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ragAPI, QueryCount } from "@/lib/api/rag"
 
@@ -13,12 +13,11 @@ interface Message {
 }
 
 interface ChatPanelProps {
-  onViewChange?: (view: "document" | "chat") => void
   documentId?: string
   selectedText?: string
 }
 
-export function ChatPanel({ onViewChange, documentId, selectedText }: ChatPanelProps) {
+export function ChatPanel({ documentId, selectedText }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -32,6 +31,8 @@ export function ChatPanel({ onViewChange, documentId, selectedText }: ChatPanelP
   const [isLoading, setIsLoading] = useState(false)
   const [queryCount, setQueryCount] = useState<QueryCount | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [activeSpeechMessageId, setActiveSpeechMessageId] = useState<string | null>(null)
+  const [speechSupported, setSpeechSupported] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -47,10 +48,15 @@ export function ChatPanel({ onViewChange, documentId, selectedText }: ChatPanelP
   }, [])
 
   useEffect(() => {
-    if (documentId) {
-      loadChatHistory()
+    const supported = typeof window !== "undefined" && "speechSynthesis" in window
+    setSpeechSupported(supported)
+
+    return () => {
+      if (supported) {
+        window.speechSynthesis.cancel()
+      }
     }
-  }, [documentId])
+  }, [])
 
   const loadQueryCount = async () => {
     try {
@@ -61,23 +67,67 @@ export function ChatPanel({ onViewChange, documentId, selectedText }: ChatPanelP
     }
   }
 
-  const loadChatHistory = async () => {
+  useEffect(() => {
     if (!documentId) return
 
-    try {
-      const history = await ragAPI.getChatHistory(documentId)
-      if (history.length > 0) {
-        const formattedMessages = history.map(msg => ({
-          id: msg.id,
-          role: msg.role,
-          content: msg.content,
-          timestamp: new Date(msg.created_at)
-        }))
-        setMessages(formattedMessages)
+    const loadChatHistory = async () => {
+      try {
+        const history = await ragAPI.getChatHistory(documentId)
+        if (history.length > 0) {
+          const formattedMessages = history.map(msg => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            timestamp: new Date(msg.created_at)
+          }))
+          setMessages(formattedMessages)
+        }
+      } catch (error) {
+        console.error('Failed to load chat history:', error)
       }
-    } catch (error) {
-      console.error('Failed to load chat history:', error)
     }
+
+    loadChatHistory()
+  }, [documentId])
+
+  const handleCopyMessage = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content)
+    } catch {
+      setError("Failed to copy message")
+    }
+  }
+
+  const stopSpeech = () => {
+    if (!speechSupported) return
+    window.speechSynthesis.cancel()
+    setActiveSpeechMessageId(null)
+  }
+
+  const speakMessage = (messageId: string, content: string) => {
+    if (!speechSupported) {
+      setError("Text-to-speech is not supported in this browser")
+      return
+    }
+
+    if (activeSpeechMessageId === messageId) {
+      stopSpeech()
+      return
+    }
+
+    window.speechSynthesis.cancel()
+
+    const utterance = new SpeechSynthesisUtterance(content)
+    utterance.rate = 1
+    utterance.pitch = 1
+    utterance.onend = () => setActiveSpeechMessageId(null)
+    utterance.onerror = () => {
+      setActiveSpeechMessageId(null)
+      setError("Failed to read message")
+    }
+
+    setActiveSpeechMessageId(messageId)
+    window.speechSynthesis.speak(utterance)
   }
 
   const handleSendMessage = async () => {
@@ -117,14 +167,15 @@ export function ChatPanel({ onViewChange, documentId, selectedText }: ChatPanelP
 
       setMessages((prev) => [...prev, assistantMessage])
       await loadQueryCount() // Update query count
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessageText = error instanceof Error ? error.message : 'Unknown error'
       console.error('Query failed:', error)
-      setError(error.message || 'Failed to get response. Please try again.')
+      setError(errorMessageText || 'Failed to get response. Please try again.')
 
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: `Sorry, I encountered an error: ${error.message || 'Unknown error'}. Please try again.`,
+        content: `Sorry, I encountered an error: ${errorMessageText}. Please try again.`,
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, errorMessage])
@@ -164,17 +215,24 @@ export function ChatPanel({ onViewChange, documentId, selectedText }: ChatPanelP
                 {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
 
-              {/* Message Actions */}
               {message.role === "assistant" && (
                 <div className="flex gap-2 mt-2 pt-2 border-t border-border/50">
-                  <button className="p-1 hover:bg-background/50 rounded transition-colors">
+                  <button
+                    type="button"
+                    className="p-1 hover:bg-background/50 rounded transition-colors"
+                    onClick={() => handleCopyMessage(message.content)}
+                    aria-label="Copy response"
+                  >
                     <Copy className="w-3 h-3" />
                   </button>
-                  <button className="p-1 hover:bg-background/50 rounded transition-colors">
-                    <ThumbsUp className="w-3 h-3" />
-                  </button>
-                  <button className="p-1 hover:bg-background/50 rounded transition-colors">
-                    <ThumbsDown className="w-3 h-3" />
+                  <button
+                    type="button"
+                    className="p-1 hover:bg-background/50 rounded transition-colors"
+                    onClick={() => speakMessage(message.id, message.content)}
+                    aria-label={activeSpeechMessageId === message.id ? "Stop reading response" : "Read response aloud"}
+                    disabled={!speechSupported}
+                  >
+                    {activeSpeechMessageId === message.id ? <Square className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
                   </button>
                 </div>
               )}
@@ -251,12 +309,17 @@ export function ChatPanel({ onViewChange, documentId, selectedText }: ChatPanelP
           </Button>
         </div>
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>
-            {queryCount
-              ? `${queryCount.used}/${queryCount.limit} queries used today`
-              : 'Loading...'}
-          </span>
-          <span>Powered by Together AI</span>
+          <div className="flex items-center gap-3">
+            {activeSpeechMessageId && (
+              <button
+                type="button"
+                className="underline hover:text-foreground"
+                onClick={stopSpeech}
+              >
+                Stop audio
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

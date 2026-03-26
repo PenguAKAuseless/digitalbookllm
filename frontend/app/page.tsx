@@ -68,7 +68,6 @@ export default function Home() {
           {/* Chat Panel - Full width on mobile, 30% on desktop */}
           <div className={`${mobileView === "chat" ? "flex-1" : "hidden md:flex md:w-[30%]"} flex flex-col bg-card`}>
             <ChatPanel
-              onViewChange={setMobileView}
               documentId={selectedDocumentId}
               selectedText={selectedText}
             />

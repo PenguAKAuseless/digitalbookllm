@@ -8,6 +8,20 @@ export class RAGController {
             const userId = req.body.userId || 'guest';
             const queryRequest: QueryRequest = req.body;
 
+            if (!queryRequest.query?.trim()) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Query text is required'
+                });
+            }
+
+            if (!queryRequest.documentId?.trim()) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Document ID is required'
+                });
+            }
+
             // Check rate limit
             const canQuery = await ragService.checkRateLimit(userId);
             if (!canQuery) {
