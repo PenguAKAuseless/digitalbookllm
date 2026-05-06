@@ -100,7 +100,6 @@ export class DocumentService {
             );
 
             const chunks = this.chunkText(fullText);
-            console.log(`Processing ${chunks.length} chunks for document ${name}`);
 
             for (let i = 0; i < chunks.length; i++) {
                 const chunkId = uuidv4();
@@ -112,13 +111,9 @@ export class DocumentService {
                     [chunkId, documentId, i, chunks[i], JSON.stringify(embedding)]
                 );
 
-                if ((i + 1) % 10 === 0) {
-                    console.log(`Processed ${i + 1}/${chunks.length} chunks`);
-                }
             }
 
             await client.query('COMMIT');
-            console.log(`Document ${name} saved successfully with ${chunks.length} chunks`);
             return documentId;
         } catch (error) {
             await client.query('ROLLBACK');

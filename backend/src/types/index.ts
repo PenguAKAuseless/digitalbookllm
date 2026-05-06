@@ -18,6 +18,12 @@ export interface Chunk {
     created_at: Date;
 }
 
+export interface RetrievedChunk {
+    id: string;
+    text: string;
+    similarity: number;
+}
+
 export interface ChatMessage {
     id: string;
     document_id: string;

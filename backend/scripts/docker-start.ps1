@@ -59,7 +59,7 @@ if ($mode -eq "2") {
     Write-Host "   - Source code mounted" -ForegroundColor Gray
     Write-Host "   - Running with nodemon" -ForegroundColor Gray
     Write-Host ""
-    docker-compose -f docker-compose.dev.yml up
+    docker-compose up
 }
 else {
     Write-Host "🚀 Starting in PRODUCTION mode..." -ForegroundColor Green
@@ -68,7 +68,7 @@ else {
     Write-Host "   - Running in background" -ForegroundColor Gray
     Write-Host ""
     
-    docker-compose up -d --build
+    docker-compose -f docker-compose.yml up -d --build
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host ""

@@ -10,7 +10,6 @@ export function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="border-b border-border bg-card px-4 py-3 md:px-6 md:py-4">
       <div className="flex items-center justify-between gap-4">
-        {/* Logo and Menu */}
         <div className="flex items-center gap-3">
           <button onClick={onMenuClick} className="md:hidden p-2 hover:bg-muted rounded-lg transition-colors">
             <Menu className="w-5 h-5" />
@@ -23,7 +22,6 @@ export function Header({ onMenuClick }: HeaderProps) {
           </div>
         </div>
 
-        {/* Search Bar - Hidden on mobile */}
         <div className="hidden md:flex flex-1 max-w-md">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -35,7 +33,6 @@ export function Header({ onMenuClick }: HeaderProps) {
           </div>
         </div>
 
-        {/* Right Actions */}
         <div className="flex items-center gap-2">
           <button className="p-2 hover:bg-muted rounded-lg transition-colors hidden sm:block">
             <Settings className="w-5 h-5 text-muted-foreground" />

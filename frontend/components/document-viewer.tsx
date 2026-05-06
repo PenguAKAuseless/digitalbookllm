@@ -8,7 +8,6 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 
-// Configure PDF.js worker with fallback
 if (typeof window !== 'undefined') {
   pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
 }
@@ -44,7 +43,6 @@ export function DocumentViewer({ documentId, onTextSelect }: DocumentViewerProps
         if (doc.file_type === 'application/pdf') {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
           const pdfEndpoint = `${apiUrl}/documents/${documentId}/pdf`
-          console.log('PDF URL:', pdfEndpoint)
           setPdfUrl(pdfEndpoint)
         }
       } catch (error) {
@@ -80,10 +78,8 @@ export function DocumentViewer({ documentId, onTextSelect }: DocumentViewerProps
   }
 
   const formatDocumentContent = (content: string) => {
-    // Simple formatting: split into paragraphs
     const paragraphs = content.split('\n\n').filter(p => p.trim())
     return paragraphs.map((para, idx) => {
-      // Check if it looks like a heading (short line, possibly all caps or title case)
       const isHeading = para.length < 100 && !para.includes('.')
 
       if (isHeading) {
@@ -148,7 +144,6 @@ export function DocumentViewer({ documentId, onTextSelect }: DocumentViewerProps
               renderTextLayer={true}
               renderAnnotationLayer={true}
               onLoadSuccess={() => {
-                // Enable text selection after page loads
                 setTimeout(handleTextSelection, 100)
               }}
             />
@@ -184,7 +179,6 @@ export function DocumentViewer({ documentId, onTextSelect }: DocumentViewerProps
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Toolbar */}
       <div className="border-b border-border bg-card px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Zoom:</span>
@@ -212,7 +206,6 @@ export function DocumentViewer({ documentId, onTextSelect }: DocumentViewerProps
         </div>
       </div>
 
-      {/* Document Content */}
       <div className="flex-1 overflow-auto p-4 md:p-8 bg-background">
         {loading ? (
           <div className="flex items-center justify-center h-full">
@@ -233,7 +226,6 @@ export function DocumentViewer({ documentId, onTextSelect }: DocumentViewerProps
           </div>
         ) : (
           <div onMouseUp={handleTextSelection}>
-            {/* Document Header */}
             <div className="mb-6 pb-4 border-b max-w-4xl mx-auto">
               <h1 className="text-3xl font-bold">{documentName}</h1>
               <p className="text-sm text-muted-foreground mt-1">

@@ -3,8 +3,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 async function migrate() {
-    console.log('Starting database migration...');
-
     try {
         const schemaSQL = fs.readFileSync(
             path.join(__dirname, 'schema.sql'),
@@ -12,8 +10,6 @@ async function migrate() {
         );
 
         await pool.query(schemaSQL);
-        console.log('Migration completed successfully.');
-
         // Create default guest user for mockup
         await pool.query(`
       INSERT INTO users (id, email) 
@@ -26,8 +22,6 @@ async function migrate() {
       VALUES ('guest', 0, CURRENT_DATE)
       ON CONFLICT (id) DO NOTHING
     `);
-
-        console.log('Default guest user is available.');
 
         process.exit(0);
     } catch (error) {

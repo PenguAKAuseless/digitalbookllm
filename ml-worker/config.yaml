@@ -1,5 +1,5 @@
 dataset:
-  source_dir: ../../docs
+  source_dir: ../documentation/docs
   output_file: ./data/train.jsonl
   min_chars_per_chunk: 400
   max_chars_per_chunk: 1800
