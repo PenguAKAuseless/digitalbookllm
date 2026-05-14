@@ -9,39 +9,55 @@ export class VectorRetrievalService {
         selectedText?: string
     ): Promise<RetrievedChunk[]> {
         const result = await pool.query(
-            `SELECT id, text,
-              1 - (embedding <=> $1::vector) as similarity
-       FROM chunks
-       WHERE document_id = $2
-       ORDER BY embedding <=> $1::vector
-       LIMIT $3`,
+            `SELECT id, text, 1 - (embedding <=> $1::vector) AS similarity
+             FROM chunks
+             WHERE document_id = $2
+             ORDER BY embedding <=> $1::vector
+             LIMIT $3`,
             [JSON.stringify(queryEmbedding), documentId, topK]
         );
 
         let chunks = result.rows as RetrievedChunk[];
 
         if (selectedText) {
-            chunks = chunks.filter((chunk) => {
-                const similarity = this.textSimilarity(chunk.text, selectedText);
-                return similarity < 0.9;
-            });
+            chunks = chunks.filter((c) => this.jaccardSimilarity(c.text, selectedText) < 0.9);
         }
 
         return chunks;
     }
 
-    private textSimilarity(text1: string, text2: string): number {
-        const words1 = new Set(text1.toLowerCase().split(/\s+/));
-        const words2 = new Set(text2.toLowerCase().split(/\s+/));
+    async retrieveWorkspaceChunks(
+        workspaceId: string,
+        queryEmbedding: number[],
+        topK: number = 5,
+        selectedText?: string
+    ): Promise<(RetrievedChunk & { document_name: string })[]> {
+        const result = await pool.query(
+            `SELECT c.id, c.text, d.name AS document_name,
+                    1 - (c.embedding <=> $1::vector) AS similarity
+             FROM chunks c
+             JOIN documents d ON d.id = c.document_id
+             WHERE d.workspace_id = $2
+             ORDER BY c.embedding <=> $1::vector
+             LIMIT $3`,
+            [JSON.stringify(queryEmbedding), workspaceId, topK]
+        );
 
-        const intersection = new Set([...words1].filter((word) => words2.has(word)));
-        const union = new Set([...words1, ...words2]);
+        let chunks = result.rows as (RetrievedChunk & { document_name: string })[];
 
-        if (union.size === 0) {
-            return 0;
+        if (selectedText) {
+            chunks = chunks.filter((c) => this.jaccardSimilarity(c.text, selectedText) < 0.9);
         }
 
-        return intersection.size / union.size;
+        return chunks;
+    }
+
+    private jaccardSimilarity(text1: string, text2: string): number {
+        const words1 = new Set(text1.toLowerCase().split(/\s+/));
+        const words2 = new Set(text2.toLowerCase().split(/\s+/));
+        const intersection = new Set([...words1].filter((w) => words2.has(w)));
+        const union = new Set([...words1, ...words2]);
+        return union.size === 0 ? 0 : intersection.size / union.size;
     }
 }
 

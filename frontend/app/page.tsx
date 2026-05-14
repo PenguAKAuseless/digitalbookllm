@@ -1,91 +1,118 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { DocumentViewer } from "@/components/document-viewer"
 import { ChatPanel } from "@/components/chat-panel"
 import { Header } from "@/components/header"
 import { Sidebar } from "@/components/sidebar"
+import { useAuth } from "@/lib/auth-context"
+import { workspaceAPI, Workspace } from "@/lib/api/workspaces"
+import { Loader2 } from "lucide-react"
 
 export default function Home() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [mobileView, setMobileView] = useState<"document" | "chat">("document")
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string | undefined>()
-  const [selectedText, setSelectedText] = useState<string>("")
+    const { user, loading } = useAuth()
+    const router = useRouter()
 
-  const handleDocumentSelect = (documentId: string) => {
-    setSelectedDocumentId(documentId)
-    setSelectedText("")
-  }
+    const [sidebarOpen, setSidebarOpen] = useState(true)
+    const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>("")
+    const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null)
+    const [selectedDocumentId, setSelectedDocumentId] = useState<string>("")
+    const [selectedText, setSelectedText] = useState<string>("")
 
-  const handleTextSelect = (text: string) => {
-    setSelectedText(text)
-  }
+    useEffect(() => {
+        if (!loading && !user) router.replace("/login")
+    }, [loading, user, router])
 
-  return (
-    <div className="flex h-screen flex-col bg-background">
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+    useEffect(() => {
+        if (!selectedWorkspaceId) {
+            setSelectedWorkspace(null)
+            return
+        }
+        workspaceAPI.getWorkspace(selectedWorkspaceId)
+            .then(setSelectedWorkspace)
+            .catch(() => null)
+    }, [selectedWorkspaceId])
 
-      <div className="flex flex-1 overflow-hidden">
-        <div
-          className={`${sidebarOpen ? "w-64" : "w-0"} hidden md:block transition-all duration-300 border-r border-border bg-sidebar`}
-        >
-          {sidebarOpen && (
-            <Sidebar
-              onDocumentSelect={handleDocumentSelect}
-              selectedDocumentId={selectedDocumentId}
-            />
-          )}
-        </div>
+    const handleWorkspaceSelect = (workspaceId: string) => {
+        setSelectedWorkspaceId(workspaceId)
+        setSelectedDocumentId("")
+        setSelectedText("")
+    }
 
-        {sidebarOpen && (
-          <div className="fixed inset-0 z-40 md:hidden bg-black/50" onClick={() => setSidebarOpen(false)}>
-            <div className="w-64 h-full bg-sidebar border-r border-border" onClick={(e) => e.stopPropagation()}>
-              <Sidebar
-                onDocumentSelect={(id) => {
-                  handleDocumentSelect(id)
-                  setSidebarOpen(false)
-                }}
-                selectedDocumentId={selectedDocumentId}
-              />
+    const handleDocumentSelect = (documentId: string, workspaceId: string) => {
+        setSelectedDocumentId(documentId)
+        setSelectedText("")
+        if (workspaceId && workspaceId !== selectedWorkspaceId) {
+            setSelectedWorkspaceId(workspaceId)
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-          </div>
-        )}
+        )
+    }
 
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-          <div
-            className={`${mobileView === "document" ? "flex-1" : "hidden md:flex md:flex-1"} flex flex-col border-r border-border`}
-          >
-            <DocumentViewer
-              documentId={selectedDocumentId}
-              onTextSelect={handleTextSelect}
+    if (!user) return null
+
+    return (
+        <div className="flex h-screen flex-col bg-background overflow-hidden">
+            <Header
+                onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+                workspaceName={selectedWorkspace?.name}
             />
-          </div>
 
-          <div className={`${mobileView === "chat" ? "flex-1" : "hidden md:flex md:w-[30%]"} flex flex-col bg-card`}>
-            <ChatPanel
-              documentId={selectedDocumentId}
-              selectedText={selectedText}
-            />
-          </div>
+            <div className="flex flex-1 overflow-hidden">
+                {/* Sidebar — desktop */}
+                <div className={`${sidebarOpen ? "w-64" : "w-0"} hidden md:flex flex-col transition-all duration-300 border-r border-border bg-sidebar overflow-hidden flex-shrink-0`}>
+                    {sidebarOpen && (
+                        <Sidebar
+                            onDocumentSelect={handleDocumentSelect}
+                            onWorkspaceSelect={handleWorkspaceSelect}
+                            selectedDocumentId={selectedDocumentId}
+                            selectedWorkspaceId={selectedWorkspaceId}
+                        />
+                    )}
+                </div>
 
-          <div className="md:hidden absolute bottom-4 right-4 flex gap-2 z-30">
-            <button
-              onClick={() => setMobileView("document")}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${mobileView === "document" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                }`}
-            >
-              Document
-            </button>
-            <button
-              onClick={() => setMobileView("chat")}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${mobileView === "chat" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                }`}
-            >
-              Chat
-            </button>
-          </div>
+                {/* Sidebar — mobile overlay */}
+                {sidebarOpen && (
+                    <div className="fixed inset-0 z-40 md:hidden bg-black/50" onClick={() => setSidebarOpen(false)}>
+                        <div className="w-72 h-full bg-sidebar border-r border-border" onClick={(e) => e.stopPropagation()}>
+                            <Sidebar
+                                onDocumentSelect={(id, wsId) => { handleDocumentSelect(id, wsId); setSidebarOpen(false) }}
+                                onWorkspaceSelect={(wsId) => { handleWorkspaceSelect(wsId); setSidebarOpen(false) }}
+                                selectedDocumentId={selectedDocumentId}
+                                selectedWorkspaceId={selectedWorkspaceId}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Main content */}
+                <div className="flex-1 flex overflow-hidden">
+                    {/* Document viewer */}
+                    <div className="flex-1 flex flex-col overflow-hidden border-r border-border min-w-0">
+                        <DocumentViewer
+                            documentId={selectedDocumentId || undefined}
+                            onTextSelect={setSelectedText}
+                        />
+                    </div>
+
+                    {/* Chat panel */}
+                    <div className="w-80 xl:w-96 flex-shrink-0 flex flex-col overflow-hidden">
+                        <ChatPanel
+                            workspaceId={selectedWorkspaceId || undefined}
+                            documentId={selectedDocumentId || undefined}
+                            selectedText={selectedText}
+                            onClearSelection={() => setSelectedText("")}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  )
+    )
 }

@@ -1,111 +1,142 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { embeddingService } from '../services/embeddingService';
-import { llmGenerationService } from '../services/LLMGenerationService';
+import { llmRouterService } from '../services/LLMRouterService';
 import { ragService } from '../services/ragService';
 import { vectorRetrievalService } from '../services/VectorRetrievalService';
-import { QueryRequest, QueryResponse } from '../types';
+import { workspaceService } from '../services/workspaceService';
+import { documentService } from '../services/documentService';
+import { AuthRequest } from '../middleware/auth';
+
+const DOCUMENT_SIMILARITY_THRESHOLD = 0.2;
 
 export class RAGController {
-    async query(req: Request, res: Response, next: NextFunction) {
+    async query(req: AuthRequest, res: Response, next: NextFunction) {
         try {
-            const userId = req.body.userId || 'guest';
-            const queryRequest: QueryRequest = req.body;
+            const { query, workspaceId, documentId, selectedText, topK = 5, sessionId } = req.body;
 
-            if (!queryRequest.query?.trim()) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Query text is required'
-                });
-            }
+            if (!query?.trim()) return res.status(400).json({ success: false, error: 'query is required' });
+            if (!workspaceId?.trim()) return res.status(400).json({ success: false, error: 'workspaceId is required' });
 
-            if (!queryRequest.documentId?.trim()) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Document ID is required'
-                });
-            }
+            await workspaceService.assertOwnership(workspaceId, req.userId!);
 
-            const canQuery = await ragService.checkRateLimit(userId);
-            if (!canQuery) {
-                return res.status(429).json({
-                    success: false,
-                    error: 'Daily query limit reached. Please try again tomorrow.'
-                });
-            }
-
-            const { query, documentId, selectedText, topK = 3 } = queryRequest;
-            const safeTopK = Number.isFinite(topK) ? Math.max(1, Math.min(10, topK)) : 3;
-
+            const safeTopK = Math.max(1, Math.min(20, Number(topK) || 5));
             const queryText = selectedText ? `${query} ${selectedText}` : query;
-            const queryEmbedding = await embeddingService.generateEmbedding(queryText);
+            const embedding = await embeddingService.generateEmbedding(queryText);
 
-            const retrievedChunks = await vectorRetrievalService.retrieveRelevantChunks(
-                documentId,
-                queryEmbedding,
-                safeTopK,
-                selectedText
-            );
+            let chunks: Array<{ id: string; text: string; similarity: number; document_name?: string }> = [];
+            let source: 'document' | 'workspace' | 'none' = 'none';
 
-            const response = await llmGenerationService.generateResponse(
-                query,
-                selectedText,
-                retrievedChunks
-            );
+            // 1. Try document-level first if a document is selected
+            if (documentId?.trim()) {
+                const docChunks = await vectorRetrievalService.retrieveRelevantChunks(documentId, embedding, safeTopK, selectedText);
+                if (docChunks.length > 0 && docChunks[0].similarity >= DOCUMENT_SIMILARITY_THRESHOLD) {
+                    chunks = docChunks;
+                    source = 'document';
+                }
+            }
 
-            const messageId = await ragService.recordChatExchange({
-                documentId,
-                userId,
+            // 2. Fall through to workspace-wide retrieval
+            if (chunks.length === 0) {
+                const wsChunks = await vectorRetrievalService.retrieveWorkspaceChunks(workspaceId, embedding, safeTopK, selectedText);
+                if (wsChunks.length > 0) {
+                    chunks = wsChunks;
+                    source = 'workspace';
+                }
+            }
+
+            if (chunks.length === 0) {
+                return res.json({
+                    success: true,
+                    data: {
+                        response: 'No documents found in this workspace. Upload a document first to start chatting.',
+                        retrievedChunks: [],
+                        messageId: null,
+                        source: 'none',
+                    },
+                });
+            }
+
+            let response: string;
+            let provider: string;
+            try {
+                const result = await llmRouterService.generateResponse(query, selectedText, chunks);
+                response = result.text;
+                provider = result.provider;
+            } catch (err: any) {
+                return res.status(503).json({
+                    success: false,
+                    error: err?.message || 'No LLM provider available. Configure an API key (TOGETHER_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, GROQ_API_KEY) or run Ollama locally.',
+                });
+            }
+
+            let sourceDocumentName: string | undefined;
+            if (source === 'document' && documentId) {
+                const doc = await documentService.getDocument(documentId, req.userId!);
+                sourceDocumentName = doc?.name;
+            } else if (source === 'workspace') {
+                sourceDocumentName = (chunks[0] as any)?.document_name;
+            }
+
+            const { messageId, sessionId: returnedSessionId } = await ragService.recordChatExchange({
+                workspaceId,
+                documentId: source === 'document' ? documentId : undefined,
+                userId: req.userId!,
                 query,
                 response,
                 selectedText,
-                retrievedChunks
+                retrievedChunks: chunks,
+                sessionId,
+                source,
+                sourceDocumentName,
+                provider,
             });
-
-            await ragService.incrementQueryCount(userId);
-
-            const result: QueryResponse = {
-                response,
-                retrievedChunks: retrievedChunks.map((chunk) => ({
-                    text: chunk.text,
-                    similarity: chunk.similarity
-                })),
-                messageId
-            };
 
             res.json({
                 success: true,
-                data: result
+                data: {
+                    response,
+                    retrievedChunks: chunks.map((c) => ({
+                        text: c.text,
+                        similarity: c.similarity,
+                        documentName: (c as any).document_name,
+                    })),
+                    messageId,
+                    sessionId: returnedSessionId,
+                    source,
+                    sourceDocumentName,
+                    provider,
+                },
             });
         } catch (error) {
             next(error);
         }
     }
 
-    async getChatHistory(req: Request, res: Response, next: NextFunction) {
+    async getSessionHistory(req: AuthRequest, res: Response, next: NextFunction) {
         try {
-            const { documentId } = req.params;
-            const userId = req.query.userId as string || 'guest';
-
-            const history = await ragService.getChatHistory(documentId, userId);
-
-            res.json({
-                success: true,
-                data: history
-            });
+            const history = await ragService.getSessionHistory(req.params.sessionId);
+            res.json({ success: true, data: history });
         } catch (error) {
             next(error);
         }
     }
 
-    async getQueryCount(req: Request, res: Response, next: NextFunction) {
+    async getWorkspaceSessions(req: AuthRequest, res: Response, next: NextFunction) {
         try {
-            const userId = req.query.userId as string || 'guest';
-            const queryCount = await ragService.getQueryCount(userId);
+            const { workspaceId } = req.params;
+            await workspaceService.assertOwnership(workspaceId, req.userId!);
+            const sessions = await ragService.getWorkspaceSessions(workspaceId, req.userId!);
+            res.json({ success: true, data: sessions });
+        } catch (error) {
+            next(error);
+        }
+    }
 
-            res.json({
-                success: true,
-                data: queryCount
-            });
+    async deleteSession(req: AuthRequest, res: Response, next: NextFunction) {
+        try {
+            const deleted = await ragService.deleteSession(req.params.sessionId, req.userId!);
+            if (!deleted) return res.status(404).json({ success: false, error: 'Session not found' });
+            res.json({ success: true, message: 'Session deleted' });
         } catch (error) {
             next(error);
         }

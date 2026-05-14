@@ -1,21 +1,29 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-const REQUEST_TIMEOUT_MS = 15000;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const TIMEOUT = 60000;
 
 export interface QueryRequest {
     query: string;
-    documentId: string;
+    workspaceId: string;
+    documentId?: string;
     selectedText?: string;
     topK?: number;
-    userId?: string;
+    sessionId?: string;
+}
+
+export interface RetrievedChunk {
+    text: string;
+    similarity: number;
+    documentName?: string;
 }
 
 export interface QueryResponse {
     response: string;
-    retrievedChunks: Array<{
-        text: string;
-        similarity: number;
-    }>;
-    messageId: string;
+    retrievedChunks: RetrievedChunk[];
+    messageId: string | null;
+    sessionId?: string;
+    source: 'document' | 'workspace' | 'none';
+    sourceDocumentName?: string;
+    provider?: string;
 }
 
 export interface ChatMessage {
@@ -23,68 +31,59 @@ export interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
     selected_text?: string;
+    source?: 'document' | 'workspace' | 'none';
+    source_document_name?: string;
+    provider?: string;
     created_at: string;
 }
 
-export interface QueryCount {
-    used: number;
-    limit: number;
+export interface ChatSession {
+    id: string;
+    document_id: string | null;
+    title: string;
+    created_at: string;
+    updated_at: string;
 }
 
 async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), TIMEOUT);
 
     try {
-        const response = await fetch(url, {
-            ...init,
-            signal: controller.signal,
-        });
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        const headers: Record<string, string> = { ...(init?.headers as Record<string, string>), 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const result = await response.json();
-
-        if (!response.ok || !result.success) {
-            throw new Error(result.error || 'Request failed');
-        }
-
-        return result.data as T;
-    } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-            throw new Error('Request timed out. Backend may be unavailable.');
-        }
-
-        if (error instanceof TypeError) {
-            throw new Error('Failed to reach backend API. Ensure backend is running on port 3001.');
-        }
-
-        throw error;
+        const res = await fetch(url, { ...init, headers, signal: controller.signal });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || 'Request failed');
+        return json.data as T;
+    } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') throw new Error('Request timed out');
+        throw err;
     } finally {
-        clearTimeout(timeout);
+        clearTimeout(timer);
     }
 }
 
 class RAGAPI {
     async query(request: QueryRequest): Promise<QueryResponse> {
-        const payload = {
-            ...request,
-            userId: request.userId || 'guest',
-        };
-
-        return apiRequest<QueryResponse>(`${API_BASE_URL}/rag/query`, {
+        return apiRequest(`${API_BASE}/rag/query`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
+            body: JSON.stringify(request),
         });
     }
 
-    async getChatHistory(documentId: string, userId: string = 'guest'): Promise<ChatMessage[]> {
-        return apiRequest<ChatMessage[]>(`${API_BASE_URL}/rag/history/${documentId}?userId=${encodeURIComponent(userId)}`);
+    async getSessionHistory(sessionId: string): Promise<ChatMessage[]> {
+        return apiRequest(`${API_BASE}/rag/history/session/${sessionId}`);
     }
 
-    async getQueryCount(userId: string = 'guest'): Promise<QueryCount> {
-        return apiRequest<QueryCount>(`${API_BASE_URL}/rag/query-count?userId=${encodeURIComponent(userId)}`);
+    async getWorkspaceSessions(workspaceId: string): Promise<ChatSession[]> {
+        return apiRequest(`${API_BASE}/rag/sessions/workspace/${workspaceId}`);
+    }
+
+    async deleteSession(sessionId: string): Promise<void> {
+        await apiRequest(`${API_BASE}/rag/sessions/${sessionId}`, { method: 'DELETE' });
     }
 }
 

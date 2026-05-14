@@ -1,5 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-const REQUEST_TIMEOUT_MS = 10000;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const TIMEOUT = 30000;
 
 export interface Document {
     id: string;
@@ -10,70 +10,66 @@ export interface Document {
     updated_at: string;
 }
 
+export interface DocumentDetail extends Document {
+    workspace_id: string;
+    user_id: string;
+    full_text: string;
+    file_path: string | null;
+}
+
 export interface UploadResponse {
     documentId: string;
     name: string;
     fileType: string;
     fileSize: number;
-    message: string;
 }
 
 async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), TIMEOUT);
 
     try {
-        const response = await fetch(url, {
-            ...init,
-            signal: controller.signal,
-        });
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        const headers: Record<string, string> = { ...(init?.headers as Record<string, string>) };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        if (!(init?.body instanceof FormData)) headers['Content-Type'] = 'application/json';
 
-        const result = await response.json();
-
-        if (!response.ok || !result.success) {
-            throw new Error(result.error || 'Request failed');
-        }
-
-        return result.data as T;
-    } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-            throw new Error('Request timed out. Backend may be unavailable.');
-        }
-
-        if (error instanceof TypeError) {
-            throw new Error('Failed to reach backend API. Ensure backend is running on port 3001.');
-        }
-
-        throw error;
+        const res = await fetch(url, { ...init, headers, signal: controller.signal });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || 'Request failed');
+        return json.data as T;
+    } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') throw new Error('Upload timed out');
+        if (err instanceof TypeError) throw new Error('Cannot reach backend. Make sure it is running on port 3001.');
+        throw err;
     } finally {
-        clearTimeout(timeout);
+        clearTimeout(timer);
     }
 }
 
 class DocumentAPI {
-    async upload(file: File, userId: string = 'guest'): Promise<UploadResponse> {
+    async upload(file: File, workspaceId: string): Promise<UploadResponse> {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('userId', userId);
-
-        return apiRequest<UploadResponse>(`${API_BASE_URL}/documents/upload`, {
-            method: 'POST',
-            body: formData,
-        });
+        formData.append('workspaceId', workspaceId);
+        return apiRequest(`${API_BASE}/documents/upload`, { method: 'POST', body: formData });
     }
 
-    async getDocuments(userId: string = 'guest'): Promise<Document[]> {
-        return apiRequest<Document[]>(`${API_BASE_URL}/documents?userId=${encodeURIComponent(userId)}`);
+    async getDocuments(workspaceId: string): Promise<Document[]> {
+        return apiRequest(`${API_BASE}/documents?workspaceId=${encodeURIComponent(workspaceId)}`);
     }
 
-    async getDocument(documentId: string): Promise<Document & { full_text: string }> {
-        return apiRequest<Document & { full_text: string }>(`${API_BASE_URL}/documents/${documentId}`);
+    async getDocument(documentId: string): Promise<DocumentDetail> {
+        return apiRequest(`${API_BASE}/documents/${documentId}`);
     }
 
     async deleteDocument(documentId: string): Promise<void> {
-        await apiRequest<unknown>(`${API_BASE_URL}/documents/${documentId}`, {
-            method: 'DELETE',
-        });
+        await apiRequest(`${API_BASE}/documents/${documentId}`, { method: 'DELETE' });
+    }
+
+    getPdfUrl(documentId: string): string {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+        return `${API_BASE}/documents/${documentId}/pdf`;
     }
 }
 
