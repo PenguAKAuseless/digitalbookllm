@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from "react"
 import {
-    Send, MessageCircle, Zap, Copy, Loader2, Trash2,
-    History, Plus, FileText, Globe, Volume2, Square, X
+    Send, MessageCircle, Copy, Loader2, Trash2,
+    History, Plus, FileText, Globe, Volume2, Square, X,
+    Brain, FileBarChart, RotateCcw
 } from "lucide-react"
 import { ragAPI, ChatSession } from "@/lib/api/rag"
+import { agenticRAG } from "@/lib/api/advanced"
 
 interface Message {
     id: string
@@ -15,25 +17,30 @@ interface Message {
     selectedText?: string
     source?: "document" | "workspace" | "none"
     sourceDocumentName?: string
+    origin?: "chat" | "summary"
 }
 
 interface ChatPanelProps {
     workspaceId?: string
     documentId?: string
+    documentName?: string
     selectedText?: string
     onClearSelection?: () => void
+    onOpenQuiz?: () => void
 }
 
-export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelection }: ChatPanelProps) {
+export function ChatPanel({ workspaceId, documentId, documentName: _documentName, selectedText, onClearSelection, onOpenQuiz }: ChatPanelProps) {
     const [messages, setMessages] = useState<Message[]>([])
     const [input, setInput] = useState("")
     const [isLoading, setIsLoading] = useState(false)
+    const [isSummarizing, setIsSummarizing] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [sessions, setSessions] = useState<ChatSession[]>([])
     const [activeSessionId, setActiveSessionId] = useState<string | undefined>()
     const [showSessions, setShowSessions] = useState(false)
     const [activeSpeechId, setActiveSpeechId] = useState<string | null>(null)
     const [speechSupported, setSpeechSupported] = useState(false)
+    const [retryingMessageId, setRetryingMessageId] = useState<string | null>(null)
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -51,6 +58,7 @@ export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelect
         setActiveSessionId(undefined)
         setSessions([])
         setError(null)
+        setRetryingMessageId(null)
     }, [workspaceId])
 
     useEffect(() => {
@@ -77,6 +85,7 @@ export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelect
                 selectedText: m.selected_text || undefined,
                 source: m.source,
                 sourceDocumentName: m.source_document_name,
+                origin: m.role === "assistant" ? "chat" : undefined,
             }))
             setMessages(formatted)
             setActiveSessionId(sessionId)
@@ -105,6 +114,7 @@ export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelect
         setActiveSessionId(undefined)
         setShowSessions(false)
         setError(null)
+        setRetryingMessageId(null)
     }
 
     const stopSpeech = () => {
@@ -161,6 +171,7 @@ export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelect
                 timestamp: new Date(),
                 source: resp.source,
                 sourceDocumentName: resp.sourceDocumentName,
+                origin: "chat",
             }
             setMessages((prev) => [...prev, asst])
             onClearSelection?.()
@@ -178,9 +189,83 @@ export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelect
                 role: "assistant",
                 content: `⚠ ${msg}`,
                 timestamp: new Date(),
+                origin: "chat",
             }])
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const getRetryPayload = (assistantIndex: number) => {
+        if (!workspaceId) return null
+        for (let i = assistantIndex - 1; i >= 0; i -= 1) {
+            const msg = messages[i]
+            if (msg.role === "user") {
+                return {
+                    query: msg.content,
+                    selectedText: msg.selectedText,
+                    workspaceId,
+                    documentId: documentId || undefined,
+                }
+            }
+        }
+        return null
+    }
+
+    const handleRetry = async (assistantIndex: number, messageId: string) => {
+        if (isLoading) return
+        const payload = getRetryPayload(assistantIndex)
+        if (!payload) {
+            setError("Nothing to retry yet")
+            return
+        }
+
+        setIsLoading(true)
+        setError(null)
+        setRetryingMessageId(messageId)
+        setMessages((prev) => prev.filter((m) => m.id !== messageId))
+
+        try {
+            const resp = await ragAPI.query({
+                query: payload.query,
+                workspaceId: payload.workspaceId,
+                documentId: payload.documentId,
+                selectedText: payload.selectedText,
+                sessionId: activeSessionId,
+            })
+
+            const updated: Message = {
+                id: resp.messageId || Date.now().toString(),
+                role: "assistant",
+                content: resp.response,
+                timestamp: new Date(),
+                source: resp.source,
+                sourceDocumentName: resp.sourceDocumentName,
+                origin: "chat",
+            }
+
+            setMessages((prev) => [...prev, updated])
+            onClearSelection?.()
+
+            if (resp.sessionId && resp.sessionId !== activeSessionId) {
+                setActiveSessionId(resp.sessionId)
+                setTimeout(() => loadSessions(), 300)
+            }
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : "Unknown error"
+            setError(msg)
+            setMessages((prev) => [...prev, {
+                id: Date.now().toString(),
+                role: "assistant",
+                content: `⚠ ${msg}`,
+                timestamp: new Date(),
+                source: "none",
+                sourceDocumentName: undefined,
+                origin: "chat",
+            }])
+        } finally {
+            setIsLoading(false)
+            setRetryingMessageId(null)
         }
     }
 
@@ -202,6 +287,13 @@ export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelect
         }
         return null
     }
+
+    const latestAssistantIndex = (() => {
+        for (let i = messages.length - 1; i >= 0; i -= 1) {
+            if (messages[i].role === "assistant") return i
+        }
+        return -1
+    })()
 
     return (
         <div className="flex flex-col h-full bg-card min-h-0">
@@ -271,58 +363,76 @@ export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelect
                     </div>
                 )}
 
-                {messages.map((message) => {
+                {messages.map((message, index) => {
                     const isUser = message.role === "user"
                     const src = !isUser ? sourceLabel(message) : null
+                    const isLatestAssistant = !isUser && message.origin === "chat" && index === latestAssistantIndex
+                    const retryPayload = isLatestAssistant ? getRetryPayload(index) : null
+                    const showRetry = Boolean(retryPayload)
                     return (
                         <div key={message.id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-                            <div className={`max-w-[85%] rounded-lg overflow-hidden ${isUser ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted text-foreground rounded-bl-none"}`}>
-                                {/* Selected-text context header (user bubble only) */}
-                                {isUser && message.selectedText && (
-                                    <div className="bg-black/15 px-3 py-1.5 border-b border-white/10">
-                                        <p className="text-[10px] uppercase tracking-wider opacity-70 mb-0.5">Context</p>
-                                        <p className="text-xs italic line-clamp-2 opacity-90">"{message.selectedText}"</p>
-                                    </div>
-                                )}
-
-                                <div className="px-3 py-2">
-                                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-
-                                    {/* Source attribution on assistant bubble */}
-                                    {src && (
-                                        <div className="flex items-center gap-1 mt-1.5 text-[10px] opacity-70">
-                                            {src.icon}
-                                            <span className="truncate">From: {src.text}</span>
+                            <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} max-w-[85%]`}>
+                                <div className={`rounded-lg overflow-hidden ${isUser ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted text-foreground rounded-bl-none"}`}>
+                                    {/* Selected-text context header (user bubble only) */}
+                                    {isUser && message.selectedText && (
+                                        <div className="bg-black/15 px-3 py-1.5 border-b border-white/10">
+                                            <p className="text-[10px] uppercase tracking-wider opacity-70 mb-0.5">Context</p>
+                                            <p className="text-xs italic line-clamp-2 opacity-90">&ldquo;{message.selectedText}&rdquo;</p>
                                         </div>
                                     )}
 
-                                    <div className="flex items-center justify-between mt-1 gap-2">
-                                        <span className="text-[10px] opacity-60">
-                                            {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                        </span>
-                                        {!isUser && (
-                                            <div className="flex gap-1">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => navigator.clipboard.writeText(message.content).catch(() => null)}
-                                                    className="p-1 rounded hover:bg-background/40 opacity-60 hover:opacity-100 transition-opacity"
-                                                    title="Copy"
-                                                >
-                                                    <Copy className="w-3 h-3" />
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => speakMessage(message.id, message.content)}
-                                                    disabled={!speechSupported}
-                                                    className="p-1 rounded hover:bg-background/40 opacity-60 hover:opacity-100 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
-                                                    title={activeSpeechId === message.id ? "Stop reading" : "Read aloud"}
-                                                >
-                                                    {activeSpeechId === message.id ? <Square className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
-                                                </button>
+                                    <div className="px-3 py-2">
+                                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+
+                                        {/* Source attribution on assistant bubble */}
+                                        {src && (
+                                            <div className="flex items-center gap-1 mt-1.5 text-[10px] opacity-70">
+                                                {src.icon}
+                                                <span className="truncate">From: {src.text}</span>
                                             </div>
                                         )}
+
+                                        <div className="flex items-center justify-between mt-1 gap-2">
+                                            <span className="text-[10px] opacity-60">
+                                                {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                            </span>
+                                            {!isUser && (
+                                                <div className="flex gap-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => navigator.clipboard.writeText(message.content).catch(() => null)}
+                                                        className="p-1 rounded hover:bg-background/40 opacity-60 hover:opacity-100 transition-opacity"
+                                                        title="Copy"
+                                                    >
+                                                        <Copy className="w-3 h-3" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => speakMessage(message.id, message.content)}
+                                                        disabled={!speechSupported}
+                                                        className="p-1 rounded hover:bg-background/40 opacity-60 hover:opacity-100 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+                                                        title={activeSpeechId === message.id ? "Stop reading" : "Read aloud"}
+                                                    >
+                                                        {activeSpeechId === message.id ? <Square className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
+
+                                {showRetry && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRetry(index, message.id)}
+                                        disabled={isLoading}
+                                        className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                                        title="Retry last question"
+                                    >
+                                        <RotateCcw className={`w-3 h-3 ${retryingMessageId === message.id ? "animate-spin" : ""}`} />
+                                        {retryingMessageId === message.id ? "Retrying" : "Retry"}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )
@@ -340,23 +450,50 @@ export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelect
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick prompts (when empty) */}
-            {messages.length === 0 && workspaceId && (
+            {/* Quick actions */}
+            {workspaceId && (
                 <div className="px-4 py-2 border-t border-border flex-shrink-0">
                     <div className="flex gap-2">
-                        {[
-                            { label: "Summarize", prompt: "Summarize the key points" },
-                            { label: "Quiz me", prompt: "Generate a quiz question about this content" },
-                        ].map((p) => (
-                            <button
-                                key={p.label}
-                                onClick={() => setInput(p.prompt)}
-                                className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded bg-muted hover:bg-muted/80 text-xs font-medium transition-colors"
-                            >
-                                <Zap className="w-3 h-3" />
-                                {p.label}
-                            </button>
-                        ))}
+                        <button
+                            onClick={async () => {
+                                if (!documentId || !workspaceId) {
+                                    setError("Select a document to summarize")
+                                    return
+                                }
+                                setIsSummarizing(true)
+                                setError(null)
+                                try {
+                                    const result = await agenticRAG.summarize(documentId, workspaceId, "key_points")
+                                    const summaryMsg: Message = {
+                                        id: Date.now().toString(),
+                                        role: "assistant",
+                                        content: `**Summary of ${result.document_name}**\n\n${result.summary}\n\n**Key Points:**\n${result.key_points.map(p => `• ${p}`).join('\n')}`,
+                                        timestamp: new Date(),
+                                        source: "document",
+                                        sourceDocumentName: result.document_name,
+                                        origin: "summary",
+                                    }
+                                    setMessages(prev => [...prev, summaryMsg])
+                                } catch (err) {
+                                    setError(err instanceof Error ? err.message : "Failed to summarize")
+                                } finally {
+                                    setIsSummarizing(false)
+                                }
+                            }}
+                            disabled={isSummarizing || !documentId}
+                            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded bg-muted hover:bg-muted/80 text-xs font-medium transition-colors disabled:opacity-50"
+                        >
+                            {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileBarChart className="w-3 h-3" />}
+                            Summarize
+                        </button>
+                        <button
+                            onClick={() => onOpenQuiz?.()}
+                            disabled={!documentId}
+                            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded bg-muted hover:bg-muted/80 text-xs font-medium transition-colors disabled:opacity-50"
+                        >
+                            <Brain className="w-3 h-3" />
+                            Quiz me
+                        </button>
                     </div>
                 </div>
             )}
@@ -369,7 +506,7 @@ export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelect
                 {selectedText && (
                     <div className="flex items-start gap-2 text-xs text-primary bg-primary/10 px-2 py-1.5 rounded">
                         <FileText className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                        <span className="flex-1 line-clamp-2 italic">"{selectedText}"</span>
+                        <span className="flex-1 line-clamp-2 italic">&ldquo;{selectedText}&rdquo;</span>
                         <button
                             onClick={onClearSelection}
                             className="text-primary/60 hover:text-primary flex-shrink-0"

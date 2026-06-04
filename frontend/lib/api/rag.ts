@@ -1,5 +1,5 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-const TIMEOUT = 60000;
+const TIMEOUT = 120000;
 
 export interface QueryRequest {
     query: string;
