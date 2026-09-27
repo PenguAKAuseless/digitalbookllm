@@ -1,5 +1,40 @@
--- Enable pgvector extension for vector similarity search
+-- ============================================================================
+-- DigitalBookLLM Database Schema
+-- Complete initialization script for PostgreSQL with pgvector
+-- ============================================================================
+
+-- ============================================================================
+-- EXTENSIONS
+-- ============================================================================
 CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;  -- For fuzzy text search
+
+-- ============================================================================
+-- UTILITY FUNCTIONS
+-- ============================================================================
+
+-- Function to automatically update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to reset daily query count (can be called by cron or application)
+CREATE OR REPLACE FUNCTION reset_daily_query_counts()
+RETURNS void AS $$
+BEGIN
+    UPDATE user_sessions
+    SET queries_today = 0, last_reset_date = CURRENT_DATE
+    WHERE last_reset_date < CURRENT_DATE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================================
+-- CORE TABLES
+-- ============================================================================
 
 -- Users table with password auth
 CREATE TABLE IF NOT EXISTS users (
@@ -15,6 +50,7 @@ CREATE TABLE IF NOT EXISTS workspaces (
     user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
+    domain VARCHAR(100),  -- For LoRA adapter routing: 'medical', 'legal', 'technical', etc.
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, name)
@@ -68,7 +104,6 @@ CREATE TABLE IF NOT EXISTS highlights (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 -- Chat sessions (per-document or per-workspace)
 CREATE TABLE IF NOT EXISTS chat_sessions (
     id VARCHAR(255) PRIMARY KEY,
@@ -89,6 +124,7 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     selected_text TEXT,
     citations JSONB,
     provider VARCHAR(50),
+    reasoning_trace JSONB,  -- Store ReAct reasoning steps
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -148,6 +184,7 @@ CREATE INDEX IF NOT EXISTS highlights_document_id_idx ON highlights(document_id)
 CREATE INDEX IF NOT EXISTS highlights_user_id_idx ON highlights(user_id);
 CREATE INDEX IF NOT EXISTS chat_sessions_workspace_id_idx ON chat_sessions(workspace_id);
 CREATE INDEX IF NOT EXISTS chat_sessions_document_id_idx ON chat_sessions(document_id);
+CREATE INDEX IF NOT EXISTS chat_sessions_user_id_idx ON chat_sessions(user_id);
 CREATE INDEX IF NOT EXISTS chat_messages_session_id_idx ON chat_messages(session_id);
 CREATE INDEX IF NOT EXISTS workspaces_user_id_idx ON workspaces(user_id);
 CREATE INDEX IF NOT EXISTS entities_user_id_idx ON entities(user_id);

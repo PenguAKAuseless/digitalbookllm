@@ -45,6 +45,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Python compiled
+__pycache__/
+*.pyc
+
 # Misc
 *.pid
 *.seed
