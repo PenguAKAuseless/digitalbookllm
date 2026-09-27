@@ -31,8 +31,8 @@ async function startServer() {
 
         workerPool.start();
 
-        app.listen(PORT, () => {
-            console.log(`[Server] Running on http://localhost:${PORT}`);
+        app.listen(Number(PORT), '0.0.0.0', () => {
+            console.log(`[Server] Running on port ${PORT}`);
         });
     } catch (error) {
         console.error('Failed to start server:', error);

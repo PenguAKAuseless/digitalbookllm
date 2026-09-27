@@ -36,10 +36,9 @@ platform instead, per ADR-12.
 
 ```
 Vercel (Next.js client)
-        │  NEXT_PUBLIC_API_URL
-        ▼
-Hugging Face Spaces  ──── standby ────  Render
-(API + worker, Docker)                  (API + worker, Docker)
+   │  NEXT_PUBLIC_API_URL
+   ▼
+Render (primary API + worker, Docker) ──── optional standby ──── Hugging Face Spaces
         │
         ▼
 Supabase (Postgres + pgvector, Storage)
@@ -85,31 +84,29 @@ redundancy:
 
 Any subset works; unset ones are skipped by `isConfigured()` in the router.
 
-## 3. Deploy the backend — Hugging Face Spaces (primary)
+## 3. Deploy the backend — Render (primary)
 
-1. Create a new Space → **Docker** SDK, any hardware tier (the free CPU tier
-   is enough).
-2. Push this repository's `backend/` directory as the Space's root (or point
-   the Space at a subdirectory via `Dockerfile` path in the Space settings).
-3. In the Space's **Settings → Variables and secrets**, add every variable
-   from `backend/.env.example` as a secret (never commit real keys).
-4. The Space builds `backend/Dockerfile` and exposes port `3001` (mapped to
-   the Space's public port automatically).
-5. Note the Space's public URL, e.g. `https://<user>-<space>.hf.space`.
+1. Create a **Web Service** and connect the repository.
+2. Set the root directory to `backend/` and the environment to **Docker**.
+3. Add the variables from `backend/.env.example`, plus the Supabase and
+   production values from §1. Do not set a fixed port unless Render requires
+   it — the application reads Render's `PORT` value automatically.
+4. Set `FRONTEND_URL` to the Vercel origin after the frontend is created.
+5. Copy the generated Render URL, for example
+   `https://digitalbookllm-api.onrender.com`.
 
-Hugging Face Spaces sleep after a period of inactivity on the free tier and
-wake on the next request (a few seconds' delay) — acceptable for a course
-project; not for a paid SLA.
+Render's free service may spin down after inactivity. A scheduled request to
+`/health` can reduce cold starts, but does not guarantee that the service stays
+running or override the provider's free-tier policy.
 
-## 4. Deploy the backend — Render (standby)
+## 4. Deploy the backend — Hugging Face Spaces (optional standby)
 
-1. New **Web Service** → connect the repository → root directory `backend/`.
-2. Environment: **Docker**, uses `backend/Dockerfile` automatically.
-3. Add the same environment variables as step 3 above under
-   **Environment → Environment Variables**.
-4. Render's free tier spins the container down after 15 minutes idle and
-   takes ~50s to cold-start on the next request; keep this as the standby,
-   not the default.
+1. Create a new Space using the **Docker** SDK.
+2. Deploy the `backend/` directory as the Space root.
+3. Add the same backend secrets as the Render service.
+4. Configure the Space's exposed application port according to its Space
+   settings; the container supports a runtime `PORT` value.
+5. Use the Space URL only as a manual failover target.
 
 ## 5. Deploy the frontend — Vercel
 
@@ -117,14 +114,13 @@ project; not for a paid SLA.
 2. Framework preset: Next.js (auto-detected).
 3. Environment variable:
    ```
-   NEXT_PUBLIC_API_URL=https://<your-hf-space-or-render-url>/api
+   NEXT_PUBLIC_API_URL=https://<your-render-url>/api
    ```
 4. Deploy. Vercel's free tier serves the app on a `*.vercel.app` domain with
    automatic HTTPS and a global CDN.
 
-To fail over to the standby API, change `NEXT_PUBLIC_API_URL` to the Render
-URL and redeploy (or use Vercel's environment-variable-per-branch feature to
-keep both ready).
+To fail over to the HF standby API, change `NEXT_PUBLIC_API_URL` to the Space
+URL and redeploy.
 
 ## 6. Post-deploy verification
 
