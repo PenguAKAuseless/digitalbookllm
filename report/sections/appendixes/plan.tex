@@ -3,53 +3,48 @@ Phụ lục này trình bày kế hoạch triển khai đồ án theo 5 giai đo
 
 \section{Biểu đồ Gantt}
 
-\begin{figure}[H]
-\centering
-\begin{ganttchart}[
-    hgrid,
-    vgrid,
-    x unit=1.05cm,
-    y unit chart=0.7cm,
-    bar height=0.55,
-    bar/.append style={fill=blue!40},
-    milestone/.append style={fill=red!70},
-    title height=1,
-    title/.style={fill=blue!10},
-    group/.append style={fill=blue!60},
-]{1}{8}
-    \gantttitle{Kế hoạch triển khai DigitalBookLLM (02/2026 -- 09/2026)}{8} \\
-    \gantttitlelist{Th.02,Th.03,Th.04,Th.05,Th.06,Th.07,Th.08,Th.09}{1} \\
-
-    \ganttgroup{GĐ1: Khởi tạo \& yêu cầu}{1}{1} \\
-    \ganttbar{Khảo sát vấn đề, đối thủ}{1}{1} \\
-    \ganttmilestone{Chốt phạm vi đề tài}{1} \\
-
-    \ganttgroup{GĐ2: Phân tích \& thiết kế}{2}{2} \\
-    \ganttbar{Cơ sở lý thuyết, yêu cầu FR/NFR/UC}{2}{2} \\
-    \ganttbar{Thiết kế kiến trúc, CSDL, UI/UX}{2}{2} \\
-
-    \ganttgroup{GĐ3: Hiện thực hoá}{3}{6} \\
-    \ganttbar{Backend: xác thực, workspace, hàng đợi}{3}{3} \\
-    \ganttbar{Pipeline nạp tài liệu (OCR, chunking)}{3}{4} \\
-    \ganttbar{Pipeline RAG \& bộ định tuyến LLM}{4}{5} \\
-    \ganttbar{Frontend: trình đọc, chat, highlight}{4}{6} \\
-    \ganttbar{Đồ thị tri thức cá nhân hoá}{5}{6} \\
-    \ganttmilestone{Bản build đầu-cuối (MVP)}{6} \\
-
-    \ganttgroup{GĐ4: Kiểm thử}{7}{7} \\
-    \ganttbar{Kiểm thử đơn vị, tích hợp, bảo mật}{7}{7} \\
-    \ganttbar{Kiểm thử hiệu năng \& đánh giá RAG}{7}{7} \\
-
-    \ganttgroup{GĐ5: Đóng gói}{8}{8} \\
-    \ganttbar{Triển khai công khai, hoàn thiện báo cáo}{8}{8} \\
-    \ganttmilestone{Nghiệm thu đồ án}{8}
-\end{ganttchart}
-\caption{Biểu đồ Gantt kế hoạch triển khai đồ án}
-\label{fig:gantt}
-\end{figure}
+\begin{landscape}
+\begin{table}[p]
+    \centering
+    \caption{Kế hoạch triển khai DigitalBookLLM (02/2026 -- 09/2026)}
+    \label{tab:gantt_table}
+    \footnotesize
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.05}
+    \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}X|*{8}{C{0.065\linewidth}|}}
+    \hline
+    \textbf{Công việc} & \textbf{Th.02} & \textbf{Th.03} & \textbf{Th.04} & \textbf{Th.05} & \textbf{Th.06} & \textbf{Th.07} & \textbf{Th.08} & \textbf{Th.09} \\ \hline
+    
+    \textbf{GĐ1: Khởi tạo \& yêu cầu} & & & & & & & & \\ \hline
+    Khảo sát vấn đề, đối thủ & \cellcolor{blue!20} & & & & & & & \\ \hline
+    Chốt phạm vi đề tài (Milestone) & \cellcolor{blue!50} & & & & & & & \\ \hline
+    
+    \textbf{GĐ2: Phân tích \& thiết kế} & & & & & & & & \\ \hline
+    Cơ sở lý thuyết, yêu cầu FR/NFR/UC & & \cellcolor{green!15} & & & & & & \\ \hline
+    Thiết kế kiến trúc, CSDL, UI/UX & & \cellcolor{green!15} & & & & & & \\ \hline
+    
+    \textbf{GĐ3: Hiện thực hoá} & & & & & & & & \\ \hline
+    Backend: xác thực, workspace, hàng đợi & & & \cellcolor{orange!30} & & & & & \\ \hline
+    Pipeline nạp tài liệu (OCR, chunking) & & & \cellcolor{yellow!30} & \cellcolor{yellow!30} & & & & \\ \hline
+    Pipeline RAG \& bộ định tuyến LLM & & & & \cellcolor{purple!20} & \cellcolor{purple!20} & & & \\ \hline
+    Frontend: trình đọc, chat, highlight & & & & \cellcolor{teal!30} & \cellcolor{teal!30} & \cellcolor{teal!30} & & \\ \hline
+    Đồ thị tri thức cá nhân hoá & & & & & \cellcolor{cyan!40} & \cellcolor{cyan!40} & & \\ \hline
+    Bản build đầu-cuối (MVP) (Milestone)& & & & & & \cellcolor{blue!60} & & \\ \hline
+    
+    \textbf{GĐ4: Kiểm thử} & & & & & & & & \\ \hline
+    Kiểm thử đơn vị, tích hợp, bảo mật & & & & & & & \cellcolor{orange!50} & \\ \hline
+    Kiểm thử hiệu năng \& đánh giá RAG & & & & & & & \cellcolor{red!30} & \\ \hline
+    
+    \textbf{GĐ5: Đóng gói} & & & & & & & & \\ \hline
+    Triển khai công khai, hoàn thiện báo cáo & & & & & & & & \cellcolor{red!60} \\ \hline
+    Nghiệm thu đồ án (Milestone) & & & & & & & & \cellcolor{red!90} \\ \hline
+    \end{tabularx}
+\end{table}
+\end{landscape}
 
 \section{Diễn giải các giai đoạn}
-\begin{longtable}{|C{0.10\textwidth}|C{0.16\textwidth}|L{0.62\textwidth}|}
+% Tinh chỉnh lại tổng tỷ lệ các cột xuống khoảng ~0.9\textwidth để bù trừ cho padding
+\begin{longtable}{|C{0.12\textwidth}|C{0.15\textwidth}|L{0.63\textwidth}|}
 \caption{Diễn giải chi tiết 5 giai đoạn triển khai}\\
 \hline
 \textbf{Giai đoạn} & \textbf{Thời gian} & \textbf{Công việc cụ thể} \\\hline
@@ -63,5 +58,3 @@ GĐ3 & Th.04--07/2026 & Hiện thực hoá theo từng phân hệ: xác thực \
 GĐ4 & Th.08/2026 & Kiểm thử toàn diện: đơn vị, tích hợp, bảo mật (IDOR), hiệu năng/tải đồng thời, đánh giá chất lượng truy xuất RAG (recall@k, TTFB). \\\hline
 GĐ5 & Th.09/2026 & Triển khai công khai (Vercel/nền tảng container hoá + Supabase), hoàn thiện tài liệu báo cáo, chuẩn bị và thực hiện nghiệm thu đồ án. \\\hline
 \end{longtable}
-
-\textit{Ghi chú: mốc thời gian chi tiết theo tuần (phân bổ nhân lực, người phụ trách từng phân hệ) chưa được đưa vào bảng trên; xem tệp theo dõi công việc còn lại đính kèm đồ án để bổ sung theo tiến độ thực tế của nhóm.}
