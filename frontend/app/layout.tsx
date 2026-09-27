@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
-
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+import { I18nProvider } from "@/lib/i18n";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
     title: "DigitalBookLLM",
-    description: "Document learning with prioritized RAG and local-first workflows",
+    description: "AI-assisted eBook reader with contextual chat and a personal knowledge graph",
     icons: {
         icon: "/favicon.svg",
     },
@@ -16,9 +14,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="en">
-            <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                <AuthProvider>{children}</AuthProvider>
+        <html lang="vi" suppressHydrationWarning>
+            <body className="antialiased">
+                <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+                    <I18nProvider>
+                        <AuthProvider>{children}</AuthProvider>
+                    </I18nProvider>
+                </ThemeProvider>
             </body>
         </html>
     );

@@ -32,9 +32,13 @@ README.md
 
 # Test files
 __tests__
+tests
+eval
 *.test.ts
 *.spec.ts
 coverage
+jest.config.js
+tsconfig.test.json
 
 # Uploads (will be in volume)
 uploads/*

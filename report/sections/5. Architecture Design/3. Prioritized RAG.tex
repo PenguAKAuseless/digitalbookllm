@@ -1,0 +1,19 @@
+\section{Kiến trúc RAG ưu tiên ngữ cảnh (Prioritized RAG)}
+Thay vì để mô hình tự tìm lại ngữ cảnh bằng tìm kiếm vector trong mọi trường hợp, DigitalBookLLM phân biệt rõ hai chế độ hỏi đáp dựa trên việc người dùng có chọn sẵn một đoạn văn bản hay không, và luôn ưu tiên tuyệt đối đoạn văn bản đó khi nó tồn tại.
+
+\subsection{Hai chế độ truy xuất}
+\begin{description}[leftmargin=3.5em, labelsep=0.6em]
+    \item[\textbf{Hỏi đáp toàn cục (UC-13)}] Không có đoạn văn bản nào được chọn. Câu hỏi được nhúng thành vector và tìm kiếm tương đồng trên tài liệu đang mở; nếu độ tương đồng cao nhất dưới một ngưỡng cấu hình, hệ thống mở rộng phạm vi tìm kiếm ra toàn bộ không gian làm việc.
+    \item[\textbf{Hỏi đáp theo ngữ cảnh (UC-14)}] Người dùng đã chọn một đoạn văn bản cụ thể. Đoạn văn bản này được đưa vào lời nhắc dưới dạng \textit{ngữ cảnh cứng} (hard context): bắt buộc, không thể bị loại bỏ bởi kết quả tìm kiếm vector, đúng theo yêu cầu FR-07. Kết quả tìm kiếm vector (nếu có) chỉ đóng vai trò bổ sung.
+\end{description}
+
+\subsection{Luồng xử lý một yêu cầu hỏi đáp}
+\begin{enumerate}
+    \item Truy xuất các phân đoạn liên quan (nếu cần) và gửi ngay danh sách trích dẫn về giao diện qua SSE, trước cả khi mô hình ngôn ngữ bắt đầu sinh câu trả lời. Nhờ vậy trích dẫn luôn hiển thị được kể cả khi bước sinh câu trả lời gặp sự cố.
+    \item Xây dựng lời nhắc gồm: chỉ dẫn hệ thống, ngữ cảnh cứng (nếu có), các phân đoạn truy xuất được, và lịch sử hội thoại gần nhất của phiên.
+    \item Gửi lời nhắc đến bộ định tuyến LLM (mục 5.2), nhận phản hồi dạng luồng và chuyển tiếp từng token về giao diện qua SSE.
+    \item Lưu cặp câu hỏi--trả lời cùng danh sách trích dẫn vào lịch sử phiên, đồng thời đưa một tác vụ trích xuất tri thức vào hàng đợi để cập nhật đồ thị tri thức cá nhân (mục 5.4).
+\end{enumerate}
+
+\subsection{Giới hạn được ghi nhận}
+Cách tiếp cận này không giải quyết truy vấn đa bước (multi-hop) đòi hỏi đối chiếu thông tin giữa nhiều tài liệu hoặc nhiều chương khác nhau trong một lượt truy xuất duy nhất. Đây là giới hạn đã nêu ở Chương 1, được ghi nhận là hướng phát triển tiếp theo ở Chương 7, thay vì được giải quyết bằng một kiến trúc tác tử đa bước trong phạm vi đồ án này (NFR-03.2).

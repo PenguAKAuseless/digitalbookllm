@@ -1,50 +1,21 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
 import dotenv from 'dotenv';
-import * as fs from 'fs';
-
-import { testConnection } from './db/config';
-import { errorHandler, notFound } from './middleware/errorHandler';
-import { apiLimiter } from './middleware/rateLimit';
-
-import authRoutes from './routes/authRoutes';
-import workspaceRoutes from './routes/workspaceRoutes';
-import documentRoutes from './routes/documentRoutes';
-import ragRoutes from './routes/ragRoutes';
-
 dotenv.config();
 
-const app = express();
+import { createApp } from './app';
+import { testConnection } from './db/config';
+import { WorkerPool } from './queue/workerPool';
+import { handleIngestDocument } from './queue/handlers/ingest';
+import { handleExtractEntities } from './queue/handlers/extractEntities';
+
+const app = createApp();
 const PORT = process.env.PORT || 3001;
 
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-app.use(helmet());
-app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
-}));
-app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use('/api', apiLimiter);
-
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'DigitalBookLLM API' });
-});
-
-app.use('/api/auth', authRoutes);
-app.use('/api/workspaces', workspaceRoutes);
-app.use('/api/documents', documentRoutes);
-app.use('/api/rag', ragRoutes);
-
-app.use(notFound);
-app.use(errorHandler);
+// Worker pool runs in the same process as the API server so a single free
+// container hosts both the request path and the async ingestion/knowledge
+// pipeline (see ADR-02 and ADR-12). Set WORKER_CONCURRENCY to tune it.
+const workerPool = new WorkerPool(parseInt(process.env.WORKER_CONCURRENCY || '2'));
+workerPool.register('INGEST_DOCUMENT', handleIngestDocument);
+workerPool.register('EXTRACT_ENTITIES', handleExtractEntities);
 
 async function startServer() {
     try {
@@ -57,6 +28,8 @@ async function startServer() {
             console.error('Failed to connect to database. Check DB config and ensure PostgreSQL is running.');
             process.exit(1);
         }
+
+        workerPool.start();
 
         app.listen(PORT, () => {
             console.log(`[Server] Running on http://localhost:${PORT}`);

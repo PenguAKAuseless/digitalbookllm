@@ -1,0 +1,30 @@
+\section{Khảo sát cạnh tranh}
+Để xác minh cơ sở của vấn đề đặt ra, nhóm khảo sát các sản phẩm đọc sách và tương tác tài liệu hiện có trên thị trường, phân loại thành bốn nhóm.
+\subsection{Nền tảng đọc sách học thuật (VitalSource, RedShelf)}
+Các nền tảng này tối ưu cho việc phân phối và đọc giáo trình điện tử, có công cụ highlight/note cơ bản, nhưng không tích hợp trợ lý AI hỏi đáp theo ngữ cảnh, nên người dùng vẫn phải tự tra cứu thủ công khi gặp khái niệm khó.
+\subsection{Ứng dụng đọc sách phổ thông (Kindle, Apple Books)}
+Nhóm này có trải nghiệm đọc mượt mà, đồng bộ đa thiết bị tốt, hướng đến người dùng đại chúng. Tuy nhiên, tính năng AI (nếu có) chỉ dừng ở mức tóm tắt cơ bản, không hỗ trợ hỏi đáp sâu theo đoạn văn bản được chọn và không có cơ chế cá nhân hoá tri thức qua thời gian.
+\subsection{Công cụ đọc cục bộ (Calibre, Thorium)}
+Mạnh về quản lý thư viện sách và hỗ trợ đa định dạng, chạy hoàn toàn trên máy cá nhân. Điểm yếu là không có bất kỳ tính năng AI nào, nên người dùng phải tự chuyển sang công cụ khác để tra cứu, dẫn đến chính sự phân mảnh trải nghiệm đã nêu ở mục trước.
+\subsection{Không gian làm việc AI tích hợp tài liệu (NotebookLM, Reader by Readwise)}
+Đây là nhóm gần nhất với hướng tiếp cận của DigitalBookLLM: NotebookLM cho phép hỏi đáp trên nhiều tài liệu với trích dẫn nguồn, Reader by Readwise tích hợp việc đọc và highlight trong một không gian duy nhất. Tuy nhiên, cả hai đều thiếu một trong hai yếu tố mà DigitalBookLLM hướng tới: NotebookLM không phải là một trình đọc sách thực thụ (không tối ưu trải nghiệm đọc dài trang, không có TOC/zoom/virtualization), trong khi Reader by Readwise không có cơ chế trích dẫn AI trỏ ngược về đúng vị trí trong tài liệu và không xây dựng đồ thị tri thức cá nhân từ lịch sử tương tác.
+
+Bảng khảo sát dưới đây tổng hợp so sánh theo bốn tiêu chí trọng tâm của đồ án: đọc sách chuyên dụng, chat theo ngữ cảnh chọn, trích dẫn trỏ ngược, và cá nhân hoá tri thức dài hạn.
+
+\begin{longtable}{|L{0.26\textwidth}|C{0.15\textwidth}|C{0.17\textwidth}|C{0.15\textwidth}|C{0.17\textwidth}|}
+\caption{So sánh DigitalBookLLM với các giải pháp hiện có}\label{tab:competitors}\\
+\hline
+\textbf{Sản phẩm} & \textbf{Đọc sách chuyên dụng} & \textbf{Chat theo ngữ cảnh chọn} & \textbf{Trích dẫn trỏ ngược} & \textbf{Đồ thị tri thức cá nhân} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Sản phẩm} & \textbf{Đọc sách chuyên dụng} & \textbf{Chat theo ngữ cảnh chọn} & \textbf{Trích dẫn trỏ ngược} & \textbf{Đồ thị tri thức cá nhân} \\
+\hline
+\endhead
+VitalSource / RedShelf & Có & Không & Không & Không \\\hline
+Kindle / Apple Books & Có & Không & Không & Không \\\hline
+Calibre / Thorium & Có & Không & Không & Không \\\hline
+NotebookLM & Không & Có & Có & Không \\\hline
+Reader by Readwise & Có & Một phần & Không & Không \\\hline
+\textbf{DigitalBookLLM} & \textbf{Có} & \textbf{Có} & \textbf{Có} & \textbf{Có} \\\hline
+\end{longtable}

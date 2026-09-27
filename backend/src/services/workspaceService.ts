@@ -1,7 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 import { pool } from '../db/config';
-import * as fs from 'fs';
-import * as path from 'path';
 
 export interface Workspace {
     id: string;
@@ -14,8 +12,6 @@ export interface Workspace {
 }
 
 class WorkspaceService {
-    private uploadsBase = process.env.UPLOAD_DIR || './uploads';
-
     async getWorkspaces(userId: string): Promise<Workspace[]> {
         const result = await pool.query(
             `SELECT w.id, w.user_id, w.name, w.description, w.created_at, w.updated_at,
@@ -52,9 +48,7 @@ class WorkspaceService {
             [id, userId, name.trim(), description?.trim() || null]
         );
 
-        const workspace: Workspace = { ...result.rows[0], document_count: 0 };
-        fs.mkdirSync(path.join(this.uploadsBase, workspace.id), { recursive: true });
-        return workspace;
+        return { ...result.rows[0], document_count: 0 };
     }
 
     async updateWorkspace(workspaceId: string, userId: string, name: string, description?: string): Promise<Workspace | null> {
@@ -76,13 +70,7 @@ class WorkspaceService {
             'DELETE FROM workspaces WHERE id = $1 AND user_id = $2 RETURNING id',
             [workspaceId, userId]
         );
-        if (result.rows.length === 0) return false;
-
-        const wsDir = path.join(this.uploadsBase, workspaceId);
-        if (fs.existsSync(wsDir)) {
-            fs.rmSync(wsDir, { recursive: true, force: true });
-        }
-        return true;
+        return result.rows.length > 0;
     }
 
     async assertOwnership(workspaceId: string, userId: string): Promise<void> {

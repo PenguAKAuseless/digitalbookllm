@@ -1,112 +1,127 @@
 import { Response, NextFunction } from 'express';
-import { embeddingService } from '../services/embeddingService';
-import { llmRouterService } from '../services/LLMRouterService';
+import { embeddingService } from '../llm/embeddings';
+import { llmRouter } from '../llm/router';
 import { ragService } from '../services/ragService';
 import { vectorRetrievalService } from '../services/VectorRetrievalService';
 import { workspaceService } from '../services/workspaceService';
 import { documentService } from '../services/documentService';
+import { enqueue } from '../queue/jobQueue';
 import { AuthRequest } from '../middleware/auth';
+import { Citation } from '../types';
 
 const DOCUMENT_SIMILARITY_THRESHOLD = 0.2;
 
+/** Minimal SSE writer: one named event per call, JSON-encoded payload (NFR02.1). */
+function sseWrite(res: Response, event: string, data: unknown) {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+}
+
 export class RAGController {
-    async query(req: AuthRequest, res: Response, next: NextFunction) {
+    /**
+     * Streams a RAG answer over SSE. Retrieval is document-first, falling back
+     * to workspace-wide search (FR05); the selected text, when present, is
+     * always injected as hard context (FR07). Citations reference the
+     * retrieved chunk's page number for click-to-scroll in the reader (UC13).
+     */
+    async queryStream(req: AuthRequest, res: Response, next: NextFunction) {
+        const { query, workspaceId, documentId, selectedText, topK = 5, sessionId } = req.body;
+
+        if (!query?.trim()) return res.status(400).json({ success: false, error: 'query is required' });
+        if (!workspaceId?.trim()) return res.status(400).json({ success: false, error: 'workspaceId is required' });
+
         try {
-            const { query, workspaceId, documentId, selectedText, topK = 5, sessionId } = req.body;
-
-            if (!query?.trim()) return res.status(400).json({ success: false, error: 'query is required' });
-            if (!workspaceId?.trim()) return res.status(400).json({ success: false, error: 'workspaceId is required' });
-
             await workspaceService.assertOwnership(workspaceId, req.userId!);
+
+            const withinLimit = await ragService.checkRateLimit(req.userId!);
+            if (!withinLimit) {
+                return res.status(429).json({ success: false, error: 'Daily AI query limit reached. Try again tomorrow.' });
+            }
 
             const safeTopK = Math.max(1, Math.min(20, Number(topK) || 5));
             const queryText = selectedText ? `${query} ${selectedText}` : query;
             const embedding = await embeddingService.generateEmbedding(queryText);
 
-            let chunks: Array<{ id: string; text: string; similarity: number; document_name?: string }> = [];
-            let source: 'document' | 'workspace' | 'none' = 'none';
+            let citations: Citation[] = [];
 
-            // 1. Try document-level first if a document is selected
             if (documentId?.trim()) {
-                const docChunks = await vectorRetrievalService.retrieveRelevantChunks(documentId, embedding, safeTopK, selectedText);
+                await documentService.assertOwnership(documentId, req.userId!);
+                const docChunks = await vectorRetrievalService.retrieveRelevantChunks(
+                    documentId, req.userId!, embedding, safeTopK, selectedText
+                );
                 if (docChunks.length > 0 && docChunks[0].similarity >= DOCUMENT_SIMILARITY_THRESHOLD) {
-                    chunks = docChunks;
-                    source = 'document';
+                    citations = docChunks.map((c) => ({
+                        chunkId: c.id, documentId, page: c.page_number, text: c.text, similarity: c.similarity,
+                    }));
                 }
             }
 
-            // 2. Fall through to workspace-wide retrieval
-            if (chunks.length === 0) {
-                const wsChunks = await vectorRetrievalService.retrieveWorkspaceChunks(workspaceId, embedding, safeTopK, selectedText);
-                if (wsChunks.length > 0) {
-                    chunks = wsChunks;
-                    source = 'workspace';
-                }
+            if (citations.length === 0) {
+                const wsChunks = await vectorRetrievalService.retrieveWorkspaceChunks(
+                    workspaceId, req.userId!, embedding, safeTopK, selectedText
+                );
+                citations = wsChunks.map((c) => ({
+                    chunkId: c.id, documentId: c.document_id, documentName: c.document_name,
+                    page: c.page_number, text: c.text, similarity: c.similarity,
+                }));
             }
 
-            if (chunks.length === 0) {
-                return res.json({
-                    success: true,
-                    data: {
-                        response: 'No documents found in this workspace. Upload a document first to start chatting.',
-                        retrievedChunks: [],
-                        messageId: null,
-                        source: 'none',
-                    },
-                });
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
+            res.flushHeaders();
+
+            if (citations.length === 0) {
+                sseWrite(res, 'delta', { text: 'No documents found in this workspace. Upload a document first.' });
+                sseWrite(res, 'done', { citations: [], messageId: null, sessionId: sessionId ?? null });
+                return res.end();
             }
 
-            let response: string;
-            let provider: string;
+            // Sent before generation so the client (and the RAG evaluation harness) can
+            // observe retrieval quality even when no LLM provider is available.
+            sseWrite(res, 'citations', citations);
+
+            let fullText = '';
+            let usedProvider = 'unknown';
+
             try {
-                const result = await llmRouterService.generateResponse(query, selectedText, chunks);
-                response = result.text;
-                provider = result.provider;
+                for await (const chunk of llmRouter.generateAnswerStream(query, selectedText, citations)) {
+                    if (chunk.provider) {
+                        usedProvider = chunk.provider;
+                        sseWrite(res, 'provider', { provider: usedProvider });
+                    }
+                    if (chunk.delta) {
+                        fullText += chunk.delta;
+                        sseWrite(res, 'delta', { text: chunk.delta });
+                    }
+                }
             } catch (err: any) {
-                return res.status(503).json({
-                    success: false,
-                    error: err?.message || 'No LLM provider available. Configure an API key (TOGETHER_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, GROQ_API_KEY) or run Ollama locally.',
-                });
+                sseWrite(res, 'error', { error: err?.message || 'Generation failed' });
+                return res.end();
             }
 
-            let sourceDocumentName: string | undefined;
-            if (source === 'document' && documentId) {
-                const doc = await documentService.getDocument(documentId, req.userId!);
-                sourceDocumentName = doc?.name;
-            } else if (source === 'workspace') {
-                sourceDocumentName = (chunks[0] as any)?.document_name;
-            }
+            await ragService.incrementQueryCount(req.userId!);
 
             const { messageId, sessionId: returnedSessionId } = await ragService.recordChatExchange({
                 workspaceId,
-                documentId: source === 'document' ? documentId : undefined,
+                documentId: documentId || undefined,
                 userId: req.userId!,
                 query,
-                response,
+                response: fullText,
                 selectedText,
-                retrievedChunks: chunks,
+                citations,
                 sessionId,
-                source,
-                sourceDocumentName,
-                provider,
+                provider: usedProvider,
             });
 
-            res.json({
-                success: true,
-                data: {
-                    response,
-                    retrievedChunks: chunks.map((c) => ({
-                        text: c.text,
-                        similarity: c.similarity,
-                        documentName: (c as any).document_name,
-                    })),
-                    messageId,
-                    sessionId: returnedSessionId,
-                    source,
-                    sourceDocumentName,
-                    provider,
-                },
+            // Grow the knowledge graph from this interaction in the background (FR06, UC15).
+            await enqueue('EXTRACT_ENTITIES', {
+                userId: req.userId!,
+                documentId: documentId || undefined,
+                text: [selectedText, query, fullText].filter(Boolean).join('\n\n'),
             });
+
+            sseWrite(res, 'done', { messageId, sessionId: returnedSessionId });
+            res.end();
         } catch (error) {
             next(error);
         }
@@ -114,7 +129,7 @@ export class RAGController {
 
     async getSessionHistory(req: AuthRequest, res: Response, next: NextFunction) {
         try {
-            const history = await ragService.getSessionHistory(req.params.sessionId);
+            const history = await ragService.getSessionHistory(req.params.sessionId, req.userId!);
             res.json({ success: true, data: history });
         } catch (error) {
             next(error);
@@ -123,9 +138,8 @@ export class RAGController {
 
     async getWorkspaceSessions(req: AuthRequest, res: Response, next: NextFunction) {
         try {
-            const { workspaceId } = req.params;
-            await workspaceService.assertOwnership(workspaceId, req.userId!);
-            const sessions = await ragService.getWorkspaceSessions(workspaceId, req.userId!);
+            await workspaceService.assertOwnership(req.params.workspaceId, req.userId!);
+            const sessions = await ragService.getWorkspaceSessions(req.params.workspaceId, req.userId!);
             res.json({ success: true, data: sessions });
         } catch (error) {
             next(error);

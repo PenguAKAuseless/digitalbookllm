@@ -1,0 +1,24 @@
+\section{Phân tích nhu cầu các bên liên quan}
+Nhóm phát triển phân tích nhu cầu của ba đối tượng có ảnh hưởng trực tiếp đến các quyết định kỹ thuật của dự án: người dùng cuối, đội ngũ phát triển, và bộ phận vận hành hệ thống.
+
+\subsection{Người dùng cuối (Sinh viên, nhà nghiên cứu)}
+\begin{itemize}
+    \item \textbf{Nhu cầu về trải nghiệm đọc và hỏi đáp hợp nhất:} Người dùng cần một không gian làm việc duy nhất, nơi luồng đọc tài liệu và luồng hỏi đáp AI diễn ra song song, loại bỏ thao tác sao chép thủ công giữa các ứng dụng.
+    \item \textbf{Nhu cầu về câu trả lời bám sát ngữ cảnh và có thể kiểm chứng:} Khi chọn một đoạn văn bản để hỏi, người dùng cần câu trả lời dựa chính xác trên đoạn đó, kèm trích dẫn rõ ràng để đối chiếu ngược lại tài liệu gốc.
+    \item \textbf{Nhu cầu quản lý và đánh dấu tài liệu:} Người dùng cần tổ chức tài liệu theo từng không gian làm việc, đánh dấu trang, highlight và ghi chú các đoạn quan trọng, và quay lại đúng vị trí đang đọc ở lần truy cập sau.
+    \item \textbf{Nhu cầu nhìn lại quá trình học tập:} Người dùng cần một cách trực quan để xem lại các khái niệm đã tìm hiểu qua nhiều tài liệu và phiên đọc khác nhau, thay vì tri thức bị phân tán và lãng quên sau mỗi phiên làm việc.
+\end{itemize}
+
+\subsection{Đội ngũ kỹ sư phát triển}
+\begin{itemize}
+    \item \textbf{Nhu cầu về kiến trúc mô-đun:} Hệ thống cần được tổ chức thành các tầng và dịch vụ tách biệt rõ ràng (xác thực, tài liệu, RAG, đồ thị tri thức) để có thể bảo trì, kiểm thử và mở rộng độc lập.
+    \item \textbf{Nhu cầu về khả năng thay thế nhà cung cấp AI:} Vì các dịch vụ LLM miễn phí không đảm bảo tính khả dụng liên tục, đội ngũ cần một cơ chế định tuyến có thể tự động chuyển sang nhà cung cấp khác khi một dịch vụ gặp sự cố, mà không cần sửa đổi mã nguồn ở các thành phần gọi đến.
+    \item \textbf{Nhu cầu kiểm thử và đánh giá có thể lặp lại:} Đội ngũ cần các kịch bản kiểm thử tự động (bảo mật, hiệu năng, chất lượng truy xuất) có thể chạy lại trên bất kỳ môi trường triển khai nào để xác minh chất lượng trước và sau khi phát hành.
+\end{itemize}
+
+\subsection{Quản trị viên hệ thống và bộ phận vận hành}
+\begin{itemize}
+    \item \textbf{Nhu cầu kiểm soát tải và tài nguyên:} Cần cơ chế giới hạn dung lượng tệp tải lên, giới hạn số lượng truy vấn AI mỗi ngày trên từng tài khoản, và hàng đợi xử lý các tác vụ nặng để tránh quá tải máy chủ khi nhiều người dùng thao tác đồng thời.
+    \item \textbf{Nhu cầu cách ly và bảo mật dữ liệu:} Dữ liệu của mỗi người dùng (tài liệu, highlight, lịch sử hội thoại, đồ thị tri thức) phải được cô lập tuyệt đối, không để người dùng này truy vấn được dữ liệu của người dùng khác dù biết định danh tài nguyên.
+    \item \textbf{Nhu cầu triển khai với chi phí thấp:} Vì dự án không có ngân sách vận hành, hệ thống cần triển khai được trên các nền tảng có gói miễn phí, đồng thời có phương án dự phòng khi một nền tảng gặp sự cố hoặc tạm ngưng phục vụ.
+\end{itemize}

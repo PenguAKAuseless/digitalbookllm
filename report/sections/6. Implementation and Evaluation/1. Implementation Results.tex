@@ -1,0 +1,12 @@
+\section{Kết quả hiện thực}
+Toàn bộ kiến trúc trình bày ở Chương 5 đã được hiện thực đầy đủ: ứng dụng web Next.js, máy chủ API Express với hàng đợi tác vụ nền, pipeline nạp tài liệu (trích xuất văn bản, OCR dự phòng, phân đoạn hai bước, nhúng vector), pipeline hỏi đáp RAG ưu tiên ngữ cảnh cứng với truyền phản hồi dạng luồng, bộ định tuyến LLM đa nhà cung cấp, và pipeline trích xuất tri thức xây dựng đồ thị cá nhân hoá chạy nền.
+
+Hệ thống được đóng gói bằng Docker cho cả máy chủ API lẫn ứng dụng web, triển khai được đồng thời trên một máy cục bộ (\texttt{docker compose up}) lẫn trên các nền tảng có gói miễn phí công khai. Toàn bộ 15 trường hợp sử dụng đặc tả ở Chương 3 đều đã được hiện thực và kiểm thử ở mức độ tương ứng với NFR-03.1/NFR-03.2 (chấp nhận sai số OCR, không tích hợp tác tử phức tạp).
+
+\section{Môi trường kiểm thử}
+Kết quả trình bày trong chương này được ghi nhận từ một môi trường container hóa cục bộ, mô phỏng sát điều kiện triển khai công khai:
+\begin{itemize}
+    \item PostgreSQL 16 với phần mở rộng \texttt{pgvector} (chỉ mục HNSW), chạy trong container riêng.
+    \item Máy chủ API chạy trong container Debian-slim (cần thiết cho các phụ thuộc gốc của module dựng ảnh PDF và OCR).
+    \item Không cấu hình khóa API cho nhà cung cấp LLM nào trong môi trường đo, nên các kết quả về truy xuất (retrieval) độc lập với tính khả dụng của dịch vụ AI bên thứ ba; kết quả về sinh câu trả lời (generation) được ghi chú riêng là "không áp dụng" khi không có nhà cung cấp nào khả dụng.
+\end{itemize}

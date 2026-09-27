@@ -1,0 +1,410 @@
+\section{Đặc tả các trường hợp sử dụng}
+Mục này đặc tả chi tiết 15 trường hợp sử dụng (use case) của hệ thống, chia thành bốn nhóm: Định danh \& Phân quyền (UC01--UC03), Không gian làm việc \& Tài liệu (UC04--UC07), Trải nghiệm Đọc (UC08--UC12), và Tương tác AI \& Cá nhân hoá (UC13--UC15).
+
+\subsection{Nhóm 1: Định danh và Phân quyền}
+
+\subsubsection{UC-01: Đăng ký tài khoản}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-01: Đăng ký tài khoản}\label{tab:uc-01}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối (chưa có tài khoản) \\\hline
+\textbf{Mô tả tóm tắt} & Người dùng tạo tài khoản mới bằng email và mật khẩu. \\\hline
+\textbf{Điều kiện tiên quyết} & Người dùng truy cập được trang đăng ký của hệ thống. \\\hline
+\textbf{Hậu điều kiện} & Tài khoản mới được tạo với định danh (UUID) duy nhất; hệ thống cấp token phiên và điều hướng vào màn hình thư viện. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Người dùng nhập email và mật khẩu vào biểu mẫu đăng ký. \\
+\cline{2-2}
+ & \textbf{2.} Hệ thống kiểm tra định dạng email hợp lệ và mật khẩu tối thiểu 6 ký tự. \\
+\cline{2-2}
+ & \textbf{3.} Hệ thống băm mật khẩu, tạo bản ghi người dùng mới và cấp phát UUID. \\
+\cline{2-2}
+ & \textbf{4.} Hệ thống cấp token JWT và trả về thông tin tài khoản. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{2a.} Email đã tồn tại: hệ thống trả về lỗi ``Email đã được sử dụng'' (409). \\
+\cline{2-2}
+ & \textbf{2b.} Mật khẩu hoặc email không hợp lệ: hệ thống trả về lỗi (400) và giữ nguyên biểu mẫu. \\\hline
+\end{longtable}
+
+\subsubsection{UC-02: Đăng nhập / Đăng xuất}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-02: Đăng nhập / Đăng xuất}\label{tab:uc-02}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối \\\hline
+\textbf{Mô tả tóm tắt} & Xác thực phiên làm việc để bảo vệ dữ liệu cá nhân, và kết thúc phiên khi không còn sử dụng. \\\hline
+\textbf{Điều kiện tiên quyết} & Người dùng đã có tài khoản hợp lệ (đăng nhập); đã có token còn hiệu lực (đăng xuất). \\\hline
+\textbf{Hậu điều kiện} & Token JWT được cấp và lưu ở phía client (đăng nhập); token bị xoá khỏi client (đăng xuất). \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Người dùng nhập email/mật khẩu và nhấn ``Đăng nhập''. \\
+\cline{2-2}
+ & \textbf{2.} Hệ thống đối chiếu mật khẩu băm với cơ sở dữ liệu. \\
+\cline{2-2}
+ & \textbf{3.} Hệ thống cấp token JWT có thời hạn (mặc định 7 ngày) và trả về cho client. \\
+\cline{2-2}
+ & \textbf{4.} Client lưu token và điều hướng vào thư viện. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{2a.} Sai email hoặc mật khẩu: hệ thống trả về lỗi 401 mà không tiết lộ trường nào sai. \\
+\cline{2-2}
+ & \textbf{5.} Đăng xuất: người dùng nhấn nút đăng xuất; client xoá token khỏi bộ nhớ cục bộ và điều hướng về trang đăng nhập. \\\hline
+\end{longtable}
+
+\subsubsection{UC-03: Quản lý hồ sơ cá nhân}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-03: Quản lý hồ sơ cá nhân}\label{tab:uc-03}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối \\\hline
+\textbf{Mô tả tóm tắt} & Xem thông tin tài khoản hiện tại thông qua token phiên. \\\hline
+\textbf{Điều kiện tiên quyết} & Người dùng đã đăng nhập với token hợp lệ. \\\hline
+\textbf{Hậu điều kiện} & Thông tin hồ sơ (email, thời điểm tạo tài khoản) hiển thị trên giao diện. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Client gửi yêu cầu kèm token đến điểm cuối \texttt{/api/auth/me}. \\
+\cline{2-2}
+ & \textbf{2.} Máy chủ giải mã token, xác định định danh người dùng. \\
+\cline{2-2}
+ & \textbf{3.} Máy chủ truy vấn và trả về thông tin tài khoản tương ứng. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{2a.} Token hết hạn hoặc không hợp lệ: hệ thống trả về lỗi 401, client điều hướng về trang đăng nhập. \\\hline
+\end{longtable}
+
+\subsection{Nhóm 2: Không gian làm việc và Tài liệu}
+
+\subsubsection{UC-04: Quản lý Workspace}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-04: Quản lý Workspace}\label{tab:uc-04}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối \\\hline
+\textbf{Mô tả tóm tắt} & Tạo, sửa, xoá các không gian làm việc độc lập để tổ chức tài liệu theo chủ đề. \\\hline
+\textbf{Điều kiện tiên quyết} & Người dùng đã đăng nhập. \\\hline
+\textbf{Hậu điều kiện} & Bản ghi workspace được tạo/cập nhật/xoá, gắn với \texttt{user\_id} sở hữu. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Người dùng nhấn ``Không gian mới'' và nhập tên. \\
+\cline{2-2}
+ & \textbf{2.} Hệ thống tạo bản ghi \texttt{workspaces} với UUID mới, gắn \texttt{user\_id}. \\
+\cline{2-2}
+ & \textbf{3.} Giao diện cập nhật danh sách workspace và chọn workspace vừa tạo. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{4.} Xoá workspace: hệ thống xoá tuần tự (cascade) toàn bộ tài liệu, highlight và phiên chat thuộc workspace đó. \\
+\cline{2-2}
+ & \textbf{1a.} Người dùng B cố truy cập workspace của người dùng A bằng UUID đoán được: hệ thống trả về 403/404 (xem NFR-04.1). \\\hline
+\end{longtable}
+
+\subsubsection{UC-05: Tải lên tài liệu}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-05: Tải lên tài liệu}\label{tab:uc-05}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối \\\hline
+\textbf{Mô tả tóm tắt} & Tải tệp eBook (.pdf, .epub, .docx, .txt, .md) vào một workspace. \\\hline
+\textbf{Điều kiện tiên quyết} & Người dùng đã chọn một workspace hợp lệ thuộc quyền sở hữu. \\\hline
+\textbf{Hậu điều kiện} & Bản ghi tài liệu được tạo với trạng thái \texttt{UPLOADED}; một tác vụ nạp tài liệu được đưa vào hàng đợi xử lý. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Người dùng kéo thả hoặc chọn tệp từ máy tính. \\
+\cline{2-2}
+ & \textbf{2.} Client gửi tệp qua biểu mẫu \texttt{multipart/form-data} kèm \texttt{workspaceId}. \\
+\cline{2-2}
+ & \textbf{3.} Máy chủ kiểm tra định dạng và dung lượng (tối đa 100\;MB). \\
+\cline{2-2}
+ & \textbf{4.} Máy chủ lưu tệp vào kho lưu trữ đối tượng, tạo bản ghi tài liệu (\texttt{UPLOADED}) và trả về ngay mã \texttt{202 Accepted}. \\
+\cline{2-2}
+ & \textbf{5.} Máy chủ đưa một tác vụ \texttt{INGEST\_DOCUMENT} vào hàng đợi để xử lý ngầm (xem UC-07). \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{3a.} Tệp vượt quá 100\;MB hoặc sai định dạng: hệ thống từ chối với mã lỗi 400, không tạo bản ghi tài liệu. \\\hline
+\end{longtable}
+
+\subsubsection{UC-06: Quản lý thư viện}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-06: Quản lý thư viện}\label{tab:uc-06}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối \\\hline
+\textbf{Mô tả tóm tắt} & Xem danh sách sách trong workspace dưới dạng lưới, và xoá sách không còn cần thiết. \\\hline
+\textbf{Điều kiện tiên quyết} & Workspace đang chọn có ít nhất một tài liệu. \\\hline
+\textbf{Hậu điều kiện} & Danh sách tài liệu hiển thị đúng trạng thái xử lý hiện tại; tài liệu bị xoá không còn xuất hiện. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Giao diện gọi \texttt{GET /api/documents?workspaceId=} để lấy danh sách. \\
+\cline{2-2}
+ & \textbf{2.} Mỗi thẻ tài liệu hiển thị ảnh bìa (nếu \texttt{READY}), tên, trạng thái và tiến độ đọc. \\
+\cline{2-2}
+ & \textbf{3.} Với tài liệu còn ở trạng thái \texttt{UPLOADED}/\texttt{PROCESSING}, giao diện tự động dò lại trạng thái theo chu kỳ. \\
+\cline{2-2}
+ & \textbf{4.} Người dùng nhấn xoá trên một thẻ; hệ thống xác nhận và gọi API xoá. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{4a.} Tài liệu ở trạng thái \texttt{FAILED}: giao diện hiển thị biểu tượng lỗi kèm lý do (\texttt{status\_detail}) thay vì ảnh bìa. \\\hline
+\end{longtable}
+
+\subsubsection{UC-07: Trích xuất dữ liệu nền (Use case hệ thống)}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-07: Trích xuất dữ liệu nền}\label{tab:uc-07}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Worker hệ thống (kích hoạt tự động sau UC-05) \\\hline
+\textbf{Mô tả tóm tắt} & Tự động chạy OCR cơ bản (nếu cần) và phân mảnh văn bản khi tài liệu được tải lên. \\\hline
+\textbf{Điều kiện tiên quyết} & Một tác vụ \texttt{INGEST\_DOCUMENT} đang chờ trong hàng đợi. \\\hline
+\textbf{Hậu điều kiện} & Tài liệu chuyển sang trạng thái \texttt{READY} với các phân đoạn và vector nhúng đã lưu, hoặc \texttt{FAILED} kèm lý do. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Worker giành quyền xử lý tác vụ (\texttt{SELECT ... FOR UPDATE SKIP LOCKED}) và chuyển trạng thái tài liệu sang \texttt{PROCESSING}. \\
+\cline{2-2}
+ & \textbf{2.} Worker trích xuất văn bản (theo trang, đối với PDF). \\
+\cline{2-2}
+ & \textbf{3.} Nếu không trích xuất được văn bản (PDF dạng ảnh), worker chuyển sang luồng OCR: dựng ảnh từng trang và nhận diện chữ. \\
+\cline{2-2}
+ & \textbf{4.} Worker phân đoạn văn bản theo hai bước: tách cấu trúc (đoạn/câu) rồi tinh chỉnh theo ranh giới ngữ nghĩa. \\
+\cline{2-2}
+ & \textbf{5.} Worker sinh vector nhúng cho từng phân đoạn và lưu vào cơ sở dữ liệu vector. \\
+\cline{2-2}
+ & \textbf{6.} Worker dựng ảnh bìa từ trang đầu tiên và cập nhật trạng thái tài liệu thành \texttt{READY}. \\
+\cline{2-2}
+ & \textbf{7.} Worker đưa thêm một tác vụ trích xuất tri thức (UC-15) vào hàng đợi. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{3a.} OCR không nhận diện được văn bản nào: tài liệu chuyển sang \texttt{FAILED} với thông báo rõ ràng, không để lại trạng thái \texttt{PROCESSING} treo vô thời hạn. \\
+\cline{2-2}
+ & \textbf{1a.} Worker gặp lỗi trong quá trình xử lý: tác vụ được thử lại tối đa 3 lần với thời gian chờ tăng dần, sau đó chuyển sang trạng thái \texttt{DEAD} kèm lỗi ghi lại để vận hành viên tra cứu. \\\hline
+\end{longtable}
+
+\subsection{Nhóm 3: Trải nghiệm Đọc}
+
+\subsubsection{UC-08: Điều hướng tài liệu}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-08: Điều hướng tài liệu}\label{tab:uc-08}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối \\\hline
+\textbf{Mô tả tóm tắt} & Mở sách, lật trang, nhảy đến trang cụ thể, xem mục lục (TOC). \\\hline
+\textbf{Điều kiện tiên quyết} & Tài liệu ở trạng thái \texttt{READY}. \\\hline
+\textbf{Hậu điều kiện} & Trang hiện tại được hiển thị đúng vị trí yêu cầu; tiến độ đọc được cập nhật định kỳ. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Người dùng nhấn mở tài liệu từ thư viện. \\
+\cline{2-2}
+ & \textbf{2.} Trình đọc tải mục lục (nếu tài liệu PDF có outline) và trang cuối cùng người dùng đang đọc (\texttt{last\_read\_page}). \\
+\cline{2-2}
+ & \textbf{3.} Người dùng cuộn, dùng nút chuyển trang, hoặc nhấn một mục trong TOC để nhảy đến trang tương ứng. \\
+\cline{2-2}
+ & \textbf{4.} Trình đọc chỉ dựng (render) các trang nằm trong vùng nhìn thấy cộng vùng đệm lân cận (virtualization), giữ nguyên vị trí cuộn cho các trang khác. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{2a.} Tài liệu không có outline (ví dụ .txt, .md): mục lục để trống, chỉ hỗ trợ điều hướng theo số trang. \\\hline
+\end{longtable}
+
+\subsubsection{UC-09: Tùy chỉnh giao diện đọc}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-09: Tùy chỉnh giao diện đọc}\label{tab:uc-09}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối \\\hline
+\textbf{Mô tả tóm tắt} & Thay đổi mức phóng to, chế độ sáng/tối và ngôn ngữ giao diện. \\\hline
+\textbf{Điều kiện tiên quyết} & Người dùng đang ở bất kỳ màn hình nào của ứng dụng. \\\hline
+\textbf{Hậu điều kiện} & Tuỳ chọn giao diện được áp dụng ngay lập tức và ghi nhớ cho các lần truy cập sau. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Người dùng mở menu cài đặt trên thanh header. \\
+\cline{2-2}
+ & \textbf{2.} Người dùng chọn chế độ sáng/tối/theo hệ thống, hoặc chuyển ngôn ngữ Việt/Anh. \\
+\cline{2-2}
+ & \textbf{3.} Giao diện cập nhật ngay lập tức và lưu tuỳ chọn vào bộ nhớ cục bộ của trình duyệt. \\
+\cline{2-2}
+ & \textbf{4.} Trong trình đọc, người dùng dùng nút phóng to/thu nhỏ ở góc dưới để điều chỉnh cỡ trang. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} & Không có luồng ngoại lệ đáng kể; đây là thao tác cục bộ phía client. \\\hline
+\end{longtable}
+
+\subsubsection{UC-10: Đánh dấu trang (Bookmark)}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-10: Đánh dấu trang (Bookmark)}\label{tab:uc-10}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối \\\hline
+\textbf{Mô tả tóm tắt} & Lưu lại vị trí trang đang đọc để tiếp tục vào lần sau. \\\hline
+\textbf{Điều kiện tiên quyết} & Tài liệu đang mở ở trạng thái \texttt{READY}. \\\hline
+\textbf{Hậu điều kiện} & Một bản ghi \texttt{highlights} loại \texttt{BOOKMARK} được tạo, gắn với số trang hiện tại. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Người dùng nhấn biểu tượng bookmark trên thanh công cụ của trang đang xem. \\
+\cline{2-2}
+ & \textbf{2.} Hệ thống tạo bản ghi highlight loại \texttt{BOOKMARK} với \texttt{location\_meta.page} là trang hiện tại. \\
+\cline{2-2}
+ & \textbf{3.} Bookmark xuất hiện trong danh sách Highlights của thanh bên; nhấn vào đó điều hướng về đúng trang. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{4.} Xoá bookmark: người dùng nhấn xoá trong danh sách; bản ghi tương ứng bị gỡ bỏ. \\\hline
+\end{longtable}
+
+\subsubsection{UC-11: Đánh dấu và ghi chú (Highlight \& Note)}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-11: Đánh dấu và ghi chú}\label{tab:uc-11}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối \\\hline
+\textbf{Mô tả tóm tắt} & Bôi màu các đoạn văn bản quan trọng và thêm ghi chú cá nhân. \\\hline
+\textbf{Điều kiện tiên quyết} & Tài liệu đang mở; người dùng đã chọn (bôi đen) một đoạn văn bản. \\\hline
+\textbf{Hậu điều kiện} & Bản ghi \texttt{highlights} loại \texttt{HIGHLIGHT} được tạo với toạ độ chuẩn hoá (0--1) của vùng chọn để hiển thị lại đúng vị trí ở bất kỳ độ phóng đại nào. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Người dùng bôi đen một đoạn văn bản trong trình đọc. \\
+\cline{2-2}
+ & \textbf{2.} Một thanh công cụ nổi (popover) hiện ra phía trên vùng chọn với 4 lựa chọn: Highlight, Note, Speak, Ask AI. \\
+\cline{2-2}
+ & \textbf{3.} Người dùng chọn một màu và nhấn Highlight; hoặc chọn Note để mở ô nhập ghi chú. \\
+\cline{2-2}
+ & \textbf{4.} Hệ thống lưu bản ghi highlight với nội dung, màu, ghi chú (nếu có) và toạ độ vùng chọn. \\
+\cline{2-2}
+ & \textbf{5.} Đoạn văn bản được tô màu ngay trên trang; khi tải lại trang, vị trí tô màu được khôi phục chính xác từ toạ độ đã lưu. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{1a.} Người dùng B cố tạo/xem highlight trên tài liệu của người dùng A: hệ thống trả về 403/404. \\\hline
+\end{longtable}
+
+\subsubsection{UC-12: Nghe đọc văn bản (TTS)}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-12: Nghe đọc văn bản (TTS)}\label{tab:uc-12}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối \\\hline
+\textbf{Mô tả tóm tắt} & Chọn một đoạn văn và yêu cầu hệ thống đọc to (Text-to-Speech). \\\hline
+\textbf{Điều kiện tiên quyết} & Người dùng đã chọn một đoạn văn bản. \\\hline
+\textbf{Hậu điều kiện} & Âm thanh phát ra bắt đầu trước khi toàn bộ đoạn văn được tổng hợp xong. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Người dùng nhấn Speak trên thanh công cụ nổi. \\
+\cline{2-2}
+ & \textbf{2.} Client gửi đoạn văn bản đến điểm cuối phát trực tuyến TTS của máy chủ. \\
+\cline{2-2}
+ & \textbf{3.} Máy chủ chuyển tiếp yêu cầu đến dịch vụ tổng hợp giọng nói và truyền dữ liệu âm thanh về client theo từng đoạn (streaming). \\
+\cline{2-2}
+ & \textbf{4.} Trình duyệt phát âm thanh ngay khi nhận được đoạn dữ liệu đầu tiên. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{2a.} Không có dịch vụ TTS trực tuyến nào được cấu hình: client chuyển sang dùng giọng đọc tổng hợp sẵn có của trình duyệt (\texttt{SpeechSynthesis API}) để tính năng vẫn hoạt động. \\\hline
+\end{longtable}
+
+\subsection{Nhóm 4: Tương tác AI và Cá nhân hoá}
+
+\subsubsection{UC-13: Hỏi đáp toàn cục (Global QA)}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-13: Hỏi đáp toàn cục}\label{tab:uc-13}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối \\\hline
+\textbf{Mô tả tóm tắt} & Đặt câu hỏi cho AI về tổng thể nội dung của tài liệu đang mở (không chọn đoạn văn bản cụ thể). \\\hline
+\textbf{Điều kiện tiên quyết} & Tài liệu ở trạng thái \texttt{READY}; chưa vượt hạn mức truy vấn AI trong ngày. \\\hline
+\textbf{Hậu điều kiện} & Câu trả lời cùng danh sách trích dẫn được lưu vào lịch sử phiên chat. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Người dùng nhập câu hỏi vào khung chat và gửi. \\
+\cline{2-2}
+ & \textbf{2.} Máy chủ nhúng câu hỏi thành vector và tìm kiếm tương đồng trong tài liệu (ưu tiên) hoặc toàn workspace nếu tài liệu không có kết quả đủ liên quan. \\
+\cline{2-2}
+ & \textbf{3.} Máy chủ mở luồng SSE, gửi ngay các trích dẫn tìm được, sau đó chuyển câu hỏi và ngữ cảnh đến bộ định tuyến LLM. \\
+\cline{2-2}
+ & \textbf{4.} Câu trả lời được truyền từng phần (token) về giao diện ngay khi mô hình sinh ra. \\
+\cline{2-2}
+ & \textbf{5.} Người dùng nhấn vào một thẻ trích dẫn; trình đọc tự động cuộn đến đúng trang nguồn. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{2a.} Không tìm thấy phân đoạn liên quan: hệ thống trả lời rằng chưa có tài liệu phù hợp, không gọi LLM. \\
+\cline{2-2}
+ & \textbf{3a.} Toàn bộ nhà cung cấp LLM đều không khả dụng: hệ thống trả về sự kiện lỗi rõ ràng qua luồng SSE thay vì treo yêu cầu hoặc trả lỗi 500 chung chung. \\
+\cline{2-2}
+ & \textbf{1a.} Người dùng đã vượt hạn mức truy vấn AI trong ngày: hệ thống trả về lỗi 429. \\\hline
+\end{longtable}
+
+\subsubsection{UC-14: Hỏi đáp theo ngữ cảnh (Contextual QA)}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-14: Hỏi đáp theo ngữ cảnh}\label{tab:uc-14}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối \\\hline
+\textbf{Mô tả tóm tắt} & Bôi đen một đoạn văn bản cụ thể và chọn lệnh ``Hỏi AI'' để giải thích, tóm tắt hoặc mở rộng dựa trên ngữ cảnh đó. \\\hline
+\textbf{Điều kiện tiên quyết} & Người dùng đã chọn một đoạn văn bản trong trình đọc. \\\hline
+\textbf{Hậu điều kiện} & Câu trả lời được sinh dựa trên đúng đoạn văn bản đã chọn, không lạc sang phần khác của tài liệu. \\\hline
+\textbf{Luồng sự kiện chính} &
+\textbf{1.} Người dùng bôi đen đoạn văn bản, nhấn ``Ask AI'' trên thanh công cụ nổi. \\
+\cline{2-2}
+ & \textbf{2.} Khung chat được focus; đoạn văn bản chèn vào dưới dạng thẻ trích dẫn (blockquote). Ba gợi ý câu hỏi nhanh hiện ra: ``Tóm tắt đoạn này'', ``Giải thích khái niệm khó'', ``Dịch sang tiếng Việt''. \\
+\cline{2-2}
+ & \textbf{3.} Người dùng chọn một gợi ý hoặc tự nhập câu hỏi, rồi gửi. \\
+\cline{2-2}
+ & \textbf{4.} Lời nhắc gửi đến LLM bắt buộc đính kèm đoạn văn bản đã chọn làm ngữ cảnh cứng (hard context), độc lập với kết quả tìm kiếm vector (FR-07). \\
+\cline{2-2}
+ & \textbf{5.} Câu trả lời được truyền theo luồng về giao diện, bám sát đoạn văn bản đã chọn. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{4a.} Ngoài ngữ cảnh cứng, hệ thống vẫn bổ sung thêm các phân đoạn liên quan tìm được qua tìm kiếm vector nếu có, để làm phong phú câu trả lời mà không thay thế ngữ cảnh cứng. \\\hline
+\end{longtable}
+
+\subsubsection{UC-15: Khám phá Knowledge Graph cá nhân}
+\begin{longtable}{|C{0.28\textwidth}|L{0.62\textwidth}|}
+\caption{Đặc tả chi tiết UC-15: Khám phá Knowledge Graph cá nhân}\label{tab:uc-15}\\
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endfirsthead
+\hline
+\multicolumn{1}{|c|}{\textbf{Thành phần}} & \multicolumn{1}{c|}{\textbf{Đặc tả chi tiết}} \\\hline
+\endhead
+\textbf{Tác nhân} & Người dùng cuối; Worker hệ thống (trích xuất ngầm) \\\hline
+\textbf{Mô tả tóm tắt} & Truy cập giao diện trực quan hoá (mạng lưới nút và cạnh) để xem các liên kết tri thức được AI xây dựng từ quá trình đọc và trò chuyện của người dùng. \\\hline
+\textbf{Điều kiện tiên quyết} & Người dùng đã có ít nhất một lượt tương tác AI (UC-13 hoặc UC-14) thành công. \\\hline
+\textbf{Hậu điều kiện} & Đồ thị hiển thị đúng các thực thể và quan hệ thuộc về người dùng hiện tại. \\\hline
+\textbf{Luồng sự kiện chính (trích xuất ngầm)} &
+\textbf{1.} Sau mỗi lượt hỏi đáp AI (UC-13/UC-14) hoặc sau khi tài liệu được nạp xong (UC-07), một tác vụ \texttt{EXTRACT\_ENTITIES} được đưa vào hàng đợi. \\
+\cline{2-2}
+ & \textbf{2.} Worker gửi đoạn văn bản liên quan đến LLM, yêu cầu trả về danh sách thực thể và quan hệ dưới dạng dữ liệu có cấu trúc. \\
+\cline{2-2}
+ & \textbf{3.} Worker hợp nhất (upsert) các thực thể theo tên vào bảng \texttt{entities} của người dùng, và thêm các quan hệ mới vào bảng \texttt{entity\_relations}. \\\hline
+\textbf{Luồng sự kiện chính (khám phá)} &
+\textbf{4.} Người dùng chuyển sang Graph Mode. Giao diện gọi \texttt{GET /api/graph} để lấy toàn bộ nút và cạnh thuộc về mình. \\
+\cline{2-2}
+ & \textbf{5.} Đồ thị hiển thị dạng mạng lưới, các nút được tô màu theo loại (khái niệm, nhân vật, công nghệ). \\
+\cline{2-2}
+ & \textbf{6.} Người dùng nhấn vào một nút; panel chi tiết bên phải hiện mô tả khái niệm cùng các nút lân cận và đoạn trích dẫn nguồn liên quan. \\\hline
+\textbf{Luồng thay thế và ngoại lệ} &
+\textbf{2a.} Không có nhà cung cấp LLM nào khả dụng tại thời điểm xử lý: tác vụ được thử lại theo cơ chế hàng đợi; nếu vẫn thất bại sau 3 lần, tác vụ chuyển sang \texttt{DEAD} mà không ảnh hưởng đến trải nghiệm đọc/chat chính. \\
+\cline{2-2}
+ & \textbf{4a.} Người dùng B gọi API đồ thị: chỉ nhận về các thực thể/quan hệ của chính B, không bao giờ thấy dữ liệu của người dùng khác (NFR-04.1). \\\hline
+\end{longtable}

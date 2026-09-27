@@ -1,0 +1,57 @@
+\section{Yêu cầu chức năng}
+Các yêu cầu chức năng được phân loại theo bốn phân hệ cốt lõi của hệ thống.
+
+\subsection{Phân hệ Định danh và Không gian làm việc}
+\subsubsection{FR-01: Cô lập dữ liệu theo người dùng}
+\textbf{Mô tả:} Hệ thống phải cấp phát một định danh duy nhất (UUID) cho mỗi người dùng và cô lập dữ liệu (tenant isolation) theo từng không gian làm việc.\\
+\textbf{Luồng xử lý:} Mọi bảng dữ liệu chứa nội dung của người dùng đều mang trường \texttt{user\_id}; mọi truy vấn đọc/ghi đều lọc theo trường này ở tầng truy cập dữ liệu.
+
+\subsubsection{FR-02: Quản lý phiên đăng nhập}
+\textbf{Mô tả:} Hệ thống phải hỗ trợ quản lý phiên làm việc bằng token (JWT) có thời hạn để duy trì trạng thái đăng nhập.
+
+\subsection{Phân hệ Xử lý Dữ liệu}
+\subsubsection{FR-03: Trích xuất văn bản và OCR}
+\textbf{Mô tả:} Khi nhận tệp tài liệu, hệ thống phải trích xuất được văn bản. Đối với PDF dạng ảnh quét (không có lớp văn bản), hệ thống phải kích hoạt luồng OCR cơ bản để nhận diện chữ.
+
+\subsubsection{FR-04: Phân đoạn văn bản}
+\textbf{Mô tả:} Hệ thống phải có cơ chế chia nhỏ văn bản (chunking) theo độ dài từ/câu hợp lý để chuẩn bị cho quá trình nhúng vector.
+
+\subsection{Phân hệ AI và RAG}
+\subsubsection{FR-05: Pipeline RAG}
+\textbf{Mô tả:} Hệ thống phải có pipeline RAG hoàn chỉnh: chuyển đổi phân đoạn văn bản thành vector, lưu trữ, và thực hiện truy vấn tương đồng (similarity search) khi người dùng đặt câu hỏi.
+
+\subsubsection{FR-06: Trích xuất thực thể vào đồ thị tri thức}
+\textbf{Mô tả:} Hệ thống phải có module trích xuất thực thể chạy ngầm để phát hiện các khái niệm mới từ đoạn văn bản người dùng tương tác, sau đó tự động lưu vào đồ thị tri thức của người đó.
+
+\subsubsection{FR-07: Ngữ cảnh cứng cho hỏi đáp theo lựa chọn}
+\textbf{Mô tả:} Khi người dùng chọn một đoạn văn bản để hỏi (Contextual QA), lời nhắc gửi đến LLM bắt buộc phải tự động đính kèm đoạn văn bản đã chọn làm ngữ cảnh cứng (hard context), độc lập với kết quả tìm kiếm vector.
+
+\subsection{Phân hệ Giao diện và Tương tác}
+\subsubsection{FR-08: Trình đọc tối ưu hoá hiệu năng}
+\textbf{Mô tả:} Giao diện đọc sách phải render trữ lượng DOM hợp lý (virtualization) để không gây giật lag trình duyệt khi mở tài liệu vài nghìn trang.
+
+\subsubsection{FR-09: Phát âm thanh dạng luồng}
+\textbf{Mô tả:} Module TTS phải gọi dịch vụ tổng hợp giọng nói và truyền âm thanh về trình duyệt dưới dạng luồng, không bắt người dùng chờ tổng hợp xong toàn bộ đoạn văn bản.
+
+\subsection{Bảng tổng hợp ánh xạ yêu cầu chức năng}
+
+\begin{longtable}{|C{0.12\textwidth}|L{0.52\textwidth}|C{0.24\textwidth}|}
+\caption{Bảng ánh xạ yêu cầu chức năng và câu chuyện người dùng}\label{tab:functional-requirement-mapping}\\
+\hline
+\textbf{Mã yêu cầu} & \textbf{Tên yêu cầu chức năng} & \textbf{Ánh xạ US} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Mã yêu cầu} & \textbf{Tên yêu cầu chức năng} & \textbf{Ánh xạ US} \\
+\hline
+\endhead
+FR-01 & Cô lập dữ liệu theo người dùng & US-01, US-19 \\\hline
+FR-02 & Quản lý phiên đăng nhập & US-01, US-02 \\\hline
+FR-03 & Trích xuất văn bản và OCR & US-04 \\\hline
+FR-04 & Phân đoạn văn bản & US-04 \\\hline
+FR-05 & Pipeline RAG & US-12, US-14 \\\hline
+FR-06 & Trích xuất thực thể vào đồ thị tri thức & US-16 \\\hline
+FR-07 & Ngữ cảnh cứng cho hỏi đáp theo lựa chọn & US-12, US-13 \\\hline
+FR-08 & Trình đọc tối ưu hoá hiệu năng & US-11 \\\hline
+FR-09 & Phát âm thanh dạng luồng & US-10 \\\hline
+\end{longtable}

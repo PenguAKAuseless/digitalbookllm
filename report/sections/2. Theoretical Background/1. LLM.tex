@@ -1,0 +1,36 @@
+\section{Mô hình ngôn ngữ lớn và các giới hạn cốt lõi}
+
+LLM là các hệ thống AI dựa trên học sâu, được huấn luyện trên tập dữ liệu văn bản khổng lồ để hiểu và tạo ra ngôn ngữ tự nhiên. Sự vượt trội của LLM trong những năm gần đây chủ yếu đến từ sự kết hợp giữa kiến trúc Transformer và khả năng tính toán quy mô lớn. \cite{vaswani2017attention,radford2019language,dubey2024llama}
+
+\subsection{Kiến trúc Transformer và cơ chế tự chú ý (Self-Attention)}
+Hầu hết các LLM hiện đại đều dựa trên kiến trúc Transformer, sử dụng cơ chế tự chú ý để xác định mức độ quan trọng của các từ trong một chuỗi văn bản, bất kể khoảng cách giữa chúng. Công thức toán học cốt lõi của cơ chế chú ý tích vô hướng có tỉ lệ (Scaled Dot-Product Attention) được mô tả như sau:
+
+\[
+Attention(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+\]
+
+Trong đó:
+\begin{itemize}
+    \item $Q$ (Query), $K$ (Key), và $V$ (Value) là các ma trận biểu diễn các đặc trưng của dữ liệu đầu vào.
+    \item $d_k$ là số chiều của các vector Key, giúp ổn định gradient trong quá trình huấn luyện.
+    \item Hàm $\text{softmax}$ đảm bảo tổng các trọng số chú ý bằng 1, cho phép mô hình tập trung vào các thành phần quan trọng nhất của ngữ cảnh.
+\end{itemize}
+
+\subsection{Cơ chế sinh văn bản tự hồi quy (Autoregressive Generation)}
+LLM vận hành theo nguyên lý tự hồi quy, nghĩa là mô hình dự đoán từ tiếp theo dựa trên tất cả các từ đã xuất hiện trước đó. Xác suất của một chuỗi văn bản $W = (w_1, w_2, \dots, w_n)$ được tính bằng tích xác suất có điều kiện của từng từ:
+
+\[
+P(W) = \prod_{i=1}^{n} P(w_i \mid w_1, w_2, \dots, w_{i-1})
+\]
+
+Cơ chế này cho phép mô hình tạo ra văn bản có tính mạch lạc cao, nhưng cũng chính là nguồn cơn của sự tích lũy sai số, dẫn đến hiện tượng phản hồi lạc đề nếu chuỗi dự đoán quá dài.
+
+\subsection{Các giới hạn thực tế của LLM}
+Dù sở hữu năng lực xử lý ngôn ngữ mạnh mẽ, LLM vẫn đối mặt với hai giới hạn cốt lõi mà dự án DigitalBookLLM cần giải quyết:
+
+\begin{itemize}
+    \item \textbf{Cửa sổ ngữ cảnh (Context Window):} Mỗi mô hình có một giới hạn vật lý về số lượng token (đơn vị từ vựng) mà nó có thể xử lý trong một lần truy vấn. Khi đối mặt với các tài liệu kỹ thuật dài hàng trăm trang, mô hình sẽ bị "tràn" bộ nhớ và mất khả năng ghi nhớ các chi tiết ở đầu tài liệu.
+    \item \textbf{Ảo giác thông tin (Hallucination):} Do chỉ học dựa trên xác suất thống kê của từ ngữ thay vì thực sự "hiểu" chân lý, LLM thường tạo ra các thông tin nghe có vẻ thuyết phục nhưng hoàn toàn sai lệch so với thực tế hoặc tài liệu gốc. Điều này đặc biệt nguy hiểm trong các báo cáo chuyên ngành và nghiên cứu khoa học.
+\end{itemize}
+
+Sự đứt gãy giữa khối lượng tri thức khổng lồ của tài liệu và giới hạn cửa sổ ngữ cảnh của mô hình chính là động lực chính để áp dụng kỹ thuật RAG trong phần tiếp theo. \cite{lewis2020retrieval,gao2023retrieval}

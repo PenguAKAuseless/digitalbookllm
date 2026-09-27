@@ -1,0 +1,50 @@
+\section{Cơ sở dữ liệu Vector và Thuật toán tìm kiếm (Vector Database \& Search Algorithms)}
+
+Sự chuyển dịch từ việc tìm kiếm từ khóa cục bộ (keyword-based search) sang tìm kiếm dựa trên ngữ nghĩa (semantic search) đòi hỏi một mô hình lưu trữ hoàn toàn mới. Cơ sở dữ liệu vector ra đời nhằm giải quyết bài toán quản lý, lập chỉ mục và truy vấn các điểm dữ liệu trong không gian có số chiều cực lớn (thường từ 384 đến 1536 chiều), nơi mà các hệ quản trị cơ sở dữ liệu quan hệ truyền thống sử dụng cấu trúc B-Tree trở nên vô dụng do hiện tượng "lời nguyền của số chiều" (curse of dimensionality).
+
+\subsection{Đặc tả Cơ sở dữ liệu Vector}
+Cơ sở dữ liệu vector không lưu trữ văn bản đơn thuần mà lưu trữ các mảng số thực (vector embeddings) đại diện cho đặc trưng ngữ nghĩa của văn bản đó. Mỗi bản ghi trong cơ sở dữ liệu bao gồm một định danh (ID), dữ liệu vector $V \in \mathbb{R}^d$, và các siêu dữ liệu (metadata) đi kèm để hỗ trợ lọc (filtering).
+
+Khi một truy vấn $Q$ được đưa vào, bài toán cốt lõi của hệ quản trị là tìm ra tập hợp $k$ vector có khoảng cách gần nhất với $Q$.
+
+\subsection{Tìm kiếm láng giềng gần nhất (k-NN) và Xấp xỉ láng giềng gần nhất (ANN)}
+Thuật toán cơ bản nhất để tìm kiếm trên không gian vector là \textbf{k-Nearest Neighbors (k-NN)}. Phương pháp này tính toán khoảng cách từ truy vấn $Q$ đến \textit{tất cả} các vector $V_i$ có trong cơ sở dữ liệu:
+
+$$D = \{ d(Q, V_1), d(Q, V_2), \dots, d(Q, V_N) \}$$
+
+Với độ phức tạp thời gian là $\mathcal{O}(N \cdot d)$ (trong đó $N$ là tổng số vector và $d$ là số chiều), k-NN đảm bảo độ chính xác (recall) tuyệt đối là 100\%. Tuy nhiên, khi hệ thống lưu trữ hàng triệu phân đoạn tài liệu, phép tính vét cạn này gây ra độ trễ không thể chấp nhận được đối với một ứng dụng thời gian thực như DigitalBookLLM.
+
+Để tối ưu hóa, các hệ thống RAG hiện đại áp dụng thuật toán \textbf{Xấp xỉ láng giềng gần nhất (Approximate Nearest Neighbors - ANN)}. ANN hy sinh một phần nhỏ độ chính xác (thường chỉ giảm xuống mức 95-98\%) để đổi lấy tốc độ truy vấn vượt trội theo thang đo logarit $\mathcal{O}(\log N)$. Hai thuật toán ANN phổ biến nhất được hỗ trợ bởi kiến trúc pgvector là HNSW và IVFFlat.
+
+\subsection{Thuật toán HNSW (Hierarchical Navigable Small World)}
+HNSW là thuật toán đồ thị tiên tiến nhất hiện nay cho bài toán tìm kiếm vector, được xây dựng dựa trên cấu trúc dữ liệu Skip-list kết hợp với đồ thị thế giới nhỏ (Small World Graph).
+
+\textbf{Cấu trúc phân tầng:}\\
+HNSW tổ chức các vector thành nhiều lớp (layers) đồ thị xếp chồng lên nhau, ký hiệu từ $L_0$ (tầng đáy chứa toàn bộ dữ liệu) đến $L_{max}$ (tầng cao nhất, thưa thớt nhất). Khi một điểm dữ liệu mới được chèn vào, mức độ phân tầng $l$ của nó được xác định ngẫu nhiên theo một hàm phân phối xác suất suy giảm theo cấp số nhân:
+
+$$l = \lfloor -\ln(U) \cdot m_L \rfloor$$
+
+Trong đó, $U$ là một biến ngẫu nhiên phân phối đều $U \sim Uniform(0,1)$ và $m_L$ là hệ số chuẩn hóa. Nhờ công thức này, số lượng nút giảm mạnh khi lên các tầng cao hơn, tạo thành một mạng lưới "đường cao tốc" cho phép thuật toán nhảy vọt qua các khoảng cách xa.
+
+\textbf{Cơ chế truy vấn:}
+\begin{enumerate}
+    \item Thuật toán bắt đầu tại nút tiến vào (entry point) ở tầng cao nhất $L_{max}$.
+    \item Tại tầng hiện tại, thuật toán thực hiện tìm kiếm tham lam (Greedy Search) bằng cách đánh giá khoảng cách từ vector truy vấn $Q$ đến các nút láng giềng của nút hiện tại. Thuật toán di chuyển đến nút láng giềng có khoảng cách gần $Q$ nhất.
+    \item Khi không tìm được láng giềng nào gần hơn nữa (đạt cực tiểu cục bộ tại tầng đó), thuật toán lấy nút đó làm điểm bắt đầu và rơi xuống tầng thấp hơn ($L_{i-1}$).
+    \item Quá trình lặp lại cho đến khi thuật toán quét xong ở tầng đáy $L_0$, trả về danh sách $k$ kết quả xấp xỉ gần nhất.
+\end{enumerate}
+
+Cấu trúc đồ thị của HNSW đặc biệt hiệu quả cho DigitalBookLLM vì nó cung cấp tốc độ truy xuất cực nhanh ngay trên tài nguyên phần cứng cục bộ, mặc dù phải đánh đổi bằng chi phí xây dựng chỉ mục ban đầu và lượng RAM tiêu thụ cao hơn do phải lưu trữ danh sách các cạnh của đồ thị.
+
+\subsection{Thuật toán IVFFlat (Inverted File with Flat Compression)}
+Bên cạnh HNSW, IVFFlat là một phương pháp chỉ mục phổ biến khác dựa trên kỹ thuật phân cụm (clustering).
+
+Thuật toán sử dụng phương pháp $K$-means để chia không gian vector thành $n_{list}$ cụm (tế bào Voronoi). Mỗi cụm có một tâm điểm (centroid). Khi tìm kiếm, thuật toán chỉ cần:
+
+\begin{enumerate}
+    \item Tính khoảng cách từ vector truy vấn $Q$ đến $n_{list}$ tâm cụm.
+    \item Xác định $n_{probes}$ cụm gần nhất.
+    \item Thực hiện tìm kiếm vét cạn (Flat) nhưng chỉ giới hạn bên trong các cụm đã chọn đó.
+\end{enumerate}
+
+Mặc dù tiêu tốn ít bộ nhớ RAM và thời gian xây dựng chỉ mục nhanh hơn HNSW, IVFFlat tồn tại một điểm yếu nghiêm trọng: chất lượng của chỉ mục phụ thuộc rất lớn vào dữ liệu huấn luyện ban đầu. Nếu thư viện tài liệu của người dùng thay đổi hoặc được nạp thêm liên tục (đặc tả của DigitalBookLLM), các cụm Voronoi sẽ bị lệch (data drift), dẫn đến độ chính xác giảm sút nghiêm trọng trừ khi chỉ mục được xây dựng lại toàn bộ. Đây là cơ sở lý luận quan trọng để dự án ưu tiên sử dụng cấu trúc chỉ mục HNSW nhằm đảm bảo tính ổn định lâu dài. \cite{malkov2018efficient,johnson2019billion,pgvector2023}

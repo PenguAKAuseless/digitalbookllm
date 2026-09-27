@@ -14,15 +14,24 @@ export interface Workspace {
     document_count?: number;
 }
 
+export type DocumentStatus = 'UPLOADED' | 'PROCESSING' | 'READY' | 'FAILED';
+
 export interface Document {
     id: string;
     workspace_id: string;
     user_id: string;
-    name: string;
+    title: string;
+    author: string | null;
     file_type: string;
     file_size: number;
-    full_text: string;
-    file_path: string | null;
+    storage_key: string;
+    cover_key: string | null;
+    page_count: number | null;
+    full_text: string | null;
+    status: DocumentStatus;
+    status_detail: string | null;
+    ocr_used: boolean;
+    last_read_page: number;
     created_at: Date;
     updated_at: Date;
 }
@@ -30,7 +39,9 @@ export interface Document {
 export interface Chunk {
     id: string;
     document_id: string;
+    user_id: string;
     chunk_index: number;
+    page_number: number | null;
     text: string;
     embedding: number[];
     created_at: Date;
@@ -38,6 +49,16 @@ export interface Chunk {
 
 export interface RetrievedChunk {
     id: string;
+    text: string;
+    page_number: number | null;
+    similarity: number;
+}
+
+export interface Citation {
+    chunkId: string;
+    documentId: string;
+    documentName?: string;
+    page: number | null;
     text: string;
     similarity: number;
 }
@@ -58,12 +79,42 @@ export interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
     selected_text?: string;
-    retrieved_chunks?: string[];
+    citations?: Citation[];
+    provider?: string;
     created_at: Date;
 }
 
-export interface QueryResponse {
-    response: string;
-    retrievedChunks: Array<{ text: string; similarity: number; documentName?: string }>;
-    messageId: string | null;
+export type HighlightType = 'HIGHLIGHT' | 'BOOKMARK';
+
+export interface Highlight {
+    id: string;
+    document_id: string;
+    user_id: string;
+    type: HighlightType;
+    content: string | null;
+    note: string | null;
+    color: string;
+    location_meta: { page: number; rects: Array<{ x: number; y: number; width: number; height: number }> };
+    created_at: Date;
+    updated_at: Date;
+}
+
+export interface GraphEntity {
+    id: string;
+    user_id: string;
+    name: string;
+    type: string;
+    description: string | null;
+    created_at: Date;
+}
+
+export interface GraphRelation {
+    id: string;
+    user_id: string;
+    source_entity_id: string;
+    target_entity_id: string;
+    relation_type: string;
+    source_document_id: string | null;
+    excerpt: string | null;
+    created_at: Date;
 }

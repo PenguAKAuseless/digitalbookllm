@@ -1,0 +1,12 @@
+\section{Mục tiêu}
+Mục tiêu tổng quát của dự án là xây dựng hệ thống DigitalBookLLM, một ứng dụng đọc sách điện tử tích hợp trợ lý AI trong cùng một không gian làm việc, hỗ trợ người dùng đọc, đánh dấu, hỏi đáp theo ngữ cảnh và tích lũy tri thức cá nhân qua thời gian.
+\subsection{Xây dựng trải nghiệm đọc và hỏi đáp hợp nhất}
+Mục tiêu đầu tiên là xây dựng giao diện chia đôi (split-pane) cho phép người dùng vừa đọc tài liệu vừa trò chuyện với trợ lý AI trong cùng một màn hình, không cần chuyển đổi ứng dụng. Trình đọc phải hỗ trợ các thao tác cơ bản của một ứng dụng đọc sách thực thụ: mục lục, điều hướng trang, phóng to/thu nhỏ, và hiển thị mượt mà với tài liệu hàng nghìn trang.
+\subsection{Xây dựng cơ chế hỏi đáp ưu tiên ngữ cảnh được chọn}
+Khi người dùng bôi đen một đoạn văn bản và đặt câu hỏi, hệ thống phải đưa chính đoạn văn bản đó vào lời nhắc như một ngữ cảnh bắt buộc (hard context), thay vì chỉ dựa vào kết quả tìm kiếm vector có thể không chính xác. Với các câu hỏi tổng quát không có lựa chọn văn bản, hệ thống truy xuất các đoạn liên quan nhất trong tài liệu (và trong toàn bộ không gian làm việc nếu cần) bằng kỹ thuật RAG.
+\subsection{Đảm bảo tính minh bạch bằng trích dẫn trỏ ngược}
+Mọi câu trả lời của AI phải đi kèm các thẻ trích dẫn (citation) chỉ rõ số trang và đoạn văn bản nguồn. Khi người dùng nhấn vào một trích dẫn, trình đọc phải tự động cuộn đến đúng vị trí đó trong tài liệu, giúp người dùng kiểm chứng ngay lập tức tính xác thực của câu trả lời.
+\subsection{Xây dựng đồ thị tri thức cá nhân hoá}
+Hệ thống tự động trích xuất các khái niệm và mối quan hệ giữa chúng từ nội dung tài liệu và lịch sử hội thoại của từng người dùng, tổ chức thành một đồ thị tri thức tiến hoá theo thời gian. Người dùng có thể khám phá đồ thị này qua một giao diện trực quan hoá dạng mạng lưới nút và cạnh, xem lại các khái niệm đã học và mối liên hệ giữa chúng qua nhiều tài liệu.
+\subsection{Đảm bảo hệ thống vận hành ổn định cho nhiều người dùng đồng thời}
+Hệ thống được thiết kế như một ứng dụng web client-server, cô lập dữ liệu giữa các người dùng, xử lý bất đồng bộ các tác vụ nặng (trích xuất văn bản, nhúng vector, trích xuất tri thức) thông qua hàng đợi tác vụ, và có khả năng triển khai công khai để nhiều người dùng truy cập đồng thời.

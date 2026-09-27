@@ -1,0 +1,16 @@
+\section{Lựa chọn mô hình kiến trúc tổng quát}
+Kiến trúc tổng quát của DigitalBookLLM được lựa chọn theo mô hình \textbf{modular monolith kết hợp async workers}: toàn bộ nghiệp vụ chạy trong một ứng dụng máy chủ duy nhất, được tổ chức thành các mô-đun dịch vụ tách biệt rõ ràng, trong khi các tác vụ nặng (xử lý tài liệu, trích xuất tri thức) được đẩy sang một hàng đợi xử lý bất đồng bộ thay vì chạy đồng bộ trên luồng xử lý yêu cầu chính.
+
+\subsection{Kiến trúc client-server}
+Hệ thống được tổ chức thành hai tầng logic tách biệt, giao tiếp qua HTTP/REST và Server-Sent Events (SSE):
+
+\begin{description}[style=nextline, leftmargin=3.5em, labelsep=0.6em]
+    \item[\textbf{Tầng giao diện (Client)}] Ứng dụng Next.js chạy trên trình duyệt, chịu trách nhiệm hiển thị màn hình chia đôi, gửi yêu cầu REST cho các thao tác CRUD, và tiêu thụ luồng SSE cho phản hồi AI theo thời gian thực.
+    \item[\textbf{Tầng máy chủ (Server)}] Ứng dụng Express (Node.js) xử lý xác thực, quản lý tài liệu/highlight/đồ thị tri thức, điều phối pipeline RAG, và vận hành hàng đợi tác vụ nền, tất cả trong cùng một tiến trình triển khai.
+\end{description}
+
+\subsection{Xử lý bất đồng bộ qua hàng đợi tác vụ}
+Các tác vụ tốn thời gian, như trích xuất văn bản, OCR, phân đoạn, nhúng vector, trích xuất thực thể cho đồ thị tri thức, không chạy trực tiếp trong vòng đời một yêu cầu HTTP. Khi người dùng tải tài liệu lên, máy chủ lưu tệp, tạo bản ghi với trạng thái \texttt{UPLOADED}, đưa một tác vụ vào hàng đợi, và trả về ngay mã \texttt{202 Accepted}. Một nhóm worker với số lượng đồng thời giới hạn liên tục giành và xử lý các tác vụ đang chờ, cập nhật trạng thái tài liệu khi hoàn tất. Cách tổ chức này tách rời hoàn toàn luồng phản hồi giao diện khỏi khối lượng công việc xử lý AI, đáp ứng trực tiếp yêu cầu NFR-02.2.
+
+\subsection{Nguyên tắc cô lập dữ liệu đa người dùng}
+Vì hệ thống phục vụ nhiều người dùng đồng thời trên cùng một hạ tầng dùng chung, mọi bảng dữ liệu và mọi đường truy vấn đều mang và lọc theo định danh người dùng (\texttt{user\_id}). Đây không phải một lớp bảo vệ tập trung duy nhất, mà là một nguyên tắc được áp dụng nhất quán ở từng dịch vụ truy xuất dữ liệu. Cách tiếp cận này được kiểm chứng trực tiếp bằng bộ kiểm thử chống truy cập trái phép (IDOR) ở Chương 6.

@@ -1,0 +1,11 @@
+\chapter*{Tóm tắt}
+
+DigitalBookLLM là một ứng dụng đọc sách điện tử tích hợp trợ lý AI, được thiết kế để giải quyết bài toán phân mảnh trải nghiệm khi người dùng phải chuyển đổi qua lại giữa công cụ đọc tài liệu và công cụ hỏi đáp AI. Dự án hướng đến người dùng phải làm việc với các tài liệu dài, nhiều thuật ngữ chuyên môn, thường xuyên cần tra cứu hoặc giải thích nội dung theo đúng ngữ cảnh của tài liệu gốc.
+
+Hệ thống được xây dựng trên nền tảng kỹ thuật RAG, phân biệt rõ hai chế độ hỏi đáp: khi người dùng đặt câu hỏi tổng quát, hệ thống truy xuất các phân đoạn liên quan trong tài liệu và tạo phản hồi dựa trên ngữ cảnh đã thu hồi; khi người dùng chọn một đoạn văn bản cụ thể, đoạn văn bản đó được đưa vào lời nhắc như một ngữ cảnh bắt buộc, đảm bảo câu trả lời bám sát đúng nội dung người dùng quan tâm. Mọi câu trả lời đều kèm thẻ trích dẫn trỏ ngược về đúng trang trong tài liệu gốc, giúp người dùng kiểm chứng ngay lập tức.
+
+Bên cạnh chức năng hỏi đáp, DigitalBookLLM tổ chức không gian làm việc chia đôi giữa trình đọc tài liệu và khung hội thoại, hỗ trợ đánh dấu/ghi chú đoạn văn bản, đánh dấu trang, và phát âm thanh dạng luồng cho các đoạn văn bản được chọn. Một điểm nhấn của hệ thống là đồ thị tri thức cá nhân hoá: các khái niệm và mối quan hệ giữa chúng được tự động trích xuất từ nội dung tài liệu và lịch sử hội thoại, tích lũy dần thành một đồ thị tiến hoá theo thời gian mà người dùng có thể khám phá qua một giao diện trực quan hoá dạng mạng lưới.
+
+Về mặt kiến trúc, hệ thống được triển khai theo mô hình client-server kết hợp xử lý bất đồng bộ (modular monolith với async workers), sử dụng PostgreSQL cùng phần mở rộng \texttt{pgvector} cho cả dữ liệu quan hệ lẫn vector nhúng, và một bộ định tuyến LLM đa nhà cung cấp có khả năng tự dò trạng thái và chuyển đổi khi một dịch vụ AI gặp sự cố. Toàn bộ ngăn xếp công nghệ được lựa chọn để có thể triển khai công khai trên các nền tảng có gói miễn phí.
+
+Tổng thể, DigitalBookLLM là một hướng tiếp cận tích hợp giữa quản lý tài liệu, truy xuất ngữ nghĩa và cá nhân hoá tri thức qua đồ thị, góp phần xây dựng một công cụ đọc và nghiên cứu minh bạch, bám sát nguồn và phù hợp với nhu cầu làm việc chuyên sâu trên tài liệu học thuật.

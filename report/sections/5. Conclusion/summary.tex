@@ -1,0 +1,28 @@
+\section{Tổng kết kết quả đạt được}
+DigitalBookLLM đã hiện thực hóa được mục tiêu xây dựng một ứng dụng đọc sách điện tử tích hợp trợ lý AI trong cùng một không gian làm việc. Hệ thống hỗ trợ tải và đọc tài liệu đa định dạng, phân đoạn và lập chỉ mục vector, hỏi đáp theo ngữ cảnh toàn cục lẫn ngữ cảnh cứng (đoạn văn bản được chọn), trích dẫn trỏ ngược về đúng vị trí nguồn, đánh dấu/ghi chú tài liệu, phát âm thanh dạng luồng, và xây dựng đồ thị tri thức cá nhân từ lịch sử đọc và trò chuyện. Về mặt kiến trúc, dự án đã hình thành một chuỗi xử lý hoàn chỉnh từ tài liệu đầu vào đến phản hồi có căn cứ trên nguồn, vận hành ổn định cho nhiều người dùng đồng thời trên hạ tầng triển khai công khai miễn phí. Những kết quả này bám sát nền tảng lý thuyết về LLM, RAG, cơ sở dữ liệu vector và đồ thị tri thức đã trình bày ở Chương 2. \cite{lewis2020retrieval,gao2023retrieval,malkov2018efficient}
+
+\section{Ưu điểm của hệ thống}
+\begin{itemize}
+    \item \textbf{Câu trả lời bám sát ngữ cảnh và có thể kiểm chứng.} Cơ chế ngữ cảnh cứng kết hợp trích dẫn trỏ ngược giúp phản hồi có căn cứ rõ ràng, giảm hiện tượng ảo giác và tăng khả năng kiểm chứng nội dung.
+    \item \textbf{Trải nghiệm đọc và hỏi đáp hợp nhất.} Không gian làm việc chia đôi cùng thanh công cụ ngữ cảnh nổi (popover) loại bỏ thao tác sao chép thủ công giữa các ứng dụng.
+    \item \textbf{Cá nhân hoá qua đồ thị tri thức.} Đồ thị tiến hoá tự động theo thời gian, cho phép người dùng nhìn lại quá trình học tập của bản thân qua nhiều tài liệu.
+    \item \textbf{Kiến trúc rõ ràng và tiết kiệm chi phí vận hành.} Việc tách lớp dịch vụ và ưu tiên các nền tảng triển khai miễn phí cho phép hệ thống hoạt động công khai mà không cần ngân sách hạ tầng.
+    \item \textbf{Khả năng phục hồi khi phụ thuộc bên ngoài gặp sự cố.} Bộ định tuyến LLM đa nhà cung cấp và hàng đợi tác vụ bền vững giúp hệ thống tiếp tục hoạt động (ở mức suy giảm) ngay cả khi một nhà cung cấp AI hoặc một lượt xử lý gặp lỗi tạm thời.
+\end{itemize}
+
+\section{Hạn chế của hệ thống}
+\begin{itemize}
+    \item \textbf{Chưa xử lý truy vấn đa bước (multi-hop).} Hệ thống chưa hỗ trợ câu hỏi đòi hỏi đối chiếu thông tin giữa nhiều tài liệu hoặc nhiều chương trong một lượt truy xuất duy nhất, do phạm vi đồ án giới hạn ở RAG một lượt (NFR-03.2).
+    \item \textbf{Phụ thuộc vào tính khả dụng của nhà cung cấp LLM miễn phí.} Dù có cơ chế chuyển đổi tự động, chất lượng và tốc độ phản hồi vẫn phụ thuộc vào nhà cung cấp đang khả dụng tại thời điểm truy vấn.
+    \item \textbf{Độ chính xác OCR còn giới hạn.} Đối với tài liệu quét chất lượng thấp, luồng OCR cơ bản có thể bỏ sót hoặc nhận diện sai một số ký tự (NFR-03.1).
+    \item \textbf{Chưa hỗ trợ đăng nhập liên kết (OAuth).} Phiên bản hiện tại chỉ hỗ trợ email/mật khẩu.
+    \item \textbf{Chưa có đánh giá tải ở quy mô lớn.} Các phép đo hiệu năng trong đồ án được thực hiện ở quy mô kiểm thử; cần thêm các đợt đánh giá với lượng người dùng đồng thời lớn hơn để kiểm chứng toàn diện hơn.
+\end{itemize}
+
+\section{Hướng phát triển}
+\begin{itemize}
+    \item \textbf{Truy vấn đa bước.} Bổ sung một lớp lập kế hoạch truy vấn con cho các câu hỏi đối chiếu nhiều tài liệu, mà không nhất thiết phải áp dụng toàn bộ một khung tác tử tự trị phức tạp.
+    \item \textbf{Đăng nhập liên kết OAuth} (Google/GitHub) theo đúng đặc tả UC-01 ban đầu.
+    \item \textbf{Đánh giá tải ở quy mô lớn hơn} và tối ưu hoá thêm cho kịch bản nhiều người dùng đồng thời.
+    \item \textbf{Mở rộng định dạng tài liệu} sang các định dạng đa phương tiện và xử lý tốt hơn nội dung phi văn bản (hình ảnh, sơ đồ, công thức).
+\end{itemize}

@@ -1,0 +1,52 @@
+\section{Hệ thống Truy xuất tăng cường tạo sinh (RAG)}
+
+Để giải quyết triệt để hai khiếm khuyết cốt lõi của Mô hình ngôn ngữ lớn (LLM) là giới hạn cửa sổ ngữ cảnh và hiện tượng ảo giác thông tin, kỹ thuật Truy xuất tăng cường tạo sinh (Retrieval-Augmented Generation - RAG) đã được đề xuất và trở thành tiêu chuẩn trong việc xây dựng các ứng dụng AI dựa trên tri thức miền cụ thể (domain-specific knowledge). RAG hoạt động dựa trên nguyên lý cung cấp cho mô hình ngôn ngữ một "bộ nhớ ngoài" là các cơ sở dữ liệu có thể tìm kiếm được, từ đó ép mô hình phải dựa vào các bằng chứng xác thực trước khi tạo ra câu trả lời. \cite{lewis2020retrieval,gao2023retrieval}
+
+\subsection{Cấu trúc cốt lõi của RAG truyền thống (Naive RAG)}
+Một hệ thống RAG tiêu chuẩn vận hành dựa trên một đường ống gồm ba giai đoạn độc lập nhưng liên kết chặt chẽ với nhau:
+
+\begin{itemize}
+    \item \textbf{Giai đoạn Lập chỉ mục (Indexing):} Đây là quá trình chuẩn bị dữ liệu ngoại tuyến (offline). Tài liệu gốc (PDF, Word, Text) được làm sạch, bóc tách thành văn bản thuần túy. Sau đó, văn bản được chia nhỏ (chunking) và đi qua một mô hình nhúng (embedding model) để chuyển đổi thành các biểu diễn vector. Các vector này cuối cùng được lưu trữ vào một cơ sở dữ liệu vector.
+    \item \textbf{Giai đoạn Truy xuất (Retrieval):} Diễn ra trong thời gian thực (online) khi người dùng đặt câu hỏi. Câu truy vấn của người dùng cũng được đưa qua chính mô hình nhúng đã dùng ở giai đoạn lập chỉ mục để tạo ra vector truy vấn. Hệ thống sau đó tính toán khoảng cách giữa vector truy vấn và các vector tài liệu trong cơ sở dữ liệu để trích xuất ra $k$ đoạn văn bản có độ liên quan cao nhất.
+    \item \textbf{Giai đoạn Tạo sinh (Generation):} $k$ đoạn văn bản vừa được truy xuất sẽ được nối lại với nhau cùng với câu hỏi ban đầu để tạo thành một lời nhắc (prompt) hoàn chỉnh. Mô hình ngôn ngữ lớn tiếp nhận lời nhắc này và sinh ra câu trả lời cuối cùng dựa trên các dữ kiện được cung cấp.
+\end{itemize}
+
+\subsection{Kỹ thuật phân đoạn văn bản (Text Chunking)}
+Văn bản cần được chia nhỏ vì mô hình nhúng có giới hạn độ dài đầu vào (thường từ 384 đến 8192 token tùy mô hình) và việc nhúng cả một tài liệu dài sẽ làm loãng ý nghĩa cục bộ của từng đoạn.
+
+Chiến lược phân đoạn phổ biến nhất là \textbf{Cửa sổ trượt có kích thước cố định (Fixed-size chunking with overlap)}. Để tránh việc một khái niệm hoặc một câu bị cắt đứt giữa hai phân đoạn, hệ thống áp dụng một khoảng chồng lấp (overlap). Nếu gọi $C$ là kích thước một phân đoạn (chunk size) và $O$ là phần chồng lấp (overlap size), thì phần văn bản hiệu dụng mới thực sự được tiến lên ở mỗi bước cắt chỉ là $C-O$. Điều này giúp duy trì tính liên tục của ngữ nghĩa xuyên suốt tài liệu.
+
+\subsection{Mô hình nhúng và Không gian Vector (Embedding Models \& Vector Space)}
+Mô hình nhúng là một dạng mạng nơ-ron sâu (Deep Neural Network) có nhiệm vụ ánh xạ các chuỗi văn bản có độ dài thay đổi thành các vector số thực có số chiều cố định. Về mặt toán học, hàm nhúng $f$ ánh xạ một đoạn văn bản $t$ vào không gian vector $d$ chiều:
+
+$$f(t) \in \mathbb{R}^d$$
+
+Trong không gian này, các đoạn văn bản có ý nghĩa tương đồng sẽ nằm gần nhau. Ví dụ, vector của câu "Mô hình học sâu" sẽ có khoảng cách rất gần với vector của câu "Mạng nơ-ron nhân tạo", ngay cả khi chúng không có từ vựng nào trùng lặp. Đây là điểm vượt trội của RAG so với tìm kiếm từ khóa truyền thống (BM25 hay TF-IDF).
+
+\subsection{Đo lường độ tương đồng vector (Vector Similarity Metrics)}
+Để tìm ra các đoạn tài liệu phù hợp nhất với câu hỏi ở giai đoạn truy xuất, hệ thống áp dụng các phép toán đo lường khoảng cách trong không gian đa chiều. Hai phương pháp phổ biến nhất là:
+
+\begin{itemize}
+    \item \textbf{Độ tương đồng Cosine (Cosine Similarity):} Phương pháp này đo lường góc giữa hai vector, bỏ qua độ lớn (magnitude) của chúng. Điều này cực kỳ hữu ích trong xử lý ngôn ngữ tự nhiên vì một câu hỏi ngắn và một đoạn văn dài có thể có độ lớn vector khác nhau nhưng hướng vector lại giống nhau nếu chúng cùng chủ đề. Công thức tính toán giữa vector truy vấn $Q$ và vector tài liệu $D$ (với $n$ là số chiều) như sau:
+
+$$ \text{Cosine}(Q, D) = \frac{Q \cdot D}{\|Q\| \|D\|} = \frac{\sum_{i=1}^{n} Q_i D_i}{\sqrt{\sum_{i=1}^{n} Q_i^2} \sqrt{\sum_{i=1}^{n} D_i^2}} $$
+
+Giá trị này dao động từ -1 (hoàn toàn trái ngược) đến 1 (hoàn toàn tương đồng). Hệ thống sẽ chọn ra các đoạn văn bản có điểm Cosine gần 1 nhất.
+
+    \item \textbf{Khoảng cách Euclid (L2 Distance):} Khác với Cosine, L2 đo lường khoảng cách đường thẳng tuyệt đối giữa hai điểm trong không gian. Công thức được biểu diễn bằng bình phương sự chênh lệch của từng chiều:
+
+$$ L2(Q, D) = \sqrt{\sum_{i=1}^{n} (Q_i - D_i)^2} $$
+
+Trong thực tiễn triển khai (như trên pgvector), nếu các vector đã được chuẩn hóa (normalized) về độ dài bằng 1, việc xếp hạng bằng Cosine Similarity và L2 Distance sẽ cho ra cùng một thứ tự kết quả.
+\end{itemize}
+
+\subsection{Những khiếm khuyết của RAG thụ động (Passive RAG)}
+Mặc dù giải quyết được bài toán ảo giác thông tin, mô hình RAG tiêu chuẩn (Passive RAG) vẫn còn tồn tại một số điểm nghẽn:
+
+\begin{enumerate}
+    \item \textbf{Sự mù mờ ngữ cảnh trong các câu hỏi phức hợp (Multi-hop Queries):} Nếu câu hỏi yêu cầu đối chiếu thông tin nằm ở hai chương khác nhau của sách, RAG thụ động thường thất bại vì nó chỉ so khớp độc lập từng đoạn văn với câu hỏi, không có khả năng tự suy luận chuỗi logic.
+    \item \textbf{Tính nhất thời của phiên truy xuất:} Truy vấn mới hoàn toàn mù tịt về truy vấn trước đó. Nếu người dùng hỏi "Khái niệm này có ưu điểm gì?", hệ thống sẽ không biết "khái niệm này" là gì nếu không truy xuất lại bộ nhớ lịch sử.
+    \item \textbf{Ngữ cảnh không tường minh:} Khi người dùng đã tự tay chọn ra đúng đoạn văn bản mình quan tâm, việc để mô hình tự tìm kiếm lại ngữ cảnh đó bằng vector similarity là dư thừa và có thể trả về đoạn không chính xác nếu đoạn được chọn là một khái niệm hiếm gặp trong tài liệu.
+\end{enumerate}
+
+DigitalBookLLM không giải quyết trọn vẹn vấn đề suy luận đa bước (mục 1) trong phạm vi đồ án này (xem thêm phần Giới hạn của đề tài), nhưng xử lý trực tiếp hai vấn đề còn lại: đoạn văn bản người dùng chọn được đưa vào lời nhắc dưới dạng \textit{ngữ cảnh cứng} (hard context) bắt buộc, độc lập với kết quả tìm kiếm vector; đồng thời mỗi phiên hội thoại được lưu trữ và truyền lại cho mô hình ở các lượt hỏi tiếp theo để duy trì mạch ngữ cảnh. Cách tiếp cận này được trình bày chi tiết ở Chương 5, mục kiến trúc RAG ưu tiên ngữ cảnh.

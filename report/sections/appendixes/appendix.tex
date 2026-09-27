@@ -1,0 +1,70 @@
+\chapter{Kết quả kiểm thử đầy đủ}
+Phụ lục này tổng hợp kết quả thực thi của toàn bộ bộ kiểm thử được xây dựng cho đồ án, mở rộng và bổ sung chi tiết cho phần tóm tắt kiểm thử đã trình bày ở Chương 6. Toàn bộ kết quả dưới đây được ghi nhận từ lần chạy thực tế trên môi trường container hóa cục bộ (Docker Compose: PostgreSQL + \texttt{pgvector}, máy chủ API, ứng dụng web).
+
+\section{Kiểm thử đơn vị và tích hợp (backend)}
+\begin{longtable}{|L{0.30\textwidth}|C{0.12\textwidth}|C{0.12\textwidth}|L{0.32\textwidth}|}
+\caption{Kết quả bộ kiểm thử Jest/Supertest}\label{tab:appendix-unit-tests}\\
+\hline
+\textbf{Bộ kiểm thử} & \textbf{Số ca} & \textbf{Kết quả} & \textbf{Ghi chú} \\\hline
+\endfirsthead
+\hline
+\textbf{Bộ kiểm thử} & \textbf{Số ca} & \textbf{Kết quả} & \textbf{Ghi chú} \\\hline
+\endhead
+Phân đoạn văn bản (chunker) & 5 & 5/5 Pass & Kiểm tra tách theo đoạn/câu, chồng lấp, tinh chỉnh ngữ nghĩa (FR-04). \\\hline
+Nhà cung cấp LLM tương thích OpenAI & 6 & 6/6 Pass & Dò trạng thái khả dụng, sinh phản hồi, phân tích luồng SSE. \\\hline
+Vòng đời xác thực và workspace & 5 & 5/5 Pass & Đăng ký, đăng nhập, CRUD workspace. \\\hline
+Đánh dấu và ghi chú (highlights) & 6 & 6/6 Pass & Tạo/liệt kê/xoá highlight, IDOR trên tài nguyên highlight. \\\hline
+Chống truy cập trái phép (IDOR) & 6 & 6/6 Pass & Workspace, tài liệu, token không hợp lệ (NFR-04.1). \\\hline
+\textbf{Tổng} & \textbf{28} & \textbf{28/28 Pass} & Chạy trên PostgreSQL container hóa, không mock cơ sở dữ liệu. \\\hline
+\end{longtable}
+
+\section{Kiểm thử bảo mật (IDOR probe)}
+\begin{longtable}{|L{0.55\textwidth}|C{0.14\textwidth}|L{0.20\textwidth}|}
+\caption{Kết quả kịch bản dò bảo mật tự động, chạy qua HTTP đối với một instance đang phục vụ}\label{tab:appendix-security}\\
+\hline
+\textbf{Kịch bản} & \textbf{Kết quả} & \textbf{Mã trạng thái} \\\hline
+\endfirsthead
+\hline
+\textbf{Kịch bản} & \textbf{Kết quả} & \textbf{Mã trạng thái} \\\hline
+\endhead
+Người dùng B đọc workspace của A & Pass & 404 \\\hline
+Người dùng B sửa workspace của A & Pass & 404 \\\hline
+Người dùng B xoá workspace của A & Pass & 404 \\\hline
+Người dùng B liệt kê tài liệu của A & Pass & 404 \\\hline
+Yêu cầu không kèm token & Pass & 401 \\\hline
+Token không hợp lệ & Pass & 401 \\\hline
+\textbf{Tổng: 6/6 kịch bản đạt} & & \\\hline
+\end{longtable}
+
+\section{Kiểm thử hiệu năng và tải đồng thời}
+\begin{longtable}{|L{0.40\textwidth}|L{0.50\textwidth}|}
+\caption{Kết quả kiểm thử hiệu năng}\label{tab:appendix-perf}\\
+\hline
+\textbf{Kịch bản} & \textbf{Kết quả đo được} \\\hline
+\endfirsthead
+\hline
+\textbf{Kịch bản} & \textbf{Kết quả đo được} \\\hline
+\endhead
+Tải lên 6 tài liệu đồng thời & 6/6 được chấp nhận (202), thời gian phản hồi trung bình 92--144\;ms, không có tác vụ nào bị mất khỏi hàng đợi. \\\hline
+Thông lượng đọc cơ bản (10 kết nối, 5 giây) & 0 lỗi, 0 timeout; thông lượng 68--1229 request/giây tuỳ môi trường (container hoá so với chạy trực tiếp). \\\hline
+Ngữ nghĩa truy xuất RAG (4 câu hỏi golden set) & Recall@k = 100\%; TTFB $p95$ = 29--125\;ms (mục tiêu NFR-02.1: $<$ 2000\;ms). \\\hline
+Đường ống OCR trên PDF không có lớp văn bản & Thực thi thành công đầu-cuối (dựng ảnh trang bằng pdf.js + nhận diện ký tự bằng tesseract.js); tài liệu không thể trích xuất được văn bản nào chuyển đúng sang trạng thái \texttt{FAILED} kèm thông báo rõ ràng, không treo ở trạng thái \texttt{PROCESSING}. \\\hline
+\end{longtable}
+
+\section{Kiểm thử chức năng thủ công (E2E)}
+\begin{longtable}{|L{0.45\textwidth}|L{0.45\textwidth}|}
+\caption{Kết quả kiểm thử thủ công trên giao diện web}\label{tab:appendix-e2e}\\
+\hline
+\textbf{Kịch bản} & \textbf{Kết quả} \\\hline
+\endfirsthead
+\hline
+\textbf{Kịch bản} & \textbf{Kết quả} \\\hline
+\endhead
+Đăng ký tài khoản mới và vào thư viện & Pass \\\hline
+Đăng nhập sai mật khẩu bị từ chối kèm thông báo lỗi & Pass \\\hline
+Tải tài liệu, theo dõi trạng thái đến \texttt{READY} không cần tải lại trang & Pass \\\hline
+Mở tài liệu từ thư viện vào trình đọc chia đôi & Pass \\\hline
+Bôi đen văn bản hiện thanh công cụ nổi (4 hành động) & Pass \\\hline
+\end{longtable}
+
+\textit{Bộ kịch bản kiểm thử đầy đủ, ánh xạ theo từng UC/FR/NFR, được trình bày chi tiết trong tài liệu kiểm thử đính kèm đồ án (không lặp lại toàn văn ở đây để tránh trùng lặp nội dung với Chương 6).}

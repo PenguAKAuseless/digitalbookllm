@@ -1,55 +1,38 @@
-# Multi-stage build for optimized image size
-FROM node:20-alpine AS builder
+# Debian (not Alpine): @napi-rs/canvas and tesseract.js need glibc and
+# fontconfig for PDF rasterization and OCR (see ADR of the ingestion pipeline
+# in docs/architecture-decisions.md). Single image runs both the API and the
+# job-queue worker pool in one process (ADR-02), matching the free-tier
+# single-container hosts (Hugging Face Spaces, Render) in docs/deployment.md.
+FROM node:20-bookworm-slim AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY tsconfig.json ./
-
-# Install dependencies
+COPY package*.json tsconfig.json ./
 RUN npm ci
 
-# Copy source code
 COPY src ./src
-
-# Build TypeScript
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
+FROM node:20-bookworm-slim
 
-# Install curl for healthcheck
-RUN apk add --no-cache curl
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl fontconfig fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
 
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
-
-# Copy migration files (needed for database setup)
 COPY src/db/*.sql ./dist/db/
 
-# Create uploads directory
-RUN mkdir -p ./uploads && chown -R node:node ./uploads
-
-# Use non-root user
+RUN mkdir -p ./uploads && chown -R node:node ./uploads /app
 USER node
 
-# Expose port
 EXPOSE 3001
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:3001/health || exit 1
 
-# Start the application
 CMD ["node", "dist/index.js"]

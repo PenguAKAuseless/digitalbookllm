@@ -1,0 +1,10 @@
+Chapter One: The Beginning
+
+This is a short sample document used by the E2E upload test. It contains
+enough text to pass through the ingestion pipeline: text extraction,
+chunking, and embedding.
+
+Chapter Two: The Middle
+
+A second paragraph, so the chunker has more than one paragraph to work with
+during the structural split pass of FR04.

@@ -1,0 +1,33 @@
+\section{Lựa chọn các thành phần công nghệ (Technology Stack)}
+Để hiện thực hóa DigitalBookLLM, nhóm lựa chọn một tập hợp công nghệ hiện đại, ưu tiên các nền tảng có gói triển khai miễn phí để đáp ứng yêu cầu công khai hệ thống trong phạm vi ngân sách của một đồ án chuyên ngành.
+
+\subsection{Tầng trình diễn: Next.js và Tailwind CSS}
+\begin{description}[style=nextline, leftmargin=3.5em, labelsep=0.6em]
+    \item[\textbf{Next.js}] Hỗ trợ tốt cho quản lý trạng thái phức tạp, điều hướng ứng dụng và khả năng kết xuất linh hoạt; phù hợp với yêu cầu duy trì đồng thời trình xem tài liệu và khung chat trên một màn hình chia đôi.
+    \item[\textbf{Tailwind CSS}] Cho phép xây dựng giao diện theo hướng tiện ích (utility-first), giúp kiểm soát nhanh bố cục phản hồi, khoảng cách và tính nhất quán trên nhiều kích thước màn hình.
+\end{description}
+
+\subsection{Tầng máy chủ: Node.js và Express}
+\begin{itemize}
+    \item \textbf{Kiến trúc hướng sự kiện.} Node.js phù hợp với khối lượng công việc gần như hoàn toàn phụ thuộc vào I/O mạng (gọi LLM, truy vấn cơ sở dữ liệu, lưu trữ đối tượng), tương đương về thông lượng với các framework bất đồng bộ khác cho cùng dạng tải.
+    \item \textbf{Hỗ trợ streaming.} Express giúp triển khai đơn giản các tuyến API phục vụ truyền phản hồi theo luồng (SSE) từ mô hình ngôn ngữ đến giao diện.
+    \item \textbf{Hệ kiểu dùng chung.} Việc dùng TypeScript ở cả client lẫn server loại bỏ sự trùng lặp định nghĩa kiểu dữ liệu giữa hai phía.
+\end{itemize}
+
+\subsection{Hệ quản trị dữ liệu: PostgreSQL và phần mở rộng \texttt{pgvector}}
+\begin{itemize}
+    \item \textbf{PostgreSQL} đảm nhiệm lưu trữ dữ liệu quan hệ: người dùng, không gian làm việc, tài liệu, highlight, phiên hội thoại và hàng đợi tác vụ.
+    \item \textbf{\texttt{pgvector}} bổ sung khả năng lập chỉ mục HNSW và truy vấn tương đồng vector ngay trong cùng hệ quản trị cơ sở dữ liệu, loại bỏ nhu cầu một kho vector chuyên dụng riêng biệt.
+    \item \textbf{Lưu trữ đối tượng.} Tệp tài liệu gốc và ảnh bìa được lưu ở một dịch vụ lưu trữ đối tượng tương thích S3, tách biệt khỏi cơ sở dữ liệu quan hệ.
+\end{itemize}
+
+\subsection{Bộ định tuyến LLM đa nhà cung cấp}
+Vì các dịch vụ LLM ở gói miễn phí không cam kết tính khả dụng liên tục, tầng AI của hệ thống không gọi trực tiếp một nhà cung cấp cố định mà thông qua một bộ định tuyến (LLM Router) có khả năng tự dò trạng thái và chuyển đổi:
+
+\begin{itemize}
+    \item \textbf{Mô hình nhúng cục bộ} (\texttt{all-MiniLM-L6-v2}, 384 chiều) chạy trên CPU của máy chủ, không phụ thuộc hạn mức của bất kỳ API bên ngoài nào cho bước truy xuất; chỉ bước sinh câu trả lời mới cần gọi LLM.
+    \item \textbf{Thứ tự ưu tiên ba tầng:} (1) các nhà cung cấp do người vận hành cấu hình (theo thứ tự khai báo trong biến môi trường); (2) Google Gemini (gói miễn phí, hạn mức rộng); (3) Groq (thời gian phản hồi thấp, dùng làm phương án cuối).
+    \item \textbf{Dò trạng thái khả dụng (health check)} cho từng nhà cung cấp bằng một yêu cầu thăm dò nhẹ, kết quả được lưu đệm 30 giây để tránh dò lại liên tục; nhà cung cấp chưa cấu hình hoặc không khả dụng bị bỏ qua trước khi định tuyến.
+    \item \textbf{Chuyển đổi khi lỗi (failover):} nếu nhà cung cấp được chọn báo lỗi trước khi trả về bất kỳ dữ liệu nào, bộ định tuyến tự động thử nhà cung cấp kế tiếp trong danh sách mà không để lộ lỗi ra phía người dùng.
+    \item \textbf{Hàng đợi tác vụ bền vững} lưu trong chính PostgreSQL, xử lý song song có giới hạn, thay thế vai trò một message broker chuyên dụng.
+\end{itemize}

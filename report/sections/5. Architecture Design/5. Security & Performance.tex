@@ -1,0 +1,23 @@
+\section{Kiến trúc bảo mật và hiệu năng hệ thống}
+
+\subsection{Cô lập dữ liệu và chống truy cập trái phép (IDOR)}
+Vì hệ thống phục vụ nhiều người dùng trên cùng một hạ tầng dùng chung, biện pháp bảo mật quan trọng nhất là ngăn chặn IDOR: tình trạng một người dùng truy vấn được tài nguyên (tài liệu, highlight, đồ thị tri thức) của người dùng khác chỉ bằng cách đoán hoặc biết được định danh (NFR-04.1).
+
+\begin{itemize}
+    \item \textbf{Kiểm tra quyền sở hữu tại tầng dịch vụ.} Mọi phương thức truy vấn dữ liệu ở tầng dịch vụ (không phải chỉ ở tầng controller) đều nhận vào và lọc theo \texttt{userId} rút ra từ token JWT đã xác thực, không bao giờ tin vào định danh do client tự khai trong tham số truy vấn.
+    \item \textbf{Xác thực không trạng thái.} Token JWT có thời hạn (mặc định 7 ngày), được xác minh ở một middleware duy nhất áp dụng cho toàn bộ các tuyến API cần xác thực.
+    \item \textbf{Kiểm chứng bằng kiểm thử tự động.} Bộ kiểm thử bảo mật (Chương 6) mô phỏng người dùng B cố truy cập tài nguyên của người dùng A qua workspace, tài liệu và highlight, xác minh mọi trường hợp đều trả về 403/404.
+\end{itemize}
+
+\subsection{Kiểm soát tải và giới hạn tần suất}
+\begin{itemize}
+    \item \textbf{Giới hạn tần suất theo danh tính.} Thay vì giới hạn theo địa chỉ IP, hệ thống áp dụng hạn mức truy vấn AI theo từng tài khoản mỗi ngày, vì giới hạn theo IP dễ bị vô hiệu hóa (nhiều người dùng sau cùng một NAT) hoặc gây bất công (nhiều tài khoản sau cùng một IP).
+    \item \textbf{Hàng đợi tác vụ có giới hạn đồng thời.} Số lượng worker xử lý song song được giới hạn cấu hình; khi số tác vụ vượt quá khả năng xử lý tức thời, chúng xếp hàng trong bảng \texttt{jobs} thay vì làm sập tiến trình máy chủ API (NFR-02.2).
+    \item \textbf{Thử lại có độ trễ tăng dần.} Tác vụ lỗi được thử lại tối đa 3 lần với thời gian chờ tăng dần theo cấp số nhân, sau đó chuyển sang trạng thái \texttt{DEAD} kèm thông tin lỗi thay vì lặp vô hạn.
+\end{itemize}
+
+\subsection{Khả dụng của tầng AI}
+Vì hệ thống phụ thuộc vào các nhà cung cấp LLM bên thứ ba ở gói miễn phí, tính khả dụng của tầng AI được xử lý bằng cơ chế dò trạng thái và chuyển đổi nhà cung cấp đã trình bày ở mục 5.2, thay vì giả định một nhà cung cấp duy nhất luôn sẵn sàng. Khi toàn bộ nhà cung cấp đều không khả dụng, hệ thống trả về một sự kiện lỗi rõ ràng qua luồng SSE thay vì để yêu cầu treo hoặc trả lỗi 500 chung chung.
+
+\subsection*{Tổng kết Chương 5}
+Chương này đã trình bày kiến trúc modular monolith kết hợp async workers của DigitalBookLLM, ngăn xếp công nghệ được lựa chọn theo tiêu chí chi phí triển khai và tính khả dụng, cơ chế RAG ưu tiên ngữ cảnh cứng, kiến trúc đồ thị tri thức cá nhân hoá lưu trữ quan hệ, cùng các biện pháp bảo mật và kiểm soát tải. Các quyết định thay thế cụ thể so với kiến trúc tham chiếu ban đầu (ví dụ thay RabbitMQ/Celery bằng hàng đợi PostgreSQL, thay Neo4j bằng lưu trữ quan hệ) cùng lý do được ghi nhận đầy đủ trong tài liệu kiến trúc đính kèm đồ án.

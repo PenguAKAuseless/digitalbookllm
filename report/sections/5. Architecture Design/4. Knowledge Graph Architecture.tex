@@ -1,0 +1,18 @@
+\section{Kiến trúc đồ thị tri thức cá nhân hóa}
+Song song với pipeline RAG, DigitalBookLLM vận hành một pipeline thứ hai chạy hoàn toàn ở chế độ nền: trích xuất thực thể và quan hệ từ nội dung người dùng đã tương tác, tích lũy dần thành một đồ thị tri thức cá nhân cho từng tài khoản (FR-06, UC-15).
+
+\subsection{Nguyên tắc thiết kế: không chặn trải nghiệm chính}
+Trích xuất tri thức không bao giờ nằm trên đường xử lý của một yêu cầu đọc hoặc hỏi đáp. Sau mỗi lượt hỏi đáp AI thành công, hoặc sau khi một tài liệu được nạp xong, hệ thống chỉ đơn giản đưa thêm một tác vụ \texttt{EXTRACT\_ENTITIES} vào hàng đợi chung đã mô tả ở mục 5.1, rồi trả lời ngay cho người dùng. Việc đồ thị được cập nhật muộn vài giây sau không ảnh hưởng đến trải nghiệm đọc và hỏi đáp.
+
+\subsection{Trích xuất thực thể và quan hệ}
+Worker xử lý tác vụ gửi đoạn văn bản liên quan (đoạn được chọn, câu hỏi và câu trả lời, hoặc toàn văn tài liệu khi mới nạp xong) đến bộ định tuyến LLM, yêu cầu trả về trực tiếp một cấu trúc dữ liệu gồm danh sách thực thể (tên, loại, mô tả) và danh sách quan hệ (thực thể nguồn, thực thể đích, loại quan hệ). Kết quả được hợp nhất (upsert) vào đồ thị của người dùng: thực thể trùng tên được cập nhật mô tả thay vì tạo bản sao; quan hệ mới được thêm cùng tài liệu nguồn và đoạn trích minh chứng để phục vụ tra cứu ngược.
+
+\subsection{Lưu trữ đồ thị trong PostgreSQL (ADR-04)}
+Đồ thị được lưu bằng hai bảng quan hệ, \texttt{entities} (nút) và \texttt{entity\_relations} (cạnh), thay vì một hệ quản trị đồ thị chuyên dụng. Quyết định này dựa trên hai lý do:
+\begin{itemize}
+    \item \textbf{Quy mô truy vấn thực tế nhỏ.} Giao diện khám phá chỉ cần truy vấn lân cận một hoặc hai bước quanh một nút được chọn (xem Chương 2, mục Knowledge Graph). Một truy vấn đệ quy (recursive CTE) trên PostgreSQL phục vụ tốt ở quy mô một đồ thị cá nhân (vài trăm đến vài nghìn nút).
+    \item \textbf{Nhất quán vận hành.} Lưu đồ thị cùng cơ sở dữ liệu quan hệ chính giúp việc cô lập dữ liệu theo người dùng (NFR-04.1) và xóa tuần tự khi tài khoản/tài liệu bị xóa dùng chung một cơ chế với mọi bảng khác, thay vì phải đồng bộ hai hệ lưu trữ riêng biệt.
+\end{itemize}
+
+\subsection{Truy vấn phục vụ giao diện khám phá}
+Điểm cuối \texttt{GET /api/graph} trả về toàn bộ nút và cạnh thuộc về người dùng hiện tại để dựng mạng lưới nút và cạnh trên giao diện. Điểm cuối \texttt{GET /api/graph/:entityId} trả về chi tiết một nút cùng danh sách nút lân cận và đoạn trích nguồn, phục vụ panel chi tiết khi người dùng nhấn vào một nút trong đồ thị.

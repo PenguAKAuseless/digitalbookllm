@@ -1,0 +1,83 @@
+\section{Kế hoạch kiểm thử}
+Kế hoạch kiểm thử được tổ chức thành năm nhóm, tương ứng với năm nhóm use case và các yêu cầu phi chức năng trọng tâm. Bảng dưới đây trình bày các kịch bản đại diện của mỗi nhóm; bộ kịch bản đầy đủ và kết quả thực thi chi tiết được trình bày ở Phụ lục A.
+
+\subsection{Nhóm kiểm thử: Tài liệu và xử lý nền}
+\textit{Mục tiêu:} Đảm bảo hệ thống tải file thành công và worker xử lý ngầm (OCR, phân đoạn, nhúng vector) chạy chính xác.
+
+\begin{longtable}{|C{0.08\textwidth}|C{0.12\textwidth}|L{0.30\textwidth}|L{0.42\textwidth}|}
+\caption{Kịch bản kiểm thử đại diện: Tài liệu và xử lý nền}\\
+\hline
+\textbf{Mã TC} & \textbf{UC/FR} & \textbf{Kịch bản} & \textbf{Kết quả mong đợi} \\\hline
+\endfirsthead
+\hline
+\textbf{Mã TC} & \textbf{UC/FR} & \textbf{Kịch bản} & \textbf{Kết quả mong đợi} \\\hline
+\endhead
+TC-DOC-01 & UC-05, FR-03 & Tải lên tài liệu PDF có lớp văn bản & Trạng thái chuyển \texttt{UPLOADED} $\to$ \texttt{READY}; tệp gốc lưu vào kho đối tượng. \\\hline
+TC-DOC-02 & UC-07, FR-04 & Theo dõi tiến trình worker xử lý ngầm & Phân đoạn, vector được lưu; trạng thái tài liệu chuyển đúng thứ tự. \\\hline
+TC-DOC-03 & UC-07, NFR-03.1 & Xử lý OCR cho PDF dạng ảnh quét & Worker gọi OCR thành công; chấp nhận một tỉ lệ sai số nhận diện. \\\hline
+\end{longtable}
+
+\subsection{Nhóm kiểm thử: Trải nghiệm đọc sách}
+\textit{Mục tiêu:} Đảm bảo giao diện mượt mà, render tối ưu và tương tác theo ngữ cảnh hoạt động đúng.
+
+\begin{longtable}{|C{0.08\textwidth}|C{0.12\textwidth}|L{0.30\textwidth}|L{0.42\textwidth}|}
+\caption{Kịch bản kiểm thử đại diện: Trải nghiệm đọc sách}\\
+\hline
+\textbf{Mã TC} & \textbf{UC/FR} & \textbf{Kịch bản} & \textbf{Kết quả mong đợi} \\\hline
+\endfirsthead
+\hline
+\textbf{Mã TC} & \textbf{UC/FR} & \textbf{Kịch bản} & \textbf{Kết quả mong đợi} \\\hline
+\endhead
+TC-READ-01 & UC-08, FR-08 & Mở tài liệu PDF trên 1500 trang, cuộn nhanh & Thời gian mở dưới 3 giây; trình duyệt không treo. \\\hline
+TC-READ-02 & UC-11 & Bôi đen văn bản hiện thanh công cụ nổi & Popover với 4 hành động hiện ngay phía trên vùng chọn. \\\hline
+TC-READ-03 & UC-11 & Thêm highlight, tải lại trang & Đoạn văn được tô đúng màu, đúng vị trí sau khi tải lại. \\\hline
+\end{longtable}
+
+\subsection{Nhóm kiểm thử: Tương tác AI và RAG}
+\textit{Mục tiêu:} Xác minh AI lấy đúng ngữ cảnh, không ảo giác, và truyền phản hồi mượt mà.
+
+\begin{longtable}{|C{0.08\textwidth}|C{0.12\textwidth}|L{0.30\textwidth}|L{0.42\textwidth}|}
+\caption{Kịch bản kiểm thử đại diện: Tương tác AI và RAG}\\
+\hline
+\textbf{Mã TC} & \textbf{UC/FR} & \textbf{Kịch bản} & \textbf{Kết quả mong đợi} \\\hline
+\endfirsthead
+\hline
+\textbf{Mã TC} & \textbf{UC/FR} & \textbf{Kịch bản} & \textbf{Kết quả mong đợi} \\\hline
+\endhead
+TC-AI-01 & UC-14, FR-07 & Hỏi đáp theo ngữ cảnh đã chọn & Câu trả lời bám sát đúng đoạn văn bản đã chọn. \\\hline
+TC-AI-02 & NFR-02.1 & Đo độ trễ truyền dữ liệu AI & TTFB dưới 2 giây; dữ liệu trả về dạng luồng SSE. \\\hline
+TC-AI-03 & UC-13 & Nhấn vào thẻ trích dẫn & Trình đọc tự động cuộn đến đúng trang chứa ngữ cảnh. \\\hline
+\end{longtable}
+
+\subsection{Nhóm kiểm thử: Cá nhân hoá (Knowledge Graph)}
+\textit{Mục tiêu:} Đảm bảo đồ thị tri thức tiến hoá đúng dựa trên tương tác của người dùng.
+
+\begin{longtable}{|C{0.08\textwidth}|C{0.12\textwidth}|L{0.30\textwidth}|L{0.42\textwidth}|}
+\caption{Kịch bản kiểm thử đại diện: Cá nhân hoá}\\
+\hline
+\textbf{Mã TC} & \textbf{UC/FR} & \textbf{Kịch bản} & \textbf{Kết quả mong đợi} \\\hline
+\endfirsthead
+\hline
+\textbf{Mã TC} & \textbf{UC/FR} & \textbf{Kịch bản} & \textbf{Kết quả mong đợi} \\\hline
+\endhead
+TC-KG-01 & UC-15, FR-06 & Tự động sinh đồ thị từ hội thoại & Node mới xuất hiện đúng, gán đúng \texttt{user\_id}. \\\hline
+TC-KG-02 & FR-06 & Trích xuất tri thức không chặn phản hồi chat & Phản hồi chat trả về bình thường dù worker trích xuất đang chạy. \\\hline
+\end{longtable}
+
+\subsection{Nhóm kiểm thử: Bảo mật và Hiệu năng}
+\textit{Mục tiêu:} Đảm bảo kiến trúc an toàn, bảo vệ dữ liệu và chịu tải tốt.
+
+\begin{longtable}{|C{0.08\textwidth}|C{0.12\textwidth}|L{0.30\textwidth}|L{0.42\textwidth}|}
+\caption{Kịch bản kiểm thử đại diện: Bảo mật và Hiệu năng}\\
+\hline
+\textbf{Mã TC} & \textbf{UC/FR} & \textbf{Kịch bản} & \textbf{Kết quả mong đợi} \\\hline
+\endfirsthead
+\hline
+\textbf{Mã TC} & \textbf{UC/FR} & \textbf{Kịch bản} & \textbf{Kết quả mong đợi} \\\hline
+\endhead
+TC-SEC-01 & FR-01, NFR-04.1 & Người dùng B truy cập tài nguyên của A bằng UUID & Hệ thống từ chối, trả về 403/404. \\\hline
+TC-PERF-01 & NFR-02.2 & 5--10 yêu cầu tải tài liệu đồng thời & API không sập; hàng đợi xử lý tuần tự, không mất tác vụ. \\\hline
+\end{longtable}
+
+\section{Kết quả kiểm thử}
+Toàn bộ 28 kiểm thử đơn vị/tích hợp (Jest/Supertest), 6 kịch bản dò bảo mật IDOR, và các kiểm thử hiệu năng/RAG đại diện đều đạt kết quả \textbf{Pass}, chạy trên môi trường container hoá mô tả ở mục 6.2. Chi tiết từng kết quả, bao gồm số liệu đo được (thời gian phản hồi, tỉ lệ chấp nhận, recall@k), được trình bày đầy đủ ở Phụ lục A.

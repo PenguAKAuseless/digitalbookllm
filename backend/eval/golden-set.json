@@ -1,0 +1,25 @@
+{
+    "corpus": "SECTION ALPHA. The Aurora Protocol was designed by Dr. Lena Voss in 2031 to coordinate disaster-relief drones across flooded regions. It relies on a mesh radio network that keeps functioning even when cellular towers are down. The protocol's key innovation is priority-based message queuing, which ensures medical requests are never delayed behind routine status updates.\n\nSECTION BETA. Coral reef restoration in the Java Sea has used 3D-printed limestone scaffolds since 2029. Marine biologist Aditya Wardhana found that scaffolds textured with a fractal pattern attract coral larvae twice as fast as smooth surfaces. The project now covers over four hundred hectares of previously bleached reef.\n\nSECTION GAMMA. The Himalayan snow leopard census of 2033 used acoustic sensors instead of camera traps, because the sensors distinguish individual leopards by the harmonic signature of their calls. Researcher Priya Thapa reported a fifteen percent higher detection rate compared to the previous camera-based method, at a fraction of the cost.\n\nSECTION DELTA. The city of Porto Alegre reduced flood damage by rerouting stormwater through repurposed subway tunnels during off-peak hours. Engineer Marcos Toledo led the retrofit, which uses sensors to open sluice gates only when tunnel water levels are safely below the rail line.",
+    "cases": [
+        {
+            "id": "Q1",
+            "question": "Who designed the Aurora Protocol and what problem does it solve?",
+            "expectedKeywords": ["Lena Voss", "disaster-relief", "mesh radio"]
+        },
+        {
+            "id": "Q2",
+            "question": "Why do fractal-textured scaffolds help coral restoration?",
+            "expectedKeywords": ["Aditya Wardhana", "fractal", "larvae"]
+        },
+        {
+            "id": "Q3",
+            "question": "How does the Himalayan snow leopard census identify individual animals?",
+            "expectedKeywords": ["Priya Thapa", "acoustic", "harmonic"]
+        },
+        {
+            "id": "Q4",
+            "question": "How did Porto Alegre reduce flood damage using subway infrastructure?",
+            "expectedKeywords": ["Marcos Toledo", "subway", "sluice"]
+        }
+    ]
+}

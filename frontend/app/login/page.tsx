@@ -4,27 +4,29 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
+import { useI18n } from "@/lib/i18n"
 import { Loader2 } from "lucide-react"
 
 export default function LoginPage() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
-    const [loading, setLoading] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
     const { login } = useAuth()
+    const { t } = useI18n()
     const router = useRouter()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError("")
-        setLoading(true)
+        setSubmitting(true)
         try {
             await login(email, password)
             router.push("/")
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Login failed")
+            setError(err instanceof Error ? err.message : t("common.error"))
         } finally {
-            setLoading(false)
+            setSubmitting(false)
         }
     }
 
@@ -35,8 +37,8 @@ export default function LoginPage() {
                     <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4">
                         <span className="text-primary-foreground font-bold text-lg">DB</span>
                     </div>
-                    <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
-                    <p className="text-sm text-muted-foreground mt-1">Welcome back to DigitalBookLLM</p>
+                    <h1 className="text-2xl font-bold text-foreground">{t("auth.login.title")}</h1>
+                    <p className="text-sm text-muted-foreground mt-1">{t("app.tagline")}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -47,7 +49,7 @@ export default function LoginPage() {
                     )}
 
                     <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Email</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">{t("auth.email")}</label>
                         <input
                             type="email"
                             value={email}
@@ -59,7 +61,7 @@ export default function LoginPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Password</label>
+                        <label className="block text-sm font-medium text-foreground mb-1">{t("auth.password")}</label>
                         <input
                             type="password"
                             value={password}
@@ -72,18 +74,18 @@ export default function LoginPage() {
 
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={submitting}
                         className="w-full bg-primary text-primary-foreground py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                        {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                        Sign in
+                        {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                        {t("auth.login.submit")}
                     </button>
                 </form>
 
                 <p className="text-center text-sm text-muted-foreground">
-                    No account?{" "}
+                    {t("auth.login.noAccount")}{" "}
                     <Link href="/register" className="text-primary hover:underline font-medium">
-                        Create one
+                        {t("auth.register.submit")}
                     </Link>
                 </p>
             </div>

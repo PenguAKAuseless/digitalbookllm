@@ -1,0 +1,239 @@
+% !TEX program = xelatex %
+\documentclass[12pt]{report}
+\usepackage[utf8]{inputenc} 
+\usepackage[T5]{fontenc}   
+\usepackage[vietnamese]{babel} 
+\usepackage[fontsize=12pt]{scrextend}
+\usepackage[a4paper,top=1.55cm,bottom=1.9cm,left=3cm,right=2cm,headheight=42pt,headsep=0.25cm,footskip=1.05cm,includeheadfoot]{geometry}
+\usepackage[table]{xcolor}
+\usepackage{tgtermes}
+\usepackage{fontspec}
+\usepackage{biblatex}
+\addbibresource{sections/ref.bib}
+\setmainfont{Times New Roman}
+\usepackage{eso-pic}
+\usepackage{tikz}
+\usepackage{fancyhdr}
+\usepackage{fancyvrb}
+\usepackage{lastpage}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usetikzlibrary{positioning}
+\usepackage{anyfontsize}
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{lscape}
+\linespread{1.5}
+\emergencystretch=3em
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{caption}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+\usepackage{subcaption}
+
+
+\lstset{
+    basicstyle=\small\ttfamily, % Small font size
+    numbers=left,
+    frame=single,
+}
+\usepackage{pgfplots} % Required for the TikZ figure
+\pgfplotsset{compat=1.17} % Ensure compatibility with the latest version of pgfplots
+\usepackage{pgfgantt} % Gantt chart in the appendix (project timeline)
+
+\captionsetup[table]{position=top,skip=6pt}
+\captionsetup[figure]{skip=6pt}
+\setlist[itemize]{leftmargin=2.5em,labelsep=0.75em,itemsep=0.4em,topsep=0.4em,parsep=0pt,partopsep=0pt}
+\setlist[enumerate]{leftmargin=2.8em,labelsep=0.75em,itemsep=0.4em,topsep=0.4em,parsep=0pt,partopsep=0pt}
+\setlength{\LTpre}{0pt}
+\setlength{\LTpost}{0pt}
+\renewcommand{\arraystretch}{1.2}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.4em}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+\newcommand{\HNam}[1]{\textcolor{red!70!pink}{\textbf{\textit{#1}}}}
+
+% Define chapter font size to be 15pt
+\titleformat{\chapter}[display]{\normalfont\huge\bfseries\raggedright}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titleformat{\section}{\normalfont\Large\bfseries\raggedright}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\raggedright}{\thesubsection}{1em}{}
+
+\setlength{\headheight}{42pt}
+\fancyhead[L]{
+ \begin{tabular}{rl}
+    \begin{picture}(25,15)(0,0)
+    \put(0,-8){\includegraphics[width=8mm, height=8mm]{images/Logo_BK.png}}
+   \end{picture}&
+	\begin{tabular}{l}
+		\textbf{\bf \ttfamily Trường Đại Học Bách khoa - ĐHQG-HCM}\\[-1pt]
+		\textbf{\bf \ttfamily Khoa Khoa học và Kỹ thuật Máy tính}
+	\end{tabular} 	
+ \end{tabular}
+}
+\fancyhead[R]{
+	\begin{tabular}{l}
+		\tiny \bf \\
+		\tiny \bf 
+	\end{tabular}  }
+\fancyfoot{} % clear all footer fields
+\fancyfoot[L]{\parbox[b]{0.78\textwidth}{\raggedright\ttfamily Đồ án Chuyên ngành hướng Công nghệ Phần mềm\\Học kỳ 2 Năm học 2025 - 2026}}
+\fancyfoot[R]{\ttfamily 
+    Trang {\thepage}/%
+    \hypersetup{hidelinks}%
+    \pageref{LastPage}%
+}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\footrulewidth}{0.3pt}
+
+\begin{document}
+\pagestyle{plain}
+\thispagestyle{empty}
+\input{sections/cover-page}
+\setmainfont{Times New Roman}
+
+\clearpage
+\pagenumbering{roman} 
+\input{sections/ins-signature}
+
+\input{sections/decl-of-authen}
+
+\input{sections/ack}
+
+\input{sections/abstract}
+
+\input{sections/table-of-glossary}
+
+\input{sections/contents}
+
+\listoftables
+\newpage
+
+\listoffigures
+\newpage
+
+\pagenumbering{arabic}
+\pagestyle{fancy}
+\fancypagestyle{plain}{%
+    \fancyhf{}%
+    \fancyhead[L]{%
+        \begin{tabular}{rl}
+            \begin{picture}(25,15)(0,0)
+                \put(0,-8){\includegraphics[width=8mm, height=8mm]{images/Logo_BK.png}}%
+            \end{picture}&%
+            \begin{tabular}{l}
+                \textbf{\bf \ttfamily Trường Đại Học Bách khoa - ĐHQG-HCM}\\[-1pt]
+                \textbf{\bf \ttfamily Khoa Khoa học và Kỹ thuật Máy tính}
+            \end{tabular}
+        \end{tabular}%
+    }%
+    \fancyhead[R]{%
+        \begin{tabular}{l}
+            \tiny \bf \\
+            \tiny \bf
+        \end{tabular}%
+    }%
+    \fancyfoot[L]{\parbox[b]{0.78\textwidth}{\raggedright\ttfamily Đồ án Chuyên ngành hướng Công nghệ Phần mềm\\Học kỳ 2 Năm học 2025 - 2026}}%
+    \fancyfoot[R]{\ttfamily Trang {\thepage}/\hypersetup{hidelinks}\pageref{LastPage}}%
+    \renewcommand{\headrulewidth}{0.3pt}%
+    \renewcommand{\footrulewidth}{0.3pt}%
+}
+
+\chapter{Giới thiệu đề tài}
+
+\textit{Chương 1 trình bày bối cảnh, vấn đề và động lực hình thành dự án DigitalBookLLM. Nội dung phân tích nỗi đau của người dùng khi đọc và nghiên cứu tài liệu số, khảo sát các đối thủ cạnh tranh, từ đó làm rõ phạm vi và giới hạn của giải pháp được đề xuất.}
+
+\input{sections/1. Introduction/1. Problem Statement}
+
+\input{sections/1. Introduction/2. Competitors}
+
+\input{sections/1. Introduction/3. Goals}
+
+\input{sections/1. Introduction/4. Scope & Limitations}
+
+\chapter{Cơ sở lý thuyết}
+
+\textit{Chương 2 thiết lập hệ thống tri thức nền tảng làm tiền đề cho việc thiết kế và hiện thực hệ thống DigitalBookLLM, tập trung vào bốn trụ cột: (1) LLM và các giới hạn về ngữ cảnh; (2) kỹ thuật RAG nhằm giải quyết hiện tượng ảo giác; (3) cơ sở dữ liệu vector và thuật toán tìm kiếm tương đồng; và (4) đồ thị tri thức cá nhân hóa (Knowledge Graph) hỗ trợ ghi nhận quá trình học tập của người dùng.}
+
+\input{sections/2. Theoretical Background/1. LLM}
+
+\input{sections/2. Theoretical Background/2. RAG}
+
+\input{sections/2. Theoretical Background/4. Vector Database}
+
+\input{sections/2. Theoretical Background/5. Knowledge Graph}
+
+\chapter{Phân tích nhu cầu}
+
+\textit{Chương này khảo sát và phân tích nhu cầu thực tế từ các nhóm đối tượng liên quan, làm cơ sở thiết lập các yêu cầu chức năng và phi chức năng của hệ thống.}
+
+\input{sections/3. Requirements Analysis/1. Stakeholders' Needs}
+
+\input{sections/3. Requirements Analysis/3. User Stories}
+
+\input{sections/3. Requirements Analysis/4. Functional Requirements}
+
+\input{sections/3. Requirements Analysis/5. Nonfunctional Requirements}
+
+\input{sections/3. Requirements Analysis/6. Usecase}
+
+\chapter{Chi tiết thiết kế hệ thống}
+
+\textit{Chương 4 mô hình hóa chi tiết hệ thống DigitalBookLLM: sơ đồ hoạt động làm rõ quy trình xử lý tri thức, sơ đồ trình tự mô tả điều phối giữa giao diện, máy chủ và các nhà cung cấp LLM, sơ đồ lớp định hình cấu trúc phần mềm, thiết kế cơ sở dữ liệu và thiết kế UI/UX.}
+
+\input{sections/4. Detailed System Design/1. Overall Design Paradigm}
+
+\input{sections/4. Detailed System Design/2. Activity Diagrams}
+
+\input{sections/4. Detailed System Design/3. Sequence Diagrams}
+
+\input{sections/4. Detailed System Design/4. Class Diagrams}
+
+\input{sections/4. Detailed System Design/5. Database Design}
+
+\input{sections/4. Detailed System Design/6. UI-UX Design}
+
+\chapter{Thiết kế kiến trúc hệ thống}
+
+\textit{Chương 5 phân tích các quyết định kiến trúc cấu thành nên hệ thống DigitalBookLLM: kiến trúc modular monolith kết hợp async workers, ngăn xếp công nghệ, kỹ thuật RAG ưu tiên ngữ cảnh (hard-context), kiến trúc đồ thị tri thức cá nhân hóa, và các cơ chế bảo mật, hiệu năng.}
+
+\input{sections/5. Architecture Design/1. Overall Architecture}
+
+\input{sections/5. Architecture Design/2. Technology Stack}
+
+\input{sections/5. Architecture Design/3. Prioritized RAG}
+
+\input{sections/5. Architecture Design/4. Knowledge Graph Architecture}
+
+\input{sections/5. Architecture Design/5. Security & Performance}
+
+\chapter{Hiện thực và Đánh giá Hệ thống}
+
+\textit{Chương 6 trình bày kết quả hiện thực của hệ thống và kế hoạch kiểm thử được xây dựng để đánh giá hệ thống theo từng nhóm use case và yêu cầu phi chức năng, cùng kết quả thực thi thực tế.}
+
+\input{sections/6. Implementation and Evaluation/1. Implementation Results}
+
+\input{sections/6. Implementation and Evaluation/2. Test Plan}
+
+\chapter{Tổng kết}
+
+\input{sections/5. Conclusion/summary}
+\input{sections/references}
+
+\appendix
+\input{sections/appendixes/appendix}
+\input{sections/appendixes/plan}
+
+\end{document}

@@ -1,0 +1,25 @@
+\section{Phạm vi và giới hạn}
+\subsection{Phạm vi đề tài}
+\subsubsection{Đối tượng và định dạng dữ liệu}
+Hệ thống hỗ trợ tài liệu ở các định dạng phổ biến trong môi trường học thuật: \texttt{.pdf}, \texttt{.epub}, \texttt{.docx}, \texttt{.txt} và \texttt{.md}, với dung lượng tối đa 100~MB mỗi tệp. Đối với PDF dạng ảnh quét (không có lớp văn bản), hệ thống kích hoạt một luồng OCR cơ bản để nhận diện chữ.
+
+\subsubsection{Phạm vi chức năng của hệ thống}
+Dự án tập trung vào bốn nhóm chức năng cốt lõi:
+\begin{itemize}
+    \item \textbf{Định danh và không gian làm việc:} Đăng ký, đăng nhập bằng email/mật khẩu; tổ chức tài liệu theo các không gian làm việc (workspace) độc lập, cô lập dữ liệu giữa các người dùng.
+    \item \textbf{Trải nghiệm đọc cơ bản:} Điều hướng tài liệu (mục lục, nhảy trang), tuỳ chỉnh giao diện đọc (sáng/tối, phóng to/thu nhỏ), đánh dấu trang và đánh dấu/ghi chú đoạn văn bản (highlight, bookmark).
+    \item \textbf{Hỏi đáp AI theo ngữ cảnh:} Hỏi đáp toàn cục trên tài liệu, hỏi đáp theo đoạn văn bản được chọn (ngữ cảnh cứng), phát âm thanh đoạn văn bản (TTS).
+    \item \textbf{Cá nhân hoá tri thức:} Xây dựng đồ thị tri thức tiến hoá cho từng người dùng/không gian làm việc, trích xuất tự động từ nội dung đọc và lịch sử hội thoại.
+\end{itemize}
+
+\subsubsection{Quy mô triển khai và công nghệ sử dụng}
+Hệ thống được triển khai dưới dạng ứng dụng web client-server, có thể truy cập công khai qua trình duyệt, không yêu cầu cài đặt. Do giới hạn về tài nguyên của một đồ án chuyên ngành, nhóm ưu tiên các nền tảng lưu trữ và tính toán ở gói miễn phí (free tier) cho việc triển khai công khai, thay vì hạ tầng máy chủ chuyên dụng.
+
+\subsection{Giới hạn của đề tài}
+\begin{itemize}
+    \item \textbf{Đánh giá tải đa người dùng thực tế:} Tài nguyên hiện tại của nhóm không đủ để tiến hành đánh giá tính năng AI với số lượng người dùng đồng thời ở quy mô thương mại; các phép đo hiệu năng trong đồ án được thực hiện ở quy mô kiểm thử (xem Chương~6).
+    \item \textbf{Độ chính xác OCR:} OCR là một bài toán khó trong lĩnh vực Document AI; hệ thống chấp nhận một tỉ lệ sai số nhận diện nhất định đối với tài liệu quét chất lượng thấp, thay vì theo đuổi độ chính xác tuyệt đối.
+    \item \textbf{TTS đơn giản:} Tính năng đọc to sử dụng giọng đọc tổng hợp cơ bản (qua dịch vụ phát trực tuyến hoặc giọng đọc có sẵn của trình duyệt), chưa hỗ trợ tuỳ chỉnh giọng đọc nâng cao.
+    \item \textbf{Không tích hợp hệ thống Agent phức tạp:} Luồng xử lý AI của hệ thống tập trung vào kỹ thuật prompt engineering và RAG một lượt (single-pass), không triển khai các kiến trúc tác tử tự trị với vòng lặp suy luận đa bước (ReAct, lập kế hoạch, gọi công cụ tuần tự). Đây là hướng phát triển được ghi nhận ở Chương~7.
+    \item \textbf{Xác thực liên kết (OAuth):} Phiên bản hiện tại chỉ hỗ trợ đăng ký bằng email/mật khẩu; đăng nhập liên kết qua Google/GitHub được ghi nhận là hướng phát triển tiếp theo.
+\end{itemize}

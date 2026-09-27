@@ -1,0 +1,41 @@
+\section{Các câu chuyện người dùng}
+Các câu chuyện người dùng (User Stories - US) tuân thủ cấu trúc chuẩn: ``Là một [vai trò], tôi muốn [hành động] để [mục tiêu/lợi ích]'', được nhóm theo năm Epic tương ứng với các phân hệ chức năng chính.
+
+\subsection{Epic 01: Định danh và tài khoản}
+\begin{itemize}
+    \item \textbf{US-01:} Là người dùng cuối, tôi muốn đăng ký và đăng nhập bằng email/mật khẩu để bảo vệ dữ liệu cá nhân và thiết lập phiên làm việc riêng.
+    \item \textbf{US-02:} Là người dùng cuối, tôi muốn phiên đăng nhập có thời hạn (token hết hạn) để hạn chế rủi ro nếu thiết bị bị lộ.
+\end{itemize}
+
+\subsection{Epic 02: Không gian làm việc và tài liệu}
+\begin{itemize}
+    \item \textbf{US-03:} Là người dùng cuối, tôi muốn tạo, đổi tên và xoá các không gian làm việc độc lập để tổ chức tài liệu theo từng chủ đề.
+    \item \textbf{US-04:} Là người dùng cuối, tôi muốn tải lên tài liệu ở nhiều định dạng phổ biến (.pdf, .epub, .docx, .txt, .md) và thấy trạng thái xử lý (đang tải lên, đang xử lý, sẵn sàng) thay vì phải chờ đợi không rõ tiến độ.
+    \item \textbf{US-05:} Là người dùng cuối, tôi muốn xoá tài liệu không còn cần thiết, đồng thời hệ thống tự dọn sạch các phân đoạn và vector liên quan.
+    \item \textbf{US-06:} Là người dùng cuối, tôi muốn thư viện hiển thị ảnh bìa và tiến độ đọc của từng tài liệu để nhận diện nhanh tài liệu cần mở.
+\end{itemize}
+
+\subsection{Epic 03: Trải nghiệm đọc}
+\begin{itemize}
+    \item \textbf{US-07:} Là người dùng cuối, tôi muốn xem mục lục và nhảy nhanh đến một trang cụ thể trong tài liệu dài.
+    \item \textbf{US-08:} Là người dùng cuối, tôi muốn đổi giao diện sáng/tối và điều chỉnh mức phóng to để đọc thoải mái hơn.
+    \item \textbf{US-09:} Là người dùng cuối, tôi muốn bôi đen và tô màu một đoạn văn bản quan trọng, kèm ghi chú cá nhân, và thấy lại đúng vị trí đó khi mở lại tài liệu.
+    \item \textbf{US-10:} Là người dùng cuối, tôi muốn nghe đọc to một đoạn văn bản đã chọn khi không tiện đọc bằng mắt.
+    \item \textbf{US-11:} Là người dùng cuối, tôi muốn mở một tài liệu hàng nghìn trang mà trình duyệt không bị treo hay giật lag khi cuộn nhanh.
+\end{itemize}
+
+\subsection{Epic 04: Hỏi đáp AI và cá nhân hoá}
+\begin{itemize}
+    \item \textbf{US-12:} Là người dùng cuối, tôi muốn bôi đen một đoạn văn bản và hỏi AI ngay lập tức mà không phải sao chép sang khung nhập liệu.
+    \item \textbf{US-13:} Là người dùng cuối, tôi muốn câu trả lời của AI bám sát chính đoạn văn bản tôi đã chọn, không lạc sang nội dung khác của tài liệu.
+    \item \textbf{US-14:} Là người dùng cuối, tôi muốn đặt câu hỏi tổng quát về toàn bộ tài liệu và nhận câu trả lời kèm trích dẫn số trang có thể nhấn vào để xem lại nguồn.
+    \item \textbf{US-15:} Là người dùng cuối, tôi muốn thấy câu trả lời của AI xuất hiện dần theo thời gian thực thay vì phải chờ toàn bộ câu trả lời hoàn tất.
+    \item \textbf{US-16:} Là người dùng cuối, tôi muốn xem một sơ đồ trực quan các khái niệm mình đã tìm hiểu qua các lần đọc và trò chuyện với AI, cùng mối liên hệ giữa chúng.
+\end{itemize}
+
+\subsection{Epic 05: Vận hành và bảo mật}
+\begin{itemize}
+    \item \textbf{US-17:} Là quản trị viên hệ thống, tôi muốn giới hạn dung lượng tệp tải lên và số lượng truy vấn AI mỗi ngày trên từng tài khoản để tránh quá tải máy chủ.
+    \item \textbf{US-18:} Là quản trị viên hệ thống, tôi muốn các tác vụ nặng (trích xuất, nhúng vector) được xếp hàng đợi xử lý thay vì chạy đồng thời không kiểm soát khi nhiều người dùng tải tài liệu cùng lúc.
+    \item \textbf{US-19:} Là quản trị viên hệ thống, tôi muốn đảm bảo người dùng A không thể truy vấn được tài liệu, highlight hay đồ thị tri thức của người dùng B dù biết định danh tài nguyên.
+\end{itemize}

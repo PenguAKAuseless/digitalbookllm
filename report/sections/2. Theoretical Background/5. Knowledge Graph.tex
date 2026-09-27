@@ -1,0 +1,30 @@
+\section{Đồ thị tri thức cá nhân hóa (Knowledge Graph)}
+
+Bên cạnh RAG, việc ghi nhận và tổ chức các khái niệm mà người dùng đã tiếp xúc trong quá trình đọc là nền tảng để cá nhân hóa trải nghiệm học tập. Đồ thị tri thức (Knowledge Graph) là mô hình dữ liệu biểu diễn các thực thể (entities) và mối quan hệ (relations) giữa chúng dưới dạng đồ thị, cho phép truy vấn và trực quan hóa cấu trúc tri thức thay vì chỉ lưu trữ văn bản phẳng. \cite{lewis2020retrieval}
+
+\subsection{Mô hình đồ thị thuộc tính (Property Graph)}
+Mô hình đồ thị thuộc tính biểu diễn tri thức bằng hai thành phần cơ bản:
+
+\begin{itemize}
+    \item \textbf{Nút (Node/Entity):} Đại diện cho một khái niệm, nhân vật hoặc công nghệ được nhắc đến trong tài liệu. Mỗi nút mang các thuộc tính như tên, loại (\textit{type}) và mô tả ngắn gọn.
+    \item \textbf{Cạnh (Edge/Relation):} Biểu diễn mối quan hệ có hướng và có nhãn giữa hai nút, ví dụ \texttt{is\_a}, \texttt{related\_to}, \texttt{developed\_by}, kèm theo tài liệu nguồn và trích đoạn minh chứng cho mối quan hệ đó.
+\end{itemize}
+
+Về mặt hình thức, đồ thị $G$ được biểu diễn bằng cặp $G = (V, E)$, trong đó $V$ là tập nút và $E \subseteq V \times V \times L$ là tập cạnh có gán nhãn quan hệ $L$. Khác với đồ thị tri thức tĩnh được xây dựng một lần từ một nguồn dữ liệu cố định, đồ thị trong hệ thống DigitalBookLLM là đồ thị \textit{tiến hóa} (evolving): nó được cập nhật liên tục sau mỗi lượt tương tác của người dùng với tài liệu và trợ lý AI.
+
+\subsection{Trích xuất thực thể và quan hệ từ văn bản (Entity \& Relation Extraction)}
+Việc xây dựng đồ thị từ văn bản phi cấu trúc đòi hỏi hai bước xử lý:
+
+\begin{enumerate}
+    \item \textbf{Nhận diện thực thể (Entity Recognition):} Xác định các cụm từ trong văn bản tương ứng với một khái niệm có ý nghĩa, sau đó phân loại chúng theo nhóm (nhân vật, khái niệm, công nghệ, \ldots).
+    \item \textbf{Trích xuất quan hệ (Relation Extraction):} Xác định mối liên kết ngữ nghĩa giữa hai thực thể cùng xuất hiện trong một đoạn văn bản, dựa trên ngữ cảnh câu chứa chúng.
+\end{enumerate}
+
+Với sự xuất hiện của LLM, hai bước này có thể được thực hiện đồng thời bằng một lời nhắc duy nhất: mô hình ngôn ngữ nhận vào đoạn văn bản và trả về trực tiếp danh sách thực thể cùng quan hệ dưới dạng dữ liệu có cấu trúc (structured output), thay vì phải huấn luyện các mô hình NER và Relation Extraction chuyên biệt. Cách tiếp cận này đánh đổi độ chính xác tuyệt đối lấy tốc độ triển khai, phù hợp với quy mô một đồ thị tri thức cá nhân thay vì một đồ thị tri thức doanh nghiệp.
+
+\subsection{Truy vấn lân cận và trực quan hóa đồ thị}
+Vì mục tiêu của đồ thị tri thức trong hệ thống là hỗ trợ người dùng \textit{khám phá} mối liên hệ giữa các khái niệm đã học, thao tác truy vấn phổ biến nhất không phải là tìm đường đi ngắn nhất trên toàn đồ thị mà là truy vấn lân cận (neighborhood query): cho một nút $v$, tìm tập hợp các nút cách $v$ không quá $k$ bước (thường $k = 1$ hoặc $2$).
+
+$$N_k(v) = \{ u \in V \mid \text{dist}(v, u) \le k \}$$
+
+Ở quy mô một đồ thị cá nhân (vài trăm đến vài nghìn nút), phép truy vấn này có thể thực hiện hiệu quả bằng truy vấn đệ quy (recursive query) trên một hệ quản trị cơ sở dữ liệu quan hệ, mà không nhất thiết cần một hệ quản trị đồ thị chuyên dụng. Cơ sở lý luận này được phân tích thêm ở Chương 5 khi lựa chọn công nghệ lưu trữ. Kết quả truy vấn lân cận sau đó được trực quan hóa dưới dạng mạng lưới nút và cạnh (node-link diagram), giúp người dùng nhìn thấy trực quan các khái niệm liên quan đến một chủ đề đang tra cứu.

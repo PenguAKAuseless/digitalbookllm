@@ -1,0 +1,9 @@
+\section{Sơ lược nguyên tắc thiết kế}
+Quá trình thiết kế hệ thống DigitalBookLLM được thực hiện dựa trên phương pháp luận hướng đối tượng, chuyển hóa các yêu cầu người dùng thành các mô hình kỹ thuật tường minh. Mục tiêu trọng tâm của giai đoạn này là xây dựng một cấu trúc phần mềm có khả năng điều phối linh hoạt giữa các thành phần truyền thống (cơ sở dữ liệu, giao diện) và các thành phần AI (bộ định tuyến LLM, dịch vụ nhúng vector, worker trích xuất tri thức).
+
+Thiết kế được chia thành ba cấp độ logic:
+\begin{itemize}
+    \item Cấp độ hành vi: Mô tả cách dữ liệu vận động và biến đổi thông qua các sơ đồ hoạt động.
+    \item Cấp độ tương tác: Làm rõ trình tự phối hợp giữa các đối tượng để hoàn thành một tác vụ cụ thể.
+    \item Cấp độ cấu trúc: Định nghĩa các lớp phần mềm và lược đồ lưu trữ dữ liệu, đảm bảo tính mở rộng và khả năng bảo trì lâu dài trên môi trường triển khai phía máy chủ.
+\end{itemize}

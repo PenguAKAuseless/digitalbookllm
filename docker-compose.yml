@@ -1,0 +1,84 @@
+# Full local stack for end-to-end testing: Postgres+pgvector, the API+worker
+# container, and the Next.js client — all on one machine with one command.
+#
+#   cp .env.example .env                    # DB credentials, browser-facing API URL
+#   cp backend/.env.example backend/.env    # LLM provider keys, JWT secret, etc.
+#   docker compose up --build
+#
+# Frontend:  http://localhost:3000
+# API:       http://localhost:3001
+#
+# This is for local testing only. For a public deployment (Vercel + Hugging
+# Face Spaces/Render + Supabase), see docs/deployment.md — this compose file
+# is not used there; each service deploys independently.
+services:
+  postgres:
+    image: ankane/pgvector:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-digitalbookllm}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3001}:3001"
+    env_file:
+      - ./backend/.env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      DB_NAME: ${DB_NAME:-digitalbookllm}
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@postgres:5432/${DB_NAME:-digitalbookllm}
+      PORT: 3001
+      NODE_ENV: ${NODE_ENV:-production}
+      FRONTEND_URL: http://localhost:3000
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Must be the browser-reachable URL (not the in-network "backend"
+        # hostname) — NEXT_PUBLIC_* is baked in at build time.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    driver: local
+  uploads_data:
+    driver: local
