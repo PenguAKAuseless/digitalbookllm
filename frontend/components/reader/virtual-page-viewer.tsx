@@ -124,6 +124,9 @@ export function VirtualPageViewer({
 
     useEffect(() => {
         const handler = () => {
+            // Typing a note focuses the popover's textarea, which collapses the
+            // page selection — that is not the reader deselecting the text.
+            if (document.activeElement?.closest("[data-selection-popover]")) return
             const sel = window.getSelection()
             if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
                 onSelectionChange(null)
@@ -136,7 +139,11 @@ export function VirtualPageViewer({
                 return
             }
 
-            const pageEl = (range.commonAncestorContainer as HTMLElement)?.closest?.("[data-page-number]") as HTMLElement | null
+            // A selection inside a single text-layer span has a Text node as its
+            // common ancestor, and Text nodes have no closest() — climb to the element first.
+            const ancestor = range.commonAncestorContainer
+            const ancestorEl = ancestor.nodeType === Node.ELEMENT_NODE ? (ancestor as HTMLElement) : ancestor.parentElement
+            const pageEl = ancestorEl?.closest("[data-page-number]") as HTMLElement | null
             if (!pageEl) return
             const pageNumber = Number(pageEl.dataset.pageNumber)
             const pageRect = pageEl.getBoundingClientRect()

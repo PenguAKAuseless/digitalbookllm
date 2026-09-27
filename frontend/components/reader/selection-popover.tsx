@@ -32,8 +32,14 @@ export function SelectionPopover({ selection, onHighlight, onNote, onSpeak, onAs
 
     return (
         <div
+            data-selection-popover
             className="fixed z-50 -translate-x-1/2 -translate-y-full flex flex-col items-center gap-1"
             style={{ top: selection.anchor.top - 8, left: selection.anchor.left }}
+            // Pressing a toolbar button would otherwise collapse the text selection
+            // (and unmount this popover) before its click handler runs.
+            onMouseDown={(e) => {
+                if (!(e.target instanceof HTMLTextAreaElement)) e.preventDefault()
+            }}
         >
             {noteOpen ? (
                 <div className="bg-popover border border-border rounded-lg shadow-lg p-2 w-64">

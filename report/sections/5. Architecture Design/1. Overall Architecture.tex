@@ -4,7 +4,7 @@ Kiến trúc tổng quát của DigitalBookLLM được lựa chọn theo mô h�
 \subsection{Kiến trúc client-server}
 Hệ thống được tổ chức thành hai tầng logic tách biệt, giao tiếp qua HTTP/REST và Server-Sent Events (SSE):
 
-\begin{description}[style=nextline, leftmargin=3.5em, labelsep=0.6em]
+\begin{description}
     \item[\textbf{Tầng giao diện (Client)}] Ứng dụng Next.js chạy trên trình duyệt, chịu trách nhiệm hiển thị màn hình chia đôi, gửi yêu cầu REST cho các thao tác CRUD, và tiêu thụ luồng SSE cho phản hồi AI theo thời gian thực.
     \item[\textbf{Tầng máy chủ (Server)}] Ứng dụng Express (Node.js) xử lý xác thực, quản lý tài liệu/highlight/đồ thị tri thức, điều phối pipeline RAG, và vận hành hàng đợi tác vụ nền, tất cả trong cùng một tiến trình triển khai.
 \end{description}

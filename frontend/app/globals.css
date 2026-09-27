@@ -127,3 +127,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* pdf.js text layer: keep the invisible selectable text invisible while it is
+   selected, so the page shows only a tint instead of a second (mismatched)
+   copy of the glyphs painted over the rendered page. */
+.react-pdf__Page__textContent ::selection {
+  color: transparent;
+  background: color-mix(in oklch, var(--primary) 28%, transparent);
+}

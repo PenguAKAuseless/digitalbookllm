@@ -1,25 +1,25 @@
 \section{Yêu cầu phi chức năng}
 \subsection{Kiến trúc hệ thống và lưu trữ}
 \subsubsection{NFR-01.1: Ứng dụng web client-server}
-\begin{description}[leftmargin=2.8em,labelsep=0.8em]
+\begin{description}
     \item[\textbf{Yêu cầu:}] Hệ thống phải hoạt động dưới dạng ứng dụng web theo mô hình client-server, truy cập được qua trình duyệt mà không cần cài đặt phần mềm.
     \item[\textbf{Phương pháp kiểm chứng:}] Kiểm tra hệ thống truy cập được qua một URL công khai từ trình duyệt trên nhiều thiết bị khác nhau.
 \end{description}
 \subsubsection{NFR-01.2: Lưu trữ tập trung phía máy chủ}
-\begin{description}[leftmargin=2.8em,labelsep=0.8em]
+\begin{description}
     \item[\textbf{Yêu cầu:}] Toàn bộ cơ sở dữ liệu vector và đồ thị tri thức phải được lưu trữ tại máy chủ; không áp dụng lưu trữ cục bộ (local storage của trình duyệt) cho các dữ liệu vector nặng, nhằm tránh tiêu tốn dung lượng thiết bị người dùng và giảm độ trễ khi truy cập đa nền tảng.
     \item[\textbf{Phương pháp kiểm chứng:}] Kiểm tra \texttt{localStorage}/\texttt{IndexedDB} của trình duyệt sau một phiên sử dụng: chỉ chứa token đăng nhập và tuỳ chọn giao diện, không chứa vector nhúng hay dữ liệu đồ thị.
 \end{description}
 
 \subsection{Hiệu năng và khả năng mở rộng}
 \subsubsection{NFR-02.1: Phản hồi AI dạng luồng}
-\begin{description}[leftmargin=2.8em,labelsep=0.8em]
+\begin{description}
     \item[\textbf{Yêu cầu:}] Câu trả lời từ AI phải được truyền tải dưới dạng luồng (Server-Sent Events) để tối ưu thời gian phản hồi ký tự đầu tiên (Time To First Byte - TTFB), không bắt người dùng chờ toàn bộ câu trả lời được sinh xong.
     \item[\textbf{Thang đo:}] TTFB dưới 2 giây.
     \item[\textbf{Kết quả đo được:}] TTFB $p95$ đo được trong môi trường kiểm thử container hoá dao động 29--125\;ms, vượt xa ngưỡng mục tiêu (chi tiết ở Chương~6).
 \end{description}
 \subsubsection{NFR-02.2: Hàng đợi xử lý khi quá tải}
-\begin{description}[leftmargin=2.8em,labelsep=0.8em]
+\begin{description}
     \item[\textbf{Yêu cầu:}] Do tài nguyên phần cứng để gọi các dịch vụ AI có hạn, máy chủ phải triển khai cơ chế hàng đợi tác vụ để xếp hàng các yêu cầu xử lý tài liệu và trích xuất tri thức nếu lượng người dùng đồng thời vượt quá năng lực xử lý, thay vì làm sập máy chủ API.
     \item[\textbf{Thang đo:}] Với $N$ yêu cầu tải tài liệu đồng thời ($N \le 10$), máy chủ trả về mã trạng thái chấp nhận (200/202) cho toàn bộ $N$ yêu cầu, không có yêu cầu nào bị lỗi 5xx.
     \item[\textbf{Kết quả đo được:}] Thử nghiệm với 6--8 yêu cầu tải lên đồng thời: 100\% được chấp nhận, hàng đợi xử lý tuần tự và không có tác vụ nào bị mất.
@@ -27,17 +27,17 @@
 
 \subsection{Giới hạn công nghệ}
 \subsubsection{NFR-03.1: Chấp nhận sai số OCR}
-\begin{description}[leftmargin=2.8em,labelsep=0.8em]
+\begin{description}
     \item[\textbf{Yêu cầu:}] Hệ thống chấp nhận một mức độ sai số nhất định của module OCR, vì đây là bài toán khó trong lĩnh vực Document AI và nằm ngoài trọng tâm tối ưu của đồ án.
 \end{description}
 \subsubsection{NFR-03.2: Không tích hợp hệ thống Agent phức tạp}
-\begin{description}[leftmargin=2.8em,labelsep=0.8em]
+\begin{description}
     \item[\textbf{Yêu cầu:}] Luồng xử lý AI chỉ tập trung vào prompt engineering và RAG một lượt (single-pass), không tích hợp các kiến trúc tác tử tự trị với vòng lặp suy luận đa bước.
 \end{description}
 
 \subsection{Bảo mật}
 \subsubsection{NFR-04.1: Ngăn chặn IDOR (Insecure Direct Object Reference)}
-\begin{description}[leftmargin=2.8em,labelsep=0.8em]
+\begin{description}
     \item[\textbf{Yêu cầu:}] Người dùng A không được phép truy vấn API để lấy highlight, tài liệu, hay đồ thị tri thức của người dùng B, kể cả khi biết chính xác định danh (UUID) của tài nguyên đó.
     \item[\textbf{Thang đo:}] 100\% các yêu cầu truy cập trái phép trả về mã lỗi 403 hoặc 404, không có trường hợp nào rò rỉ dữ liệu.
     \item[\textbf{Kết quả đo được:}] Bộ kiểm thử IDOR tự động (6 kịch bản trên workspace, tài liệu và xác thực) đạt 100\% (chi tiết ở Chương~6).

@@ -2,7 +2,7 @@
 Thay vì để mô hình tự tìm lại ngữ cảnh bằng tìm kiếm vector trong mọi trường hợp, DigitalBookLLM phân biệt rõ hai chế độ hỏi đáp dựa trên việc người dùng có chọn sẵn một đoạn văn bản hay không, và luôn ưu tiên tuyệt đối đoạn văn bản đó khi nó tồn tại.
 
 \subsection{Hai chế độ truy xuất}
-\begin{description}[leftmargin=3.5em, labelsep=0.6em]
+\begin{description}
     \item[\textbf{Hỏi đáp toàn cục (UC-13)}] Không có đoạn văn bản nào được chọn. Câu hỏi được nhúng thành vector và tìm kiếm tương đồng trên tài liệu đang mở; nếu độ tương đồng cao nhất dưới một ngưỡng cấu hình, hệ thống mở rộng phạm vi tìm kiếm ra toàn bộ không gian làm việc.
     \item[\textbf{Hỏi đáp theo ngữ cảnh (UC-14)}] Người dùng đã chọn một đoạn văn bản cụ thể. Đoạn văn bản này được đưa vào lời nhắc dưới dạng \textit{ngữ cảnh cứng} (hard context): bắt buộc, không thể bị loại bỏ bởi kết quả tìm kiếm vector, đúng theo yêu cầu FR-07. Kết quả tìm kiếm vector (nếu có) chỉ đóng vai trò bổ sung.
 \end{description}

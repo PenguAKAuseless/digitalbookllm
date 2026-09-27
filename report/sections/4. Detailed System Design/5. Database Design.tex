@@ -2,7 +2,7 @@
 Thiết kế cơ sở dữ liệu của DigitalBookLLM được xây dựng trên PostgreSQL kết hợp phần mở rộng \texttt{pgvector}. Mục tiêu là lưu trữ tập trung tại máy chủ toàn bộ tài liệu, phân mảnh văn bản, vector nhúng, highlight, phiên hội thoại, đồ thị tri thức và hàng đợi tác vụ, đồng thời bảo đảm dữ liệu của từng người dùng được cách ly và có thể dọn dẹp nhất quán khi tài liệu bị xóa (ADR-02, ADR-03, ADR-04, xem Chương 5).
 
 \subsection{Nguyên tắc thiết kế dữ liệu}
-Lược đồ dữ liệu tuân theo ba nguyên tắc chính. Thứ nhất, mọi bảng chứa dữ liệu người dùng đều mang trực tiếp hoặc gián tiếp trường \texttt{user\_id}, làm cơ sở cho việc cô lập dữ liệu (NFR-04.1). Thứ hai, mọi dữ liệu phát sinh từ tài liệu (phân mảnh, vector, highlight, hội thoại) đều phụ thuộc khóa ngoại với ràng buộc xóa tuần tự (\texttt{ON DELETE CASCADE}). Thứ ba, cả vector nhúng lẫn đồ thị tri thức đều được lưu ngay trong PostgreSQL thay vì các hệ quản trị chuyên dụng riêng biệt, nhằm giảm độ phức tạp vận hành và tránh vấn đề nhất quán giữa nhiều kho dữ liệu.
+Lược đồ dữ liệu tuân theo ba nguyên tắc chính. Thứ nhất, mọi bảng chứa dữ liệu người dùng đều mang trực tiếp hoặc gián tiếp trường \path{user_id}, làm cơ sở cho việc cô lập dữ liệu (NFR-04.1). Thứ hai, mọi dữ liệu phát sinh từ tài liệu (phân mảnh, vector, highlight, hội thoại) đều phụ thuộc khóa ngoại với ràng buộc xóa tuần tự (\texttt{ON DELETE CASCADE}). Thứ ba, cả vector nhúng lẫn đồ thị tri thức đều được lưu ngay trong PostgreSQL thay vì các hệ quản trị chuyên dụng riêng biệt, nhằm giảm độ phức tạp vận hành và tránh vấn đề nhất quán giữa nhiều kho dữ liệu.
 
 \subsection{Mô hình quan hệ tổng quát}
 Các bảng cốt lõi được tổ chức thành sáu nhóm: người dùng, không gian làm việc, tài liệu và phân mảnh, đánh dấu, hội thoại, đồ thị tri thức, và hàng đợi tác vụ.
@@ -20,8 +20,8 @@ Các bảng cốt lõi được tổ chức thành sáu nhóm: người dùng, k
 \texttt{documents} & Quản lý metadata và trạng thái xử lý của tài liệu. & Tiêu đề, loại tệp, khóa lưu trữ, trạng thái, trang đang đọc. \\\hline
 \texttt{chunks} & Lưu phân mảnh văn bản và vector nhúng phục vụ RAG. & Nội dung, số trang, thứ tự phân mảnh, vector 384 chiều. \\\hline
 \texttt{highlights} & Lưu highlight và bookmark. & Loại, nội dung, ghi chú, màu, toạ độ vị trí (JSON). \\\hline
-\texttt{chat\_sessions}, \texttt{chat\_messages} & Ghi lại lịch sử hội thoại. & Vai trò tin nhắn, nội dung, trích dẫn (JSON), nhà cung cấp LLM. \\\hline
-\texttt{entities}, \texttt{entity\_relations} & Đồ thị tri thức cá nhân. & Tên/loại thực thể; quan hệ, tài liệu nguồn, đoạn trích. \\\hline
+\path{chat_sessions}, \path{chat_messages} & Ghi lại lịch sử hội thoại. & Vai trò tin nhắn, nội dung, trích dẫn (JSON), nhà cung cấp LLM. \\\hline
+\texttt{entities}, \path{entity_relations} & Đồ thị tri thức cá nhân. & Tên/loại thực thể; quan hệ, tài liệu nguồn, đoạn trích. \\\hline
 \texttt{jobs} & Hàng đợi tác vụ nền bền vững. & Loại tác vụ, payload, trạng thái, số lần thử lại. \\\hline
 \end{longtable}
 
@@ -37,24 +37,24 @@ Bảng \ref{tab:database-schema} mô tả các trường dữ liệu quan trọn
 \multicolumn{1}{|C{0.16\linewidth}|}{\textbf{Bảng}} & \multicolumn{1}{C{0.24\linewidth}|}{\textbf{Trường}} & \multicolumn{1}{C{0.14\linewidth}|}{\textbf{Kiểu}} & \multicolumn{1}{C{0.28\linewidth}|}{\textbf{Ràng buộc}} \\\hline
 \endhead
 \texttt{users} & \texttt{id} & VARCHAR & Khóa chính (UUID). \\\hline
-\texttt{workspaces} & \texttt{user\_id} & VARCHAR & Khóa ngoại đến \texttt{users(id)}, xóa tuần tự. \\\hline
+\texttt{workspaces} & \path{user_id} & VARCHAR & Khóa ngoại đến \texttt{users(id)}, xóa tuần tự. \\\hline
 \texttt{documents} & \texttt{status} & Enum & \texttt{UPLOADED}, \texttt{PROCESSING}, \texttt{READY}, \texttt{FAILED}. \\\hline
-\texttt{documents} & \texttt{storage\_key}, \texttt{cover\_key} & VARCHAR & Khóa đối tượng trong kho lưu trữ tệp. \\\hline
+\texttt{documents} & \path{storage_key}, \path{cover_key} & VARCHAR & Khóa đối tượng trong kho lưu trữ tệp. \\\hline
 \texttt{chunks} & \texttt{embedding} & Vector(384) & Vector nhúng dùng cho tìm kiếm tương đồng. \\\hline
-\texttt{chunks} & \texttt{page\_number} & Integer & Hỗ trợ trích dẫn trỏ ngược đến đúng trang. \\\hline
+\texttt{chunks} & \path{page_number} & Integer & Hỗ trợ trích dẫn trỏ ngược đến đúng trang. \\\hline
 \texttt{highlights} & \texttt{type} & Enum & \texttt{HIGHLIGHT}, \texttt{BOOKMARK}. \\\hline
-\texttt{highlights} & \texttt{location\_meta} & JSONB & Số trang và toạ độ vùng chọn chuẩn hoá (0--1). \\\hline
-\texttt{chat\_messages} & \texttt{citations} & JSONB & Danh sách đoạn trích, số trang và độ tương đồng. \\\hline
-\texttt{entities} & \texttt{user\_id}, \texttt{name} & VARCHAR & Ràng buộc duy nhất theo cặp (tránh trùng thực thể). \\\hline
-\texttt{entity\_relations} & \texttt{source\_entity\_id}, \texttt{target\_entity\_id} & VARCHAR & Khóa ngoại đến \texttt{entities(id)}, xóa tuần tự. \\\hline
+\texttt{highlights} & \path{location_meta} & JSONB & Số trang và toạ độ vùng chọn chuẩn hoá (0--1). \\\hline
+\path{chat_messages} & \texttt{citations} & JSONB & Danh sách đoạn trích, số trang và độ tương đồng. \\\hline
+\texttt{entities} & \path{user_id}, \texttt{name} & VARCHAR & Ràng buộc duy nhất theo cặp (tránh trùng thực thể). \\\hline
+\path{entity_relations} & \path{source_entity_id}, \path{target_entity_id} & VARCHAR & Khóa ngoại đến \texttt{entities(id)}, xóa tuần tự. \\\hline
 \texttt{jobs} & \texttt{status} & Enum & \texttt{PENDING}, \texttt{RUNNING}, \texttt{DONE}, \texttt{FAILED}, \texttt{DEAD}. \\\hline
 \end{longtable}
 
 \subsection{Ràng buộc toàn vẹn và xóa tuần tự}
-Các quan hệ phụ thuộc được thiết kế theo hướng một chiều từ người dùng đến không gian làm việc, tài liệu, phân mảnh, highlight và hội thoại. Khi một tài liệu bị xóa, cơ sở dữ liệu tự động xóa các bản ghi trong \texttt{chunks}, \texttt{highlights} và các tin nhắn liên quan trong \texttt{chat\_messages}. Cách thiết kế này đáp ứng UC-06 và tránh để lại vector mồ côi trong kho dữ liệu.
+Các quan hệ phụ thuộc được thiết kế theo hướng một chiều từ người dùng đến không gian làm việc, tài liệu, phân mảnh, highlight và hội thoại. Khi một tài liệu bị xóa, cơ sở dữ liệu tự động xóa các bản ghi trong \texttt{chunks}, \texttt{highlights} và các tin nhắn liên quan trong \path{chat_messages}. Cách thiết kế này đáp ứng UC-06 và tránh để lại vector mồ côi trong kho dữ liệu.
 
 \subsection{Chỉ mục và truy xuất vector}
-Bảng \texttt{chunks} cần hai nhóm chỉ mục: B-tree trên \texttt{document\_id}/\texttt{user\_id} để lọc dữ liệu theo phạm vi sở hữu, và chỉ mục vector HNSW trên trường \texttt{embedding} để tăng tốc tìm kiếm tương đồng ngữ nghĩa (xem thuật toán HNSW ở Chương 2).
+Bảng \texttt{chunks} cần hai nhóm chỉ mục: B-tree trên \path{document_id}/\path{user_id} để lọc dữ liệu theo phạm vi sở hữu, và chỉ mục vector HNSW trên trường \texttt{embedding} để tăng tốc tìm kiếm tương đồng ngữ nghĩa (xem thuật toán HNSW ở Chương 2).
 
 \begin{longtable}{|C{0.24\linewidth}|L{0.25\linewidth}|L{0.32\linewidth}|}
 \caption{Chiến lược chỉ mục dữ liệu}\label{tab:database-indexes}\\
@@ -64,11 +64,11 @@ Bảng \texttt{chunks} cần hai nhóm chỉ mục: B-tree trên \texttt{documen
 \hline
 \multicolumn{1}{|C{0.24\linewidth}|}{\textbf{Chỉ mục}} & \multicolumn{1}{C{0.25\linewidth}|}{\textbf{Áp dụng cho}} & \multicolumn{1}{C{0.32\linewidth}|}{\textbf{Mục đích}} \\\hline
 \endhead
-B-tree theo \texttt{user\_id} & \texttt{documents}, \texttt{chunks}, \texttt{highlights}, \texttt{entities} & Cách ly dữ liệu và tăng tốc truy vấn theo người dùng. \\\hline
-B-tree theo \texttt{document\_id} & \texttt{chunks}, \texttt{highlights} & Lọc phân mảnh và highlight theo tài liệu đang mở. \\\hline
-HNSW index & \texttt{chunks.embedding} & Tìm kiếm các phân mảnh gần nhất trong không gian ngữ nghĩa (vector\_cosine\_ops). \\\hline
+B-tree theo \path{user_id} & \texttt{documents}, \texttt{chunks}, \texttt{highlights}, \texttt{entities} & Cách ly dữ liệu và tăng tốc truy vấn theo người dùng. \\\hline
+B-tree theo \path{document_id} & \texttt{chunks}, \texttt{highlights} & Lọc phân mảnh và highlight theo tài liệu đang mở. \\\hline
+HNSW index & \texttt{chunks.embedding} & Tìm kiếm các phân mảnh gần nhất trong không gian ngữ nghĩa (\path{vector_cosine_ops}). \\\hline
 Partial index theo \texttt{status} & \texttt{jobs} & Tăng tốc truy vấn tác vụ đang chờ (\texttt{PENDING}/\texttt{RUNNING}). \\\hline
 \end{longtable}
 
 \subsection{Luồng dữ liệu lưu trữ}
-Khi người dùng tải tài liệu lên, hệ thống tạo một bản ghi trong \texttt{documents} với trạng thái \texttt{UPLOADED} và một bản ghi trong \texttt{jobs}. Worker giành quyền xử lý tác vụ, chuyển trạng thái tài liệu sang \texttt{PROCESSING}; từng phân mảnh được ghi vào \texttt{chunks} cùng vector nhúng. Khi hoàn tất, trạng thái tài liệu chuyển sang \texttt{READY} và một tác vụ trích xuất tri thức mới được đưa vào \texttt{jobs}. Trong quá trình hỏi đáp, mỗi câu hỏi và phản hồi được lưu vào \texttt{chat\_messages} kèm trích dẫn liên kết tới phân mảnh nguồn, đồng thời một tác vụ trích xuất thực thể được đưa vào hàng đợi để cập nhật đồ thị tri thức.
+Khi người dùng tải tài liệu lên, hệ thống tạo một bản ghi trong \texttt{documents} với trạng thái \texttt{UPLOADED} và một bản ghi trong \texttt{jobs}. Worker giành quyền xử lý tác vụ, chuyển trạng thái tài liệu sang \texttt{PROCESSING}; từng phân mảnh được ghi vào \texttt{chunks} cùng vector nhúng. Khi hoàn tất, trạng thái tài liệu chuyển sang \texttt{READY} và một tác vụ trích xuất tri thức mới được đưa vào \texttt{jobs}. Trong quá trình hỏi đáp, mỗi câu hỏi và phản hồi được lưu vào \path{chat_messages} kèm trích dẫn liên kết tới phân mảnh nguồn, đồng thời một tác vụ trích xuất thực thể được đưa vào hàng đợi để cập nhật đồ thị tri thức.

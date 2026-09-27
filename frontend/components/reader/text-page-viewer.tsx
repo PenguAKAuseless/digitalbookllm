@@ -97,6 +97,9 @@ export function TextPageViewer({ text, highlights, initialPage = 1, jumpToPage, 
 
     useEffect(() => {
         const handler = () => {
+            // Typing a note focuses the popover's textarea, which collapses the
+            // page selection — that is not the reader deselecting the text.
+            if (document.activeElement?.closest("[data-selection-popover]")) return
             const sel = window.getSelection()
             const text = sel?.toString().trim()
             if (!sel || sel.isCollapsed || sel.rangeCount === 0 || !text) {
