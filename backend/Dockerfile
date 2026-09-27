@@ -3,7 +3,7 @@
 # in docs/architecture-decisions.md). Single image runs both the API and the
 # job-queue worker pool in one process (ADR-02), matching the free-tier
 # single-container hosts (Hugging Face Spaces, Render) in docs/deployment.md.
-FROM node:20-bookworm-slim AS builder
+FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN npm ci
 COPY src ./src
 RUN npm run build
 
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl fontconfig fonts-dejavu-core \

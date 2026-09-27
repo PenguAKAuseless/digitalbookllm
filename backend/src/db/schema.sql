@@ -78,6 +78,10 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- MIME types such as DOCX can exceed 50 characters. Keep this idempotent so
+-- existing Supabase deployments are upgraded when the schema is reapplied.
+ALTER TABLE documents ALTER COLUMN file_type TYPE VARCHAR(255);
+
 -- Chunks table with vector embeddings (384-dim: Xenova/all-MiniLM-L6-v2 or Gemini truncated)
 CREATE TABLE IF NOT EXISTS chunks (
     id VARCHAR(255) PRIMARY KEY,

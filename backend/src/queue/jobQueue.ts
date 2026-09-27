@@ -17,11 +17,12 @@ export interface Job {
     max_attempts: number;
 }
 
-export async function enqueue(type: JobType, payload: Record<string, unknown>, runAfter = new Date()): Promise<string> {
+export async function enqueue(type: JobType, payload: Record<string, unknown>, runAfter?: Date): Promise<string> {
     const id = uuid();
     await pool.query(
-        `INSERT INTO jobs (id, type, payload, run_after) VALUES ($1, $2, $3, $4)`,
-        [id, type, JSON.stringify(payload), runAfter]
+        `INSERT INTO jobs (id, type, payload, run_after)
+         VALUES ($1, $2, $3, COALESCE($4::timestamptz, CURRENT_TIMESTAMP))`,
+        [id, type, JSON.stringify(payload), runAfter?.toISOString() ?? null]
     );
     return id;
 }
