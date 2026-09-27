@@ -100,16 +100,27 @@ export class Chunker {
 
     /** Step 2: refine structural chunks that span multiple distinct ideas. */
     private async semanticRefine(chunks: TextChunk[]): Promise<TextChunk[]> {
-        const refined: TextChunk[] = [];
-
-        for (const chunk of chunks) {
+        const sentencesPerChunk = chunks.map((chunk) => {
             const sentences = chunk.text.split(SENTENCE_SPLIT).filter((s) => s.trim().length > 0);
-            if (sentences.length < 4) {
+            return sentences.length < 4 ? null : sentences;
+        });
+
+        const allSentences = sentencesPerChunk.flatMap((s) => s ?? []);
+        const allEmbeddings = await embeddingService.generateEmbeddings(allSentences);
+
+        const refined: TextChunk[] = [];
+        let cursor = 0;
+
+        chunks.forEach((chunk, c) => {
+            const sentences = sentencesPerChunk[c];
+            if (!sentences) {
                 refined.push(chunk);
-                continue;
+                return;
             }
 
-            const embeddings = await Promise.all(sentences.map((s) => embeddingService.generateEmbedding(s)));
+            const embeddings = allEmbeddings.slice(cursor, cursor + sentences.length);
+            cursor += sentences.length;
+
             let group: string[] = [sentences[0]];
             let offset = chunk.startOffset;
             let groupStart = offset;
@@ -125,7 +136,7 @@ export class Chunker {
                 offset += sentences[i].length + 1;
             }
             if (group.length) refined.push({ text: group.join(' ').trim(), startOffset: groupStart });
-        }
+        });
 
         return refined.filter((c) => c.text.length > 0);
     }

@@ -9,6 +9,8 @@ import { chunker } from '../../chunking/chunker';
 import { embeddingService } from '../../llm/embeddings';
 import { enqueue } from '../jobQueue';
 
+const INSERT_BATCH_SIZE = 100;
+
 interface IngestPayload {
     documentId: string;
     storageKey: string;
@@ -64,19 +66,29 @@ export async function handleIngestDocument(job: Job): Promise<void> {
     }
 
     const chunks = await chunker.chunk(extracted.fullText);
+    // Embed before opening the transaction so it isn't held open during CPU-bound work.
+    const embeddings = await embeddingService.generateEmbeddings(chunks.map((c) => c.text));
+    const pageBoundaries = extracted.pageBoundaries;
 
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
         await client.query('DELETE FROM chunks WHERE document_id = $1', [documentId]);
 
-        for (let i = 0; i < chunks.length; i++) {
-            const embedding = await embeddingService.generateEmbedding(chunks[i].text);
-            const pageNumber = offsetToPage(chunks[i].startOffset, extracted.pageBoundaries);
+        // Multi-row INSERTs: one round trip per batch instead of per chunk
+        // (each round trip to a hosted Postgres costs tens of milliseconds).
+        for (let start = 0; start < chunks.length; start += INSERT_BATCH_SIZE) {
+            const values: unknown[] = [];
+            const rows: string[] = [];
+            chunks.slice(start, start + INSERT_BATCH_SIZE).forEach((chunk, j) => {
+                const i = start + j;
+                const p = values.length;
+                rows.push(`($${p + 1}, $${p + 2}, $${p + 3}, $${p + 4}, $${p + 5}, $${p + 6}, $${p + 7})`);
+                values.push(uuid(), documentId, userId, i, offsetToPage(chunk.startOffset, pageBoundaries), chunk.text, JSON.stringify(embeddings[i]));
+            });
             await client.query(
-                `INSERT INTO chunks (id, document_id, user_id, chunk_index, page_number, text, embedding)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                [uuid(), documentId, userId, i, pageNumber, chunks[i].text, JSON.stringify(embedding)]
+                `INSERT INTO chunks (id, document_id, user_id, chunk_index, page_number, text, embedding) VALUES ${rows.join(', ')}`,
+                values
             );
         }
 

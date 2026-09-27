@@ -49,7 +49,7 @@ export default function GraphPage() {
     return (
         <div className="flex h-screen flex-col bg-background">
             <Header
-                breadcrumb={t("graph.title")}
+                breadcrumbs={[{ label: t("graph.title") }]}
                 viewMode="graph"
                 onViewModeChange={(mode) => {
                     if (mode !== "graph") router.push(`/library`)

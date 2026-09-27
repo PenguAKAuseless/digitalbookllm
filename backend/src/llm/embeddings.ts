@@ -23,11 +23,18 @@ class EmbeddingService {
         if (this.embedder) return;
         if (!this.loadingPromise) {
             console.log('Loading embedding model:', this.modelName);
-            this.loadingPromise = pipeline('feature-extraction', this.modelName).then((model) => {
-                this.embedder = model;
-                console.log('Embedding model loaded successfully');
-                return model;
-            });
+            this.loadingPromise = pipeline('feature-extraction', this.modelName).then(
+                (model) => {
+                    this.embedder = model;
+                    console.log('Embedding model loaded successfully');
+                    return model;
+                },
+                (err) => {
+                    // Don't cache a failed load (e.g. transient download error) — let the next caller retry.
+                    this.loadingPromise = null;
+                    throw err;
+                }
+            );
         }
         await this.loadingPromise;
     }
@@ -50,13 +57,18 @@ class EmbeddingService {
         }
     }
 
+    /**
+     * Embeds texts one at a time. Deliberately not a batched forward pass:
+     * with @xenova/transformers on CPU, padded batches measured ~5x slower
+     * than sequential calls and shifted the vectors (padding leaks into the
+     * quantized model's output), so sequential is both faster and exact.
+     */
     async generateEmbeddings(texts: string[]): Promise<number[][]> {
         await this.initialize();
 
         const embeddings: number[][] = [];
         for (const text of texts) {
-            const embedding = await this.generateEmbedding(text);
-            embeddings.push(embedding);
+            embeddings.push(await this.generateEmbedding(text));
         }
         return embeddings;
     }

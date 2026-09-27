@@ -1,19 +1,20 @@
 "use client"
 
 import { useCallback, useRef, useState } from "react"
-import { UploadCloud } from "lucide-react"
+import { Loader2, UploadCloud } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
 interface UploadDropzoneProps {
     onFileSelected: (file: File) => void
     disabled?: boolean
+    uploading?: boolean
 }
 
 const ACCEPTED_EXTENSIONS = [".pdf", ".epub", ".docx", ".txt", ".md"]
 
 /** Drag-and-drop upload target for the library screen (UC05). */
-export function UploadDropzone({ onFileSelected, disabled }: UploadDropzoneProps) {
+export function UploadDropzone({ onFileSelected, disabled, uploading }: UploadDropzoneProps) {
     const { t } = useI18n()
     const [isDragging, setIsDragging] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
@@ -39,12 +40,14 @@ export function UploadDropzone({ onFileSelected, disabled }: UploadDropzoneProps
             onDrop={handleDrop}
             onClick={() => !disabled && inputRef.current?.click()}
             className={cn(
-                "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors cursor-pointer",
-                isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
+                "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-card p-8 text-center transition-colors cursor-pointer",
+                isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-primary/[0.02]",
                 disabled && "pointer-events-none opacity-50"
             )}
         >
-            <UploadCloud className="w-8 h-8 text-muted-foreground" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <UploadCloud className="w-5 h-5" />}
+            </div>
             <p className="text-sm font-medium">{t("library.upload")}</p>
             <p className="text-xs text-muted-foreground">{t("library.uploadHint")}</p>
             <input

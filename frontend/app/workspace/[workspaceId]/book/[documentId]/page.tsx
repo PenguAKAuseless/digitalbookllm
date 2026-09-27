@@ -7,14 +7,17 @@ import { useAuth } from "@/lib/auth-context"
 import { useI18n } from "@/lib/i18n"
 import { Header, ViewMode } from "@/components/layout/header"
 import { VirtualPageViewer, OutlineEntry } from "@/components/reader/virtual-page-viewer"
+import { TextPageViewer } from "@/components/reader/text-page-viewer"
 import { SelectionPopover, SelectionInfo } from "@/components/reader/selection-popover"
 import { ReaderSidebar } from "@/components/reader/reader-sidebar"
 import { ChatPanel } from "@/components/chat/chat-panel"
 import { documentAPI, DocumentDetail } from "@/lib/api/documents"
+import { workspaceAPI } from "@/lib/api/workspaces"
 import { highlightAPI, Highlight } from "@/lib/api/highlights"
 import { Citation } from "@/lib/api/rag"
 import { speak } from "@/lib/tts"
-import { Loader2 } from "lucide-react"
+import { AlertTriangle, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 const PROGRESS_SAVE_DEBOUNCE_MS = 2000
 
@@ -25,7 +28,9 @@ export default function ReaderPage() {
     const { t, lang } = useI18n()
 
     const [doc, setDoc] = useState<DocumentDetail | null>(null)
-    const [fileUrl, setFileUrl] = useState<string | null>(null)
+    const [file, setFile] = useState<{ url: string; fileType: string } | null>(null)
+    const [workspaceName, setWorkspaceName] = useState<string | null>(null)
+    const [loadError, setLoadError] = useState<string | null>(null)
     const [highlights, setHighlights] = useState<Highlight[]>([])
     const [outline, setOutline] = useState<OutlineEntry[]>([])
     const [jumpToPage, setJumpToPage] = useState<number | null>(null)
@@ -34,6 +39,15 @@ export default function ReaderPage() {
     const [askSignal, setAskSignal] = useState(0)
     const [viewMode, setViewMode] = useState<ViewMode>("split")
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    // Phones get the book on top and the chat below instead of two cramped columns.
+    const [isNarrow, setIsNarrow] = useState(false)
+    useEffect(() => {
+        const query = window.matchMedia("(max-width: 767px)")
+        const update = () => setIsNarrow(query.matches)
+        update()
+        query.addEventListener("change", update)
+        return () => query.removeEventListener("change", update)
+    }, [])
 
     const progressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -42,11 +56,36 @@ export default function ReaderPage() {
     }, [loading, user, router])
 
     useEffect(() => {
-        if (!documentId) return
-        documentAPI.getDocument(documentId).then(setDoc)
-        documentAPI.getFileUrl(documentId).then((res) => setFileUrl(res.url))
-        highlightAPI.list(documentId).then(setHighlights)
-    }, [documentId])
+        if (!documentId || !user) return
+        // Fetched in parallel; a failure must surface instead of leaving the spinner up forever.
+        Promise.all([documentAPI.getDocument(documentId), documentAPI.getFileUrl(documentId)])
+            .then(([detail, fileInfo]) => {
+                setDoc(detail)
+                setFile(fileInfo)
+            })
+            .catch((err: Error) => setLoadError(err.message))
+        highlightAPI.list(documentId).then(setHighlights).catch(() => undefined)
+    }, [documentId, user])
+
+    // Opened while ingestion is still running: poll until the AI side is ready.
+    const isProcessing = doc ? doc.status === "UPLOADED" || doc.status === "PROCESSING" : false
+    useEffect(() => {
+        if (!isProcessing) return
+        const timer = setInterval(async () => {
+            const status = await documentAPI.getStatus(documentId).catch(() => null)
+            if (status && status.status !== "UPLOADED" && status.status !== "PROCESSING") {
+                documentAPI.getDocument(documentId).then(setDoc).catch(() => undefined)
+            }
+        }, 3000)
+        return () => clearInterval(timer)
+    }, [isProcessing, documentId])
+
+    useEffect(() => {
+        if (!workspaceId || !user) return
+        // Returning to the library should land on the workspace this book belongs to.
+        localStorage.setItem("dbllm-active-workspace", workspaceId)
+        workspaceAPI.getWorkspace(workspaceId).then((ws) => setWorkspaceName(ws.name)).catch(() => undefined)
+    }, [workspaceId, user])
 
     const handlePageChange = useCallback(
         (page: number) => {
@@ -116,7 +155,18 @@ export default function ReaderPage() {
         else setViewMode(mode)
     }
 
-    if (loading || !user || !doc || !fileUrl) {
+    if (loadError) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-background p-6 text-center">
+                <AlertTriangle className="w-8 h-8 text-destructive" />
+                <p className="text-sm font-medium">{t("common.error")}</p>
+                <p className="text-xs text-muted-foreground max-w-sm">{loadError}</p>
+                <Button variant="outline" size="sm" onClick={() => router.push("/library")}>{t("nav.library")}</Button>
+            </div>
+        )
+    }
+
+    if (loading || !user || !doc || !file) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -124,17 +174,36 @@ export default function ReaderPage() {
         )
     }
 
+    const isPdf = file.fileType === "application/pdf" || doc.title.toLowerCase().endsWith(".pdf")
+
     const readerPane = (
-        <div className="relative flex-1 flex min-h-0">
-            <VirtualPageViewer
-                fileUrl={fileUrl}
-                highlights={highlights}
-                initialPage={doc.last_read_page}
-                jumpToPage={jumpToPage}
-                onDocumentLoad={({ outline }) => setOutline(outline)}
-                onPageChange={handlePageChange}
-                onSelectionChange={setSelection}
-            />
+        <div className="relative flex h-full min-h-0 flex-1 flex-col">
+            {isProcessing && (
+                <div className="flex flex-shrink-0 items-center gap-2 border-b border-border bg-primary/5 px-4 py-2 text-xs text-primary">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+                    <span>{t("reader.processingBanner")}</span>
+                </div>
+            )}
+            {isPdf ? (
+                <VirtualPageViewer
+                    fileUrl={file.url}
+                    highlights={highlights}
+                    initialPage={doc.last_read_page}
+                    jumpToPage={jumpToPage}
+                    onDocumentLoad={({ outline }) => setOutline(outline)}
+                    onPageChange={handlePageChange}
+                    onSelectionChange={setSelection}
+                />
+            ) : (
+                <TextPageViewer
+                    text={doc.full_text ?? ""}
+                    highlights={highlights}
+                    initialPage={doc.last_read_page}
+                    jumpToPage={jumpToPage}
+                    onPageChange={handlePageChange}
+                    onSelectionChange={setSelection}
+                />
+            )}
             {selection && (
                 <SelectionPopover
                     selection={selection}
@@ -151,13 +220,16 @@ export default function ReaderPage() {
         <div className="flex h-screen flex-col bg-background overflow-hidden">
             <Header
                 onMenuClick={() => setSidebarOpen((v) => !v)}
-                breadcrumb={doc.title}
+                breadcrumbs={[
+                    { label: workspaceName ?? t("library.workspace"), href: "/library", kind: "workspace" },
+                    { label: doc.title, kind: "document" },
+                ]}
                 viewMode={viewMode}
                 onViewModeChange={handleViewModeChange}
             />
 
             <div className="flex flex-1 min-h-0 overflow-hidden">
-                <div className={`${sidebarOpen ? "flex" : "hidden"} md:flex w-64 flex-shrink-0 border-r border-border bg-sidebar`}>
+                <div className={`${sidebarOpen ? "flex" : "hidden"} md:flex w-64 flex-shrink-0 border-r border-border bg-sidebar min-h-0`}>
                     <ReaderSidebar
                         outline={outline}
                         highlights={highlights}
@@ -167,12 +239,12 @@ export default function ReaderPage() {
                 </div>
 
                 {viewMode === "split" ? (
-                    <PanelGroup direction="horizontal" className="flex-1 min-w-0">
-                        <Panel defaultSize={65} minSize={35}>
+                    <PanelGroup key={isNarrow ? "v" : "h"} direction={isNarrow ? "vertical" : "horizontal"} className="flex-1 min-w-0">
+                        <Panel defaultSize={isNarrow ? 60 : 65} minSize={isNarrow ? 25 : 35}>
                             {readerPane}
                         </Panel>
-                        <PanelResizeHandle className="w-1.5 bg-border hover:bg-primary/40 transition-colors" />
-                        <Panel defaultSize={35} minSize={22}>
+                        <PanelResizeHandle className="data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full w-px bg-border hover:bg-primary/60 data-[resize-handle-state=drag]:bg-primary transition-colors relative after:absolute after:inset-y-0 after:-left-1 after:-right-1" />
+                        <Panel defaultSize={isNarrow ? 40 : 35} minSize={22}>
                             <ChatPanel
                                 workspaceId={workspaceId}
                                 documentId={documentId}

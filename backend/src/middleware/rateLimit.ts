@@ -2,7 +2,9 @@ import rateLimit from 'express-rate-limit';
 
 export const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    // The SPA polls ingestion status every few seconds and a single reader
+    // page load makes several calls, so 100/15min was hit in normal use.
+    max: parseInt(process.env.API_RATE_LIMIT_PER_15MIN || '1000'),
     message: 'Too many requests from this IP, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,

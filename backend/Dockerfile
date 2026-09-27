@@ -27,6 +27,13 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=builder /app/dist ./dist
 COPY src/db/*.sql ./dist/db/
 
+# Bake the embedding model into the image. Otherwise every cold start on a
+# free host (which spins the container down when idle) re-downloads it from
+# Hugging Face on the first upload/chat, adding tens of seconds to ingestion.
+# Must match EMBEDDING_MODEL (default in src/llm/embeddings.ts).
+ARG EMBEDDING_MODEL=Xenova/all-MiniLM-L6-v2
+RUN node --input-type=module -e "import { pipeline } from '@xenova/transformers'; await pipeline('feature-extraction', '${EMBEDDING_MODEL}');"
+
 RUN mkdir -p ./uploads && chown -R node:node ./uploads /app
 USER node
 

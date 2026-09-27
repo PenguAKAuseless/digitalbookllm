@@ -6,6 +6,7 @@ import { testConnection } from './db/config';
 import { WorkerPool } from './queue/workerPool';
 import { handleIngestDocument } from './queue/handlers/ingest';
 import { handleExtractEntities } from './queue/handlers/extractEntities';
+import { embeddingService } from './llm/embeddings';
 
 const app = createApp();
 const PORT = process.env.PORT || 3001;
@@ -30,6 +31,10 @@ async function startServer() {
         }
 
         workerPool.start();
+
+        // Load the embedding model now rather than inside the first ingestion
+        // job or chat request; failures are retried lazily on first use.
+        embeddingService.initialize().catch((err) => console.warn('[Server] Embedding model warm-up failed:', err));
 
         app.listen(Number(PORT), '0.0.0.0', () => {
             console.log(`[Server] Running on port ${PORT}`);

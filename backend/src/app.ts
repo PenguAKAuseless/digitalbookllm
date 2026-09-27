@@ -22,6 +22,11 @@ import systemRoutes from './routes/systemRoutes';
 export function createApp() {
     const app = express();
 
+    // Free hosts (Render, HF Spaces) sit behind a reverse proxy; without this
+    // every client shares the proxy's IP, so the per-IP rate limit below
+    // becomes one global budget for all users. TRUST_PROXY = number of hops.
+    app.set('trust proxy', parseInt(process.env.TRUST_PROXY || '1'));
+
     app.use(helmet());
     app.use(cors({
         origin: process.env.FRONTEND_URL || 'http://localhost:3000',

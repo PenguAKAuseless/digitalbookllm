@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Network, Plus, Loader2 } from "lucide-react"
+import { Network, Plus, Loader2, FolderOpen, ChevronDown, Library } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useI18n } from "@/lib/i18n"
 import { Header } from "@/components/layout/header"
@@ -125,39 +125,58 @@ export default function LibraryPage() {
 
     return (
         <div className="flex h-screen flex-col bg-background">
-            <Header breadcrumb={activeWorkspace?.name} />
+            <Header breadcrumbs={activeWorkspace ? [{ label: activeWorkspace.name, kind: "workspace" }] : []} />
 
             <div className="flex-1 overflow-y-auto">
-                <div className="max-w-6xl mx-auto px-4 py-6 sm:px-6">
-                    <div className="flex flex-wrap items-center gap-2 mb-6">
-                        <select
-                            value={activeWorkspaceId}
-                            onChange={(e) => handleSelectWorkspace(e.target.value)}
-                            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                        >
-                            {workspaces.length === 0 && <option value="">—</option>}
-                            {workspaces.map((w) => (
-                                <option key={w.id} value={w.id}>{w.name} ({w.document_count})</option>
-                            ))}
-                        </select>
-                        <Button variant="outline" size="sm" onClick={handleCreateWorkspace} disabled={creatingWorkspace}>
-                            <Plus className="w-4 h-4" /> {t("library.newWorkspace")}
-                        </Button>
-                        {activeWorkspaceId && (
-                            <Button variant="outline" size="sm" onClick={() => router.push(`/workspace/${activeWorkspaceId}/graph`)}>
-                                <Network className="w-4 h-4" /> {t("nav.graph")}
+                <div className="max-w-6xl mx-auto px-4 py-6 sm:px-6 sm:py-8">
+                    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+                        <div className="min-w-0">
+                            <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                <Library className="w-3.5 h-3.5" /> {t("library.title")}
+                            </p>
+                            <h2 className="mt-1 text-2xl font-bold tracking-tight text-foreground truncate">
+                                {activeWorkspace?.name ?? t("library.workspace")}
+                            </h2>
+                            <p className="mt-0.5 text-sm text-muted-foreground">
+                                {t("library.documents").replace("{count}", String(documents.length))}
+                            </p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                            <label className="relative flex items-center">
+                                <span className="sr-only">{t("library.workspace")}</span>
+                                <FolderOpen className="pointer-events-none absolute left-2.5 w-4 h-4 text-muted-foreground" />
+                                <select
+                                    value={activeWorkspaceId}
+                                    onChange={(e) => handleSelectWorkspace(e.target.value)}
+                                    className="h-9 min-w-[200px] max-w-[280px] appearance-none truncate rounded-md border border-input bg-card pl-8 pr-8 text-sm shadow-xs focus:outline-none focus:ring-2 focus:ring-ring/40"
+                                >
+                                    {workspaces.length === 0 && <option value="">—</option>}
+                                    {workspaces.map((w) => (
+                                        <option key={w.id} value={w.id}>{w.name} ({w.document_count})</option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="pointer-events-none absolute right-2.5 w-4 h-4 text-muted-foreground" />
+                            </label>
+                            <Button variant="outline" size="sm" className="h-9" onClick={handleCreateWorkspace} disabled={creatingWorkspace}>
+                                <Plus className="w-4 h-4" /> {t("library.newWorkspace")}
                             </Button>
-                        )}
+                            {activeWorkspaceId && (
+                                <Button variant="outline" size="sm" className="h-9" onClick={() => router.push(`/workspace/${activeWorkspaceId}/graph`)}>
+                                    <Network className="w-4 h-4" /> {t("nav.graph")}
+                                </Button>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="mb-6">
-                        <UploadDropzone onFileSelected={handleUpload} disabled={!activeWorkspaceId || uploading} />
+                    <div className="mb-8">
+                        <UploadDropzone onFileSelected={handleUpload} disabled={!activeWorkspaceId || uploading} uploading={uploading} />
                     </div>
 
                     {documents.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-12">{t("library.empty")}</p>
+                        <p className="text-center text-sm text-muted-foreground py-12">{t("library.empty")}</p>
                     ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
                             {documents.map((doc) => (
                                 <BookCard
                                     key={doc.id}

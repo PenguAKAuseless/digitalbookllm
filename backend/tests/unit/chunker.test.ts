@@ -4,15 +4,19 @@ import { Chunker } from '../../src/chunking/chunker';
 // identical vector, different keyword -> orthogonal vector. This lets the
 // semantic-refinement pass (FR04 step 2) be tested without loading a real
 // model or downloading weights.
-jest.mock('../../src/llm/embeddings', () => ({
-    embeddingService: {
-        generateEmbedding: jest.fn(async (text: string) => {
-            if (/cat/i.test(text)) return [1, 0, 0];
-            if (/server/i.test(text)) return [0, 1, 0];
-            return [0, 0, 1];
-        }),
-    },
-}));
+jest.mock('../../src/llm/embeddings', () => {
+    const embed = (text: string) => {
+        if (/cat/i.test(text)) return [1, 0, 0];
+        if (/server/i.test(text)) return [0, 1, 0];
+        return [0, 0, 1];
+    };
+    return {
+        embeddingService: {
+            generateEmbedding: jest.fn(async (text: string) => embed(text)),
+            generateEmbeddings: jest.fn(async (texts: string[]) => texts.map(embed)),
+        },
+    };
+});
 
 describe('Chunker', () => {
     it('packs consecutive short paragraphs into one chunk while they fit under chunkSize', async () => {
