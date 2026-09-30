@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { pool } from '../../db/config';
-import { llmRouter } from '../../llm/router';
+import { llmRouter, LLMUnavailableError } from '../../llm/router';
 import { enqueue, Job } from '../jobQueue';
 
 interface ExtractPayload {
@@ -24,19 +24,23 @@ interface ExtractedRelation {
 }
 
 /*
- * The free-tier keys this runs on are capped per request, not per token, so
- * each call is given as much text as the smallest supported context (8k
- * tokens) allows, and a document costs at most GRAPH_MAX_CALLS requests.
+ * Sized for Groq's free tier: 8K tokens per minute per model, counting the
+ * prompt plus max_tokens. ~8000 chars (~2.5-3.5K tokens, Vietnamese costs
+ * more) + instructions + 2000 output stays near 6K, so each request fits on
+ * its own and a document costs at most GRAPH_MAX_CALLS requests (~25K of the
+ * 200K daily tokens).
  */
-const WINDOW_CHARS = parseInt(process.env.GRAPH_WINDOW_CHARS || '12000');
-const MAX_CALLS = parseInt(process.env.GRAPH_MAX_CALLS || '6');
-const OUTPUT_TOKENS = 3000;
+const WINDOW_CHARS = parseInt(process.env.GRAPH_WINDOW_CHARS || '8000');
+const MAX_CALLS = parseInt(process.env.GRAPH_MAX_CALLS || '4');
+const OUTPUT_TOKENS = parseInt(process.env.GRAPH_OUTPUT_TOKENS || '2000');
 /** Consecutive chat turns are merged into one pending job, sent once the conversation pauses. */
 const CHAT_DEBOUNCE_SECONDS = parseInt(process.env.GRAPH_CHAT_DEBOUNCE_SECONDS || '120');
 /** Stop spending requests on a job once the providers are clearly unavailable (e.g. rate limited). */
 const MAX_CONSECUTIVE_FAILURES = 2;
+/** Longest rate-limit wait honoured inside a job; anything longer (e.g. a daily cap) fails the window instead. */
+const MAX_RATE_LIMIT_WAIT_MS = 65_000;
 /** Names already in the graph are fed back so later windows reuse them instead of inventing variants. */
-const KNOWN_NAMES_HINT = 60;
+const KNOWN_NAMES_HINT = 40;
 
 /**
  * Worker 2 (Knowledge Extraction): reads chat/document text, asks the LLM
@@ -61,7 +65,7 @@ export async function handleExtractEntities(job: Job): Promise<void> {
     for (const window of windows) {
         let extracted: { entities: ExtractedEntity[]; relations: ExtractedRelation[] };
         try {
-            extracted = await extractWithLLM(window, [...idByName.keys()].slice(-KNOWN_NAMES_HINT));
+            extracted = await extractWithRateLimitWait(window, [...idByName.keys()].slice(-KNOWN_NAMES_HINT));
         } catch (err: any) {
             errors.push(err?.message || String(err));
             if (++consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) break;
@@ -195,6 +199,27 @@ async function insertRelation(
     return Boolean(rowCount);
 }
 
+/**
+ * Free tiers also cap tokens per minute, so back-to-back windows can be
+ * throttled. When the provider says how long to wait, and it is short, wait
+ * and send the same window again rather than losing it.
+ */
+async function extractWithRateLimitWait(text: string, knownNames: string[]) {
+    try {
+        return await extractWithLLM(text, knownNames);
+    } catch (err) {
+        const wait = err instanceof LLMUnavailableError ? err.retryAfterMs : undefined;
+        if (wait === undefined || wait > MAX_RATE_LIMIT_WAIT_MS) throw err;
+        console.log(`[graph] rate limited, waiting ${Math.ceil(wait / 1000)}s before retrying the window`);
+        await sleep(wait + 500);
+        return extractWithLLM(text, knownNames);
+    }
+}
+
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function extractWithLLM(
     text: string,
     knownNames: string[]
@@ -209,9 +234,9 @@ async function extractWithLLM(
         '"relations":[{"source":string,"target":string,"type":string,"evidence":string}]}. ' +
         'type is one short lowercase word or phrase; description is at most 20 words; ' +
         'relation type is a short verb phrase such as "is part of" or "influenced"; ' +
-        'evidence is a quote of at most 25 words from the text supporting the relation. ' +
+        'evidence is a quote of at most 15 words from the text supporting the relation. ' +
         'Every relation source and target must be the exact name of an entity in the list. ' +
-        'Return at most 20 entities and 30 relations. No prose or markdown outside the JSON.' +
+        'Return at most 15 entities and 20 relations. No prose or markdown outside the JSON.' +
         (knownNames.length > 0
             ? ` Entities already in the graph (reuse these exact names when the text refers to them): ${knownNames.join('; ')}.`
             : '');

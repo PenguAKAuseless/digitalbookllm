@@ -3,6 +3,23 @@ export interface LLMMessage {
     content: string;
 }
 
+/** A non-2xx provider response; `retryAfterMs` is set when the provider says how long a rate limit lasts. */
+export class ProviderHttpError extends Error {
+    constructor(message: string, public status: number, public retryAfterMs?: number) {
+        super(message);
+    }
+}
+
+/** Reads the wait from a 429: the Retry-After header, else the "try again in 7.5s" hint most vendors put in the body. */
+export function parseRetryAfterMs(headers: Headers | undefined, body: string): number | undefined {
+    const header = headers?.get?.('retry-after');
+    if (header && !Number.isNaN(Number(header))) return Number(header) * 1000;
+    const match = body.match(/try again in\s+(?:(\d+)m)?([\d.]+)(ms|s)/i);
+    if (!match) return undefined;
+    const minutes = match[1] ? Number(match[1]) * 60_000 : 0;
+    return minutes + Number(match[2]) * (match[3].toLowerCase() === 'ms' ? 1 : 1000);
+}
+
 export interface GenerateOptions {
     /** Output budget; structured extraction needs far more than a chat reply or its JSON is cut off. */
     maxTokens?: number;

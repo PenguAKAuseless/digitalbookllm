@@ -52,6 +52,75 @@ describe('OpenAiCompatibleProvider', () => {
         await expect(provider.generate([{ role: 'user', content: 'hi' }])).rejects.toThrow(/429/);
     });
 
+    it('switches to a model the key can use when the configured one is rejected with 404', async () => {
+        const fetchMock = jest.fn(async (url: string, init?: RequestInit) => {
+            if (url.endsWith('/models')) {
+                return { ok: true, json: async () => ({ data: [{ id: 'whisper-large-v3' }, { id: 'fallback-model' }] }) } as unknown as Response;
+            }
+            const model = JSON.parse(String(init?.body)).model;
+            if (model === 'test-model') {
+                return { ok: false, status: 404, text: async () => 'model does not exist' } as unknown as Response;
+            }
+            return { ok: true, json: async () => ({ choices: [{ message: { content: `from ${model}` } }] }) } as unknown as Response;
+        });
+        global.fetch = fetchMock as unknown as typeof fetch;
+        jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+        const provider = new OpenAiCompatibleProvider({ ...cfg, fallbackModels: ['missing-model', 'fallback-model'] });
+        await expect(provider.generate([{ role: 'user', content: 'hi' }])).resolves.toBe('from fallback-model');
+        expect(fetchMock).toHaveBeenCalledWith('https://example.test/v1/models', expect.anything());
+    });
+
+    it('reports how long to wait on a 429 and skips the model until then', async () => {
+        const fetchMock = jest.fn().mockResolvedValue({
+            ok: false,
+            status: 429,
+            headers: new Headers(),
+            text: async () => 'Rate limit reached. Please try again in 7.5s.',
+        } as unknown as Response);
+        global.fetch = fetchMock;
+
+        const provider = new OpenAiCompatibleProvider(cfg);
+        const err = await provider.generate([{ role: 'user', content: 'hi' }]).catch((e) => e);
+        expect(err.status).toBe(429);
+        expect(err.retryAfterMs).toBeGreaterThan(7000);
+        expect(err.retryAfterMs).toBeLessThanOrEqual(7500);
+
+        // Still cooling down: fails fast without spending another request.
+        await expect(provider.generate([{ role: 'user', content: 'hi' }])).rejects.toMatchObject({ status: 429 });
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('moves on to the next model when one is rate limited', async () => {
+        const fetchMock = jest.fn(async (_url: string, init?: RequestInit) => {
+            const model = JSON.parse(String(init?.body)).model;
+            if (model === 'test-model') {
+                return { ok: false, status: 429, headers: new Headers(), text: async () => 'try again in 30s' } as unknown as Response;
+            }
+            return { ok: true, json: async () => ({ choices: [{ message: { content: `from ${model}` } }] }) } as unknown as Response;
+        });
+        global.fetch = fetchMock as unknown as typeof fetch;
+
+        const provider = new OpenAiCompatibleProvider({ ...cfg, fallbackModels: ['second-model'] });
+        await expect(provider.generate([{ role: 'user', content: 'hi' }])).resolves.toBe('from second-model');
+        await expect(provider.generate([{ role: 'user', content: 'hi' }])).resolves.toBe('from second-model');
+        expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    it('drops vendor-specific params for a model that rejects them', async () => {
+        const bodies: any[] = [];
+        global.fetch = jest.fn(async (_url: string, init?: RequestInit) => {
+            const body = JSON.parse(String(init?.body));
+            bodies.push(body);
+            if (body.reasoning_format) return { ok: false, status: 400, text: async () => 'unsupported' } as unknown as Response;
+            return { ok: true, json: async () => ({ choices: [{ message: { content: '<think>hmm</think>answer' } }] }) } as unknown as Response;
+        }) as unknown as typeof fetch;
+
+        const provider = new OpenAiCompatibleProvider({ ...cfg, modelParams: () => ({ reasoning_format: 'hidden' }) });
+        await expect(provider.generate([{ role: 'user', content: 'hi' }])).resolves.toBe('answer');
+        expect(bodies.map((b) => 'reasoning_format' in b)).toEqual([true, false]);
+    });
+
     it('parses SSE delta chunks from a streamed response', async () => {
         const sse =
             'data: {"choices":[{"delta":{"content":"Hel"}}]}\n\n' +

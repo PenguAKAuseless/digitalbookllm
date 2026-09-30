@@ -1,4 +1,4 @@
-import { GenerateOptions, LLMMessage, LLMProvider } from './providers/types';
+import { GenerateOptions, LLMMessage, LLMProvider, ProviderHttpError } from './providers/types';
 import { OpenAiCompatibleProvider } from './providers/openAiCompatible';
 import { AnthropicProvider } from './providers/anthropic';
 import { GeminiProvider } from './providers/gemini';
@@ -9,6 +9,13 @@ interface ContextPassage {
 }
 
 const HEALTH_CACHE_TTL_MS = 30_000;
+
+/** Every candidate failed. `retryAfterMs` is the shortest rate-limit wait any of them reported, if one did. */
+export class LLMUnavailableError extends Error {
+    constructor(message: string, public retryAfterMs?: number) {
+        super(message);
+    }
+}
 
 /**
  * Priority-ordered, health-checked LLM router (ADR-07).
@@ -82,7 +89,14 @@ class LLMRouter {
             tier: 'groq',
             baseUrl: 'https://api.groq.com/openai/v1/chat/completions',
             apiKey: process.env.GROQ_API_KEY,
-            model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+            // Llama models are no longer offered to every Groq account; GPT-OSS is.
+            // Groq's free tier meters each model separately (8K tokens/min each),
+            // so the fallbacks also serve as extra capacity when one is throttled.
+            model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+            fallbackModels: ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b', 'llama-3.3-70b-versatile'],
+            // Reasoning tokens count against max_tokens (and the minute quota): keep them small or hidden.
+            modelParams: (model) =>
+                /gpt-oss/i.test(model) ? { reasoning_effort: 'low' } : /qwen/i.test(model) ? { reasoning_format: 'hidden' } : {},
         });
 
         this.providers = [...operatorProviders, gemini, groq];
@@ -148,16 +162,18 @@ class LLMRouter {
     /** Non-streaming generation, used by the knowledge-extraction worker. */
     async generate(messages: LLMMessage[], options?: GenerateOptions): Promise<{ text: string; provider: string }> {
         const errors: string[] = [];
+        const waits: number[] = [];
         for (const provider of this.candidates()) {
             try {
                 const text = await provider.generate(messages, options);
                 if (text?.trim()) return { text, provider: provider.name };
             } catch (err: any) {
                 errors.push(`${provider.name}: ${err?.message || err}`);
+                if (err instanceof ProviderHttpError && err.retryAfterMs !== undefined) waits.push(err.retryAfterMs);
                 this.healthCache.set(provider.name, { ok: false, expiresAt: Date.now() + HEALTH_CACHE_TTL_MS });
             }
         }
-        throw new Error(this.noProviderError(errors));
+        throw new LLMUnavailableError(this.noProviderError(errors), waits.length > 0 ? Math.min(...waits) : undefined);
     }
 
     /** RAG-aware generation entry point. */

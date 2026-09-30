@@ -13,12 +13,20 @@ jest.mock('../../src/db/config', () => ({
 }));
 
 const mockGenerate = jest.fn();
-jest.mock('../../src/llm/router', () => ({ llmRouter: { generate: (...args: unknown[]) => mockGenerate(...args) } }));
+jest.mock('../../src/llm/router', () => ({
+    llmRouter: { generate: (...args: unknown[]) => mockGenerate(...args) },
+    LLMUnavailableError: class extends Error {
+        constructor(message: string, public retryAfterMs?: number) {
+            super(message);
+        }
+    },
+}));
 
 let mockDocumentText = '';
 
 import { handleExtractEntities, parseJsonObject, sampleWindows, splitIntoWindows } from '../../src/queue/handlers/extractEntities';
 import { Job } from '../../src/queue/jobQueue';
+import { LLMUnavailableError } from '../../src/llm/router';
 
 const job = (payload: Record<string, unknown>): Job => ({ id: 'job', type: 'EXTRACT_ENTITIES', payload, attempts: 1, max_attempts: 3 });
 const paragraph = (i: number) => `Paragraph ${i} talks about topic ${i} in some detail. `.repeat(20);
@@ -68,7 +76,7 @@ describe('handleExtractEntities', () => {
 
         await handleExtractEntities(job({ userId: 'u1', documentId: 'd1' }));
 
-        expect(mockGenerate).toHaveBeenCalledTimes(6);
+        expect(mockGenerate).toHaveBeenCalledTimes(4);
         const entityNames = mockQueries.filter((q) => q.sql.includes('INSERT INTO entities')).map((q) => q.params[2]);
         expect(entityNames).toContain('Beta');
         const relation = mockQueries.find((q) => q.sql.includes('INSERT INTO entity_relations'))!;
@@ -81,6 +89,17 @@ describe('handleExtractEntities', () => {
 
         await expect(handleExtractEntities(job({ userId: 'u1', documentId: 'd1' }))).rejects.toThrow('HTTP 429');
         expect(mockGenerate).toHaveBeenCalledTimes(2);
+    });
+
+    it('waits out a short rate limit and resends the same window', async () => {
+        mockGenerate
+            .mockRejectedValueOnce(new LLMUnavailableError('Groq HTTP 429', 10))
+            .mockResolvedValue({ provider: 'Mock', text: '{"entities":[{"name":"Alpha","type":"concept","description":"x"}],"relations":[]}' });
+
+        await handleExtractEntities(job({ userId: 'u1', text: paragraph(1) }));
+
+        expect(mockGenerate).toHaveBeenCalledTimes(2);
+        expect(mockQueries.some((q) => q.sql.includes('INSERT INTO entities'))).toBe(true);
     });
 
     it('treats unparseable output as a failure rather than an empty result', async () => {
