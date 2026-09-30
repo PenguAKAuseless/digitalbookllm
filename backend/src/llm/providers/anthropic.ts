@@ -1,4 +1,4 @@
-import { LLMMessage, LLMProvider } from './types';
+import { GenerateOptions, LLMMessage, LLMProvider } from './types';
 
 /** Anthropic Messages API — different request/response shape from the OpenAI family. */
 export class AnthropicProvider implements LLMProvider {
@@ -44,12 +44,18 @@ export class AnthropicProvider implements LLMProvider {
         }
     }
 
-    async generate(messages: LLMMessage[]): Promise<string> {
+    async generate(messages: LLMMessage[], options: GenerateOptions = {}): Promise<string> {
         const { system, rest } = this.split(messages);
         const res = await fetch(this.url, {
             method: 'POST',
             headers: this.headers(),
-            body: JSON.stringify({ model: this.model, max_tokens: 800, system, messages: rest }),
+            body: JSON.stringify({
+                model: this.model,
+                max_tokens: options.maxTokens ?? 800,
+                ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
+                system,
+                messages: rest,
+            }),
         });
         if (!res.ok) throw new Error(`Anthropic HTTP ${res.status}: ${await res.text()}`);
         const data: any = await res.json();

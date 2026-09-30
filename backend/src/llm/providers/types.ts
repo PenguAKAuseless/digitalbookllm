@@ -3,6 +3,14 @@ export interface LLMMessage {
     content: string;
 }
 
+export interface GenerateOptions {
+    /** Output budget; structured extraction needs far more than a chat reply or its JSON is cut off. */
+    maxTokens?: number;
+    temperature?: number;
+    /** Ask for a JSON-only response where the provider supports a native switch for it. */
+    json?: boolean;
+}
+
 /**
  * One chat-completion backend. `tier` groups providers for the router's
  * priority order (see ADR-07): 'operator' providers are configured by the
@@ -16,7 +24,7 @@ export interface LLMProvider {
     isConfigured(): boolean;
     /** Network liveness probe, used by the router before dispatching a request. */
     checkHealth(): Promise<boolean>;
-    generate(messages: LLMMessage[]): Promise<string>;
+    generate(messages: LLMMessage[], options?: GenerateOptions): Promise<string>;
     /** Yields text deltas as they arrive, for SSE streaming to the client. */
     generateStream(messages: LLMMessage[]): AsyncGenerator<string>;
 }

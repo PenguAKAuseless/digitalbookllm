@@ -5,7 +5,7 @@ import { ragService } from '../services/ragService';
 import { vectorRetrievalService } from '../services/VectorRetrievalService';
 import { workspaceService } from '../services/workspaceService';
 import { documentService } from '../services/documentService';
-import { enqueue } from '../queue/jobQueue';
+import { enqueueChatExtraction } from '../queue/handlers/extractEntities';
 import { AuthRequest } from '../middleware/auth';
 import { Citation } from '../types';
 
@@ -114,11 +114,11 @@ export class RAGController {
             });
 
             // Grow the knowledge graph from this interaction in the background (FR06, UC15).
-            await enqueue('EXTRACT_ENTITIES', {
-                userId: req.userId!,
-                documentId: documentId || undefined,
-                text: [selectedText, query, fullText].filter(Boolean).join('\n\n'),
-            });
+            await enqueueChatExtraction(
+                req.userId!,
+                documentId || undefined,
+                [selectedText, query, fullText].filter(Boolean).join('\n\n')
+            );
 
             sseWrite(res, 'done', { messageId, sessionId: returnedSessionId });
             res.end();

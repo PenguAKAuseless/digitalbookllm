@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import { useAuth } from "@/lib/auth-context"
 import { useI18n } from "@/lib/i18n"
@@ -24,6 +24,7 @@ const PROGRESS_SAVE_DEBOUNCE_MS = 2000
 export default function ReaderPage() {
     const { workspaceId, documentId } = useParams<{ workspaceId: string; documentId: string }>()
     const router = useRouter()
+    const searchParams = useSearchParams()
     const { user, loading } = useAuth()
     const { t, lang } = useI18n()
 
@@ -37,7 +38,8 @@ export default function ReaderPage() {
     const [selection, setSelection] = useState<SelectionInfo | null>(null)
     const [chatSelectedText, setChatSelectedText] = useState("")
     const [askSignal, setAskSignal] = useState(0)
-    const [viewMode, setViewMode] = useState<ViewMode>("split")
+    // Coming back from the graph page restores the mode the reader was in.
+    const [viewMode, setViewMode] = useState<ViewMode>(() => (searchParams.get("view") === "reading" ? "reading" : "split"))
     const [sidebarOpen, setSidebarOpen] = useState(false)
     // Phones get the book on top and the chat below instead of two cramped columns.
     const [isNarrow, setIsNarrow] = useState(false)
@@ -151,7 +153,8 @@ export default function ReaderPage() {
     }
 
     const handleViewModeChange = (mode: ViewMode) => {
-        if (mode === "graph") router.push(`/workspace/${workspaceId}/graph`)
+        // Carry the open book along so the graph page can route straight back to it.
+        if (mode === "graph") router.push(`/workspace/${workspaceId}/graph?doc=${documentId}&view=${viewMode}`)
         else setViewMode(mode)
     }
 

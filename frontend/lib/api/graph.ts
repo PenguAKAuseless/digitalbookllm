@@ -29,9 +29,27 @@ export interface EntityDetail {
     }>;
 }
 
+export type ExtractionJobStatus = 'PENDING' | 'RUNNING' | 'DONE' | 'FAILED' | 'DEAD';
+
+export interface ExtractionStatus {
+    job: { status: ExtractionJobStatus; error: string | null; attempts: number; updated_at: string } | null;
+    documentStatus: string;
+    relationCount: number;
+}
+
 class GraphAPI {
-    async getGraph(): Promise<{ nodes: GraphNode[]; edges: GraphEdge[] }> {
-        return apiRequest(`${API_BASE}/graph`);
+    /** Pass a document id to get only the part of the graph extracted from that document. */
+    async getGraph(documentId?: string): Promise<{ nodes: GraphNode[]; edges: GraphEdge[] }> {
+        const query = documentId ? `?documentId=${encodeURIComponent(documentId)}` : '';
+        return apiRequest(`${API_BASE}/graph${query}`);
+    }
+
+    async getExtractionStatus(documentId: string): Promise<ExtractionStatus> {
+        return apiRequest(`${API_BASE}/graph/documents/${documentId}/extraction`);
+    }
+
+    async requestExtraction(documentId: string): Promise<{ result: 'queued' | 'already_queued' }> {
+        return apiRequest(`${API_BASE}/graph/documents/${documentId}/extraction`, { method: 'POST' });
     }
 
     async getEntity(entityId: string): Promise<EntityDetail> {

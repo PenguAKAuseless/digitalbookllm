@@ -1,4 +1,4 @@
-import { LLMMessage, LLMProvider } from './providers/types';
+import { GenerateOptions, LLMMessage, LLMProvider } from './providers/types';
 import { OpenAiCompatibleProvider } from './providers/openAiCompatible';
 import { AnthropicProvider } from './providers/anthropic';
 import { GeminiProvider } from './providers/gemini';
@@ -14,9 +14,9 @@ const HEALTH_CACHE_TTL_MS = 30_000;
  * Priority-ordered, health-checked LLM router (ADR-07).
  *
  * Order: operator-configured providers (in the order listed below) -> Gemini
- * free tier -> Groq. Each candidate is health-probed (with a short-TTL cache
- * so we don't re-probe on every request) before dispatch; a request that fails
- * mid-stream triggers one failover to the next candidate.
+ * free tier -> Groq. A provider whose request fails is demoted to the back of
+ * the order for a short TTL, and the request fails over to the next
+ * candidate. Liveness probes are only sent by the diagnostic status route.
  */
 class LLMRouter {
     private providers: LLMProvider[];
@@ -109,8 +109,18 @@ class LLMRouter {
         return ok;
     }
 
+    /**
+     * Configured providers in priority order, with any that failed in the last
+     * HEALTH_CACHE_TTL_MS moved to the back. No liveness probe is sent first:
+     * free-tier keys are capped per request, so a probe would halve the quota.
+     */
     private candidates(): LLMProvider[] {
-        return this.providers.filter((p) => p.isConfigured());
+        const configured = this.providers.filter((p) => p.isConfigured());
+        const recentlyFailed = (p: LLMProvider) => {
+            const cached = this.healthCache.get(p.name);
+            return Boolean(cached && !cached.ok && cached.expiresAt > Date.now());
+        };
+        return [...configured.filter((p) => !recentlyFailed(p)), ...configured.filter(recentlyFailed)];
     }
 
     private buildMessages(query: string, selectedText: string | undefined, retrievedChunks: ContextPassage[]): LLMMessage[] {
@@ -136,12 +146,11 @@ class LLMRouter {
     }
 
     /** Non-streaming generation, used by the knowledge-extraction worker. */
-    async generate(messages: LLMMessage[]): Promise<{ text: string; provider: string }> {
+    async generate(messages: LLMMessage[], options?: GenerateOptions): Promise<{ text: string; provider: string }> {
         const errors: string[] = [];
         for (const provider of this.candidates()) {
-            if (!(await this.isHealthy(provider))) continue;
             try {
-                const text = await provider.generate(messages);
+                const text = await provider.generate(messages, options);
                 if (text?.trim()) return { text, provider: provider.name };
             } catch (err: any) {
                 errors.push(`${provider.name}: ${err?.message || err}`);
@@ -176,7 +185,6 @@ class LLMRouter {
         const errors: string[] = [];
 
         for (const provider of this.candidates()) {
-            if (!(await this.isHealthy(provider))) continue;
             let yieldedAny = false;
             try {
                 yield { provider: provider.name };

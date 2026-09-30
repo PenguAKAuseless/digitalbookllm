@@ -1,4 +1,4 @@
-import { LLMMessage, LLMProvider } from './types';
+import { GenerateOptions, LLMMessage, LLMProvider } from './types';
 
 export interface OpenAiCompatibleConfig {
     name: string;
@@ -61,11 +61,17 @@ export class OpenAiCompatibleProvider implements LLMProvider {
         }
     }
 
-    async generate(messages: LLMMessage[]): Promise<string> {
+    async generate(messages: LLMMessage[], options: GenerateOptions = {}): Promise<string> {
+        // `response_format` is not honoured uniformly across these vendors, so JSON is enforced by prompt only.
         const res = await fetch(this.cfg.baseUrl, {
             method: 'POST',
             headers: this.headers(),
-            body: JSON.stringify({ model: this.cfg.model, messages, temperature: 0.7, max_tokens: 800 }),
+            body: JSON.stringify({
+                model: this.cfg.model,
+                messages,
+                temperature: options.temperature ?? 0.7,
+                max_tokens: options.maxTokens ?? 800,
+            }),
         });
         if (!res.ok) throw new Error(`${this.name} HTTP ${res.status}: ${await res.text()}`);
         const data: any = await res.json();
