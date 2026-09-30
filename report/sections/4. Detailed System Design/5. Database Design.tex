@@ -5,7 +5,7 @@ Thiết kế cơ sở dữ liệu của DigitalBookLLM được xây dựng trê
 Lược đồ dữ liệu tuân theo ba nguyên tắc chính. Thứ nhất, mọi bảng chứa dữ liệu người dùng đều mang trực tiếp hoặc gián tiếp trường \path{user_id}, làm cơ sở cho việc cô lập dữ liệu (NFR-04.1). Thứ hai, mọi dữ liệu phát sinh từ tài liệu (phân mảnh, vector, highlight, hội thoại) đều phụ thuộc khóa ngoại với ràng buộc xóa tuần tự (\texttt{ON DELETE CASCADE}). Thứ ba, cả vector nhúng lẫn đồ thị tri thức đều được lưu ngay trong PostgreSQL thay vì các hệ quản trị chuyên dụng riêng biệt, nhằm giảm độ phức tạp vận hành và tránh vấn đề nhất quán giữa nhiều kho dữ liệu.
 
 \subsection{Mô hình quan hệ tổng quát}
-Các bảng cốt lõi được tổ chức thành sáu nhóm: người dùng, không gian làm việc, tài liệu và phân mảnh, đánh dấu, hội thoại, đồ thị tri thức, và hàng đợi tác vụ.
+Các bảng cốt lõi được tổ chức thành bảy nhóm: người dùng, không gian làm việc, tài liệu và phân mảnh, đánh dấu, hội thoại, đồ thị tri thức, và hàng đợi tác vụ.
 
 \begin{longtable}{|C{0.18\linewidth}|L{0.28\linewidth}|L{0.36\linewidth}|}
 \caption{Các bảng dữ liệu chính của DigitalBookLLM}\label{tab:database-tables}\\
