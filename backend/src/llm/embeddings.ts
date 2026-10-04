@@ -69,6 +69,9 @@ class EmbeddingService {
         const embeddings: number[][] = [];
         for (const text of texts) {
             embeddings.push(await this.generateEmbedding(text));
+            // Let queued HTTP requests run between chunks: the API shares this process
+            // with ingestion, and a long book must not freeze it.
+            await new Promise((resolve) => setImmediate(resolve));
         }
         return embeddings;
     }

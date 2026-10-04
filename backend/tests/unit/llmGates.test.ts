@@ -136,6 +136,52 @@ describe('LLM router gates', () => {
         expect(p.calls).toHaveLength(1);
     });
 
+    it('rewrites full-width citations 【1】 to [1] so the client can link them', async () => {
+        useProviders(scripted('GptOss', ['Alex Ferguson managed Manchester United from 1986 to 2013【1】.']));
+        await expect(streamText('When did Alex Ferguson manage Manchester United?')).resolves.toMatchObject({
+            text: 'Alex Ferguson managed Manchester United from 1986 to 2013[1].',
+        });
+    });
+
+    it('rewrites a full-width citation split across stream chunks', async () => {
+        const provider = scripted('GptOss', ['']);
+        provider.generateStream = async function* () {
+            yield* ['Tata Consultancy Services is headquartered in Mumbai, India', '【', '4】', '.'];
+        };
+        useProviders(provider);
+        await expect(streamText('Where is the company headquartered?')).resolves.toMatchObject({
+            text: 'Tata Consultancy Services is headquartered in Mumbai, India[4].',
+        });
+    });
+
+    it('re-asks when an English question gets a Spanish reply', async () => {
+        const p = scripted('GptOss', [
+            'El compositor de la banda sonora de Alien fue Jerry Goldsmith [1].',
+            'The score of Alien was composed by Jerry Goldsmith [1].',
+        ]);
+        useProviders(p);
+        const { text } = await streamText('Who composed the score of Alien?');
+        expect(text).toBe('The score of Alien was composed by Jerry Goldsmith [1].');
+        expect(p.calls[1][0].content).toMatch(/Reply only in English/);
+    });
+
+    it('does not mistake an English answer with French or Spanish names for a slip', async () => {
+        const p = scripted('Model', ['The Androscoggin Bank Colisée in Lewiston has 3,677 seats [3].']);
+        useProviders(p);
+        await streamText('How many seats does the arena have?');
+        expect(p.calls).toHaveLength(1);
+    });
+
+    it('does not demote a provider for a content-filter refusal: the next question still goes to it', async () => {
+        const hefu = scripted('HeFU', [new ProviderHttpError('content filter: inappropriate content', 451), 'Paris [1].']);
+        const groq = scripted('Groq', ['fallback answer', 'fallback answer']);
+        useProviders(hefu, groq);
+
+        await expect(streamText('Thủ đô của Pháp?')).resolves.toMatchObject({ text: 'fallback answer' });
+        await expect(streamText('Thủ đô của Pháp?')).resolves.toMatchObject({ text: 'Paris [1].' });
+        expect(hefu.calls).toHaveLength(2);
+    });
+
     it('streams short replies that never reach the language-check length', async () => {
         useProviders(scripted('Short', ['Paris [1].']));
         await expect(streamText('Thủ đô của Pháp?')).resolves.toMatchObject({ text: 'Paris [1].' });

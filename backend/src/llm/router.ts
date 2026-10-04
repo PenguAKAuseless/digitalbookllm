@@ -15,6 +15,38 @@ const LANGUAGE_CHECK_CHARS = 24;
 /** Re-asks after a reply in the wrong language, before giving up with a notice. */
 const LANGUAGE_RETRIES = 2;
 
+/**
+ * Some models (gpt-oss on Groq) cite as 【1】; the client and the cited-passage check expect [1].
+ * A marker can arrive split across stream chunks ("【", "4】"), so an unclosed one is held back
+ * until it closes.
+ */
+class CitationNormalizer {
+    private pending = '';
+
+    push(delta: string): string {
+        this.pending += delta;
+        const open = this.pending.lastIndexOf('【');
+        if (open > this.pending.lastIndexOf('】') && this.pending.length - open < 24) {
+            const ready = this.pending.slice(0, open);
+            this.pending = this.pending.slice(open);
+            return normalizeCitations(ready);
+        }
+        const ready = this.pending;
+        this.pending = '';
+        return normalizeCitations(ready);
+    }
+
+    flush(): string {
+        const rest = this.pending;
+        this.pending = '';
+        return normalizeCitations(rest);
+    }
+}
+
+function normalizeCitations(text: string): string {
+    return text.replace(/【(\d+)(?:†[^】]*)?】/g, '[$1]');
+}
+
 function withLanguageReminder(messages: LLMMessage[], language: string): LLMMessage[] {
     const reminder = `Reply only in ${language}, the language the question is written in. Do not use Chinese.`;
     return messages.map((m) => (m.role === 'system' ? { ...m, content: `${m.content} ${reminder}` } : m));
@@ -200,12 +232,13 @@ class LLMRouter {
                 role: 'system',
                 content:
                     'You are an assistant embedded in a document reader. Answer strictly from the provided context. ' +
-                    'If the selected text is present, treat it as mandatory context the answer must engage with. ' +
+                    'If the selected text is present, treat it as mandatory context the answer must engage with; ' +
+                    'a request such as "summarise this passage", "explain the difficult concepts" or "translate" applies to the selected text itself. ' +
                     'Cite the numbered passages you rely on as [1], [2] right after the statement they support; ' +
-                    'cite only passages that actually state what you claim. ' +
+                    'cite only passages that actually state what you claim. The selected text needs no marker: never write "[selected text]". ' +
                     'Use the knowledge-graph relations only to connect entities across passages; never state a fact that no passage or the selected text supports. ' +
                     'If the context does not contain the answer, say that the document does not provide this information instead of guessing. ' +
-                    'Answer in the same language as the question. Be concise.',
+                    'Write the whole answer in the language of the question, even when the passages are in another language. Be concise.',
             },
             { role: 'user', content: userContent },
         ];
@@ -234,7 +267,7 @@ class LLMRouter {
                     }
                     errors.push(`${provider.name}: ${err?.message || err}`);
                     if (err instanceof ProviderHttpError && err.retryAfterMs !== undefined) waits.push(err.retryAfterMs);
-                    this.healthCache.set(provider.name, { ok: false, expiresAt: Date.now() + HEALTH_CACHE_TTL_MS });
+                    this.markFailed(provider, err);
                     break;
                 }
             }
@@ -279,14 +312,17 @@ class LLMRouter {
                 let yieldedAny = false;
                 let held = '';
                 let slipped = false;
+                const citations = new CitationNormalizer();
                 try {
                     yield { provider: provider.name };
                     for await (const delta of provider.generateStream(messages)) {
+                        const text = citations.push(delta);
+                        if (!text) continue;
                         if (yieldedAny) {
-                            yield { delta };
+                            yield { delta: text };
                             continue;
                         }
-                        held += delta;
+                        held += text;
                         const enough = held.replace(/\s/g, '').length >= LANGUAGE_CHECK_CHARS;
                         if (isLanguageSlip(query, held, enough)) {
                             slipped = true;
@@ -309,7 +345,9 @@ class LLMRouter {
                         yield { done: true };
                         return;
                     }
-                    if (!yieldedAny && held) yield { delta: held };
+                    const tail = citations.flush();
+                    if (!yieldedAny && held + tail) yield { delta: held + tail };
+                    else if (tail) yield { delta: tail };
                     yield { done: true };
                     return;
                 } catch (err: any) {
@@ -320,12 +358,21 @@ class LLMRouter {
                         continue;
                     }
                     errors.push(`${provider.name}: ${err?.message || err}`);
-                    this.healthCache.set(provider.name, { ok: false, expiresAt: Date.now() + HEALTH_CACHE_TTL_MS });
+                    this.markFailed(provider, err);
                     break;
                 }
             }
         }
         throw new Error(this.noProviderError(errors));
+    }
+
+    /**
+     * Demotes a provider that failed, for HEALTH_CACHE_TTL_MS. A content-filter refusal (451) is about
+     * one request's text, not the provider: demoting it would send the next questions elsewhere.
+     */
+    private markFailed(provider: LLMProvider, err: unknown): void {
+        if (err instanceof ProviderHttpError && err.status === 451) return;
+        this.healthCache.set(provider.name, { ok: false, expiresAt: Date.now() + HEALTH_CACHE_TTL_MS });
     }
 
     private noProviderError(errors: string[]): string {

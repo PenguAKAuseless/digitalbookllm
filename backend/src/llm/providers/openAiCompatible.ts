@@ -31,6 +31,16 @@ export interface OpenAiCompatibleConfig {
 const NON_CHAT_MODEL = /whisper|guard|safeguard|tts|embed|playai|orpheus|audio|moderation/i;
 /** Cooldown for a 429 that does not say how long to wait. */
 const DEFAULT_RATE_LIMIT_MS = 60_000;
+/**
+ * An upstream content filter refused the request. Seen from HeFU's deepseek-v4-flash route
+ * ("Input data may contain inappropriate content") on ordinary book passages, at random: the
+ * same question passed on a later try. Another model usually takes it, so it is not retried as is.
+ */
+const CONTENT_FILTER = /inappropriate content|content[ _-]?(filter|policy|moderation)|data_inspection_failed|sensitive content/i;
+/** The same refusal delivered as the reply itself (deepseek-v3 on HeFU: "the input involves sensitive information"). */
+const REFUSAL_REPLY = /^\s*(当前输入涉及敏感信息|输入涉及敏感|涉及敏感信息)/;
+const CONTENT_FILTER_STATUS = 451;
+
 /** Default wait for a provider's response headers; a slow local model on a 6000-char window needs well over a minute. */
 const REQUEST_TIMEOUT_MS = parseInt(process.env.LLM_REQUEST_TIMEOUT_MS || '180000');
 
@@ -122,11 +132,16 @@ export class OpenAiCompatibleProvider implements LLMProvider {
     /**
      * POSTs a completion request, walking the model list: a 404 drops the
      * model (and triggers a one-off /models lookup), a 429 puts it on cooldown
-     * and moves on to the next one. Throws a 429 carrying the shortest
-     * remaining cooldown once every model is throttled.
+     * and moves on to the next one, and so does a content-filter refusal. Throws a 429
+     * carrying the shortest remaining cooldown once every model is throttled.
+     * `skip` holds models already refused for this request (a filter error inside a stream).
      */
-    private async post(body: Record<string, unknown>, preferredModel?: string): Promise<Response> {
-        const tried = new Set<string>();
+    private async post(
+        body: Record<string, unknown>,
+        preferredModel?: string,
+        skip: Set<string> = new Set()
+    ): Promise<{ res: Response; model: string }> {
+        const tried = new Set<string>(skip);
         let lastError: ProviderHttpError | undefined;
 
         for (;;) {
@@ -141,11 +156,14 @@ export class OpenAiCompatibleProvider implements LLMProvider {
                 this.plainModels.add(model);
                 res = await this.send(model, body);
             }
-            if (res.ok) return res;
+            if (res.ok) return { res, model };
 
             const text = await res.text();
             const message = `${this.name} HTTP ${res.status} (${model}): ${text}`;
-            if (res.status === 404) {
+            if (CONTENT_FILTER.test(text)) {
+                console.warn(`[llm] ${this.name} (${model}) content filter refused the request; trying another model`);
+                lastError = new ProviderHttpError(message, CONTENT_FILTER_STATUS);
+            } else if (res.status === 404) {
                 this.unavailable.add(model);
                 await this.discoverModels();
                 lastError = new ProviderHttpError(message, 404);
@@ -168,6 +186,10 @@ export class OpenAiCompatibleProvider implements LLMProvider {
             throw new ProviderHttpError(lastError?.message ?? `${this.name}: every model is rate limited`, 429, wait);
         }
         throw lastError ?? new ProviderHttpError(`${this.name}: no usable model for this key`, 404);
+    }
+
+    private contentFilterError(model: string, detail: string): ProviderHttpError {
+        return new ProviderHttpError(`${this.name} (${model}) content filter: ${detail}`, CONTENT_FILTER_STATUS);
     }
 
     /** Asks the vendor's /models listing what this key may call. Runs at most once per process. */
@@ -197,20 +219,50 @@ export class OpenAiCompatibleProvider implements LLMProvider {
     async generate(messages: LLMMessage[], options: GenerateOptions = {}): Promise<string> {
         // `response_format` is not honoured uniformly across these vendors, so JSON is enforced by
         // prompt, plus the vendor's JSON mode where the provider is configured with it.
-        const res = await this.post({
+        const body = {
             messages,
             temperature: options.temperature ?? 0.7,
             max_tokens: options.maxTokens ?? 800,
             ...(options.json && this.cfg.jsonMode ? { response_format: { type: 'json_object' } } : {}),
-        }, options.json ? this.cfg.jsonModel : undefined);
+        };
+        const { res, model } = await this.post(body, options.json ? this.cfg.jsonModel : undefined);
         const data: any = await res.json();
+        const error = data.error?.message ?? (typeof data.error === 'string' ? data.error : undefined);
         const content: string = data.choices?.[0]?.message?.content ?? '';
+        // A refusal goes to the router, which hands the request to another provider: here the other
+        // model is usually the slow reasoning one, which times out on a graph window.
+        if (error && CONTENT_FILTER.test(error)) throw this.contentFilterError(model, error);
+        if (REFUSAL_REPLY.test(content)) throw this.contentFilterError(model, content.slice(0, 80));
         // Reasoning models that inline their thinking must not leak it into answers or JSON.
         return content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
     }
 
+    /** Streams the reply; a content-filter refusal before the first token moves the request to another model. */
     async *generateStream(messages: LLMMessage[]): AsyncGenerator<string> {
-        const res = await this.post({ messages, temperature: 0.7, max_tokens: 800, stream: true });
+        const refused = new Set<string>();
+        for (;;) {
+            const { res, model } = await this.post({ messages, temperature: 0.7, max_tokens: 800, stream: true }, undefined, refused);
+            let yielded = false;
+            try {
+                for await (const delta of this.readStream(res)) {
+                    yielded = true;
+                    yield delta;
+                }
+                return;
+            } catch (err: any) {
+                const filtered = CONTENT_FILTER.test(err?.message ?? '');
+                if (!filtered || yielded) throw err;
+                refused.add(model);
+                if (this.usableModels().some((m) => !refused.has(m))) {
+                    console.warn(`[llm] ${this.name} (${model}) content filter refused the request; trying another model`);
+                    continue;
+                }
+                throw this.contentFilterError(model, err.message);
+            }
+        }
+    }
+
+    private async *readStream(res: Response): AsyncGenerator<string> {
         if (!res.body) throw new Error(`${this.name} returned an empty stream`);
 
         const reader = res.body.getReader();

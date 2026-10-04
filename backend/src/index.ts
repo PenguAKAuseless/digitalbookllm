@@ -13,8 +13,10 @@ const PORT = process.env.PORT || 3001;
 
 // Worker pool runs in the same process as the API server so a single free
 // container hosts both the request path and the async ingestion/knowledge
-// pipeline (see ADR-02 and ADR-12). Set WORKER_CONCURRENCY to tune it.
-const workerPool = new WorkerPool(parseInt(process.env.WORKER_CONCURRENCY || '2'));
+// pipeline (see ADR-02 and ADR-12). One job at a time by default: on a free
+// instance (512 MB, shared CPU) two concurrent ingestions plus the embedding
+// model left the API unresponsive. Set WORKER_CONCURRENCY to raise it.
+const workerPool = new WorkerPool(parseInt(process.env.WORKER_CONCURRENCY || '1'));
 workerPool.register('INGEST_DOCUMENT', handleIngestDocument);
 workerPool.register('EXTRACT_ENTITIES', handleExtractEntities);
 

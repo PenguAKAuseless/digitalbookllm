@@ -38,20 +38,36 @@ const CJK = /[぀-ヿ㐀-䶿一-鿿가-힯]/;
 const VIETNAMESE = /[ăâđêôơưàáạảãấầẩẫậắằẳẵặèéẹẻẽếềểễệìíịỉĩòóọỏõốồổỗộớờởỡợùúụủũứừửữựỳýỵỷỹ]/i;
 
 /**
- * Small local models (qwen2.5:7b in our evaluation) sometimes answer a
- * Vietnamese question in Chinese or English despite the instruction. True when
- * the reply so far is in a CJK script the question does not use, or when a
- * Vietnamese question gets a reply opening (`complete` = enough text to judge)
- * without a single Vietnamese letter.
+ * Models drift out of the question's language despite the instruction: qwen2.5:7b
+ * answered Vietnamese questions in Chinese or English, gpt-oss on Groq answered
+ * English ones in Spanish. True when the reply so far is in a CJK script the
+ * question does not use, or, once there is enough text to judge (`complete`),
+ * when a Vietnamese question gets no Vietnamese letter or an English question
+ * gets a reply with Romance-language function words and no English ones.
  */
 export function isLanguageSlip(question: string, replySoFar: string, complete = false): boolean {
     if (!CJK.test(question) && CJK.test(replySoFar)) return true;
-    return complete && VIETNAMESE.test(question) && !VIETNAMESE.test(replySoFar);
+    if (!complete) return false;
+    if (VIETNAMESE.test(question)) return !VIETNAMESE.test(replySoFar);
+    // gpt-oss on Groq has answered English questions in Spanish.
+    return isEnglish(question) && !isEnglish(replySoFar) && wordCount(replySoFar, ROMANCE_WORDS) >= 2;
+}
+
+const ENGLISH_WORDS = /\b(the|a|an|is|was|of|in|and|to|what|who|which|when|where|how|did|does|for|by|from)\b/gi;
+const ROMANCE_WORDS = /\b(el|la|los|las|del|fue|que|una|por|con|para|est|une|les|des|pour|qui)\b/gi;
+
+function wordCount(text: string, words: RegExp): number {
+    return text.match(words)?.length ?? 0;
+}
+
+function isEnglish(text: string): boolean {
+    return wordCount(text, ENGLISH_WORDS) > 0 && !VIETNAMESE.test(text);
 }
 
 /** Names the question's language for the corrective instruction sent with the retry. */
 export function questionLanguage(question: string): string {
-    return VIETNAMESE.test(question) ? 'Vietnamese' : 'the language of the question';
+    if (VIETNAMESE.test(question)) return 'Vietnamese';
+    return isEnglish(question) ? 'English' : 'the language of the question';
 }
 
 /** Shown instead of a reply that stayed in the wrong language after every retry. */

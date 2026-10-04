@@ -1,0 +1,83 @@
+{
+  "source": "KG-Series test split (HotpotQA distractor validation, Yang et al. 2018); articles copied verbatim",
+  "crossBook": [
+    {
+      "id": "KGS-01",
+      "question": "What government position was held by the woman who portrayed Corliss Archer in the film Kiss and Tell?",
+      "answer": "Chief of Protocol",
+      "askIn": "demo-volume-2.txt",
+      "answerIn": "demo-volume-1.txt",
+      "bridge": "Kiss and Tell (1945 film)",
+      "answerArticle": "Shirley Temple",
+      "bridgeEvidence": [
+        "Kiss and Tell is a 1945 American comedy film starring then 17-year-old Shirley Temple as Corliss Archer."
+      ],
+      "answerEvidence": [
+        "Shirley Temple Black (April 23, 1928 – February 10, 2014) was an American actress, singer, dancer, businesswoman, and diplomat who was Hollywood's number one box-office draw as a child actress from 1935 to 1938.",
+        "As an adult, she was named United States ambassador to Ghana and to Czechoslovakia and also served as Chief of Protocol of the United States."
+      ]
+    },
+    {
+      "id": "KGS-03",
+      "question": "The arena where the Lewiston Maineiacs played their home games can seat how many people?",
+      "answer": "3,677 seated",
+      "askIn": "demo-volume-2.txt",
+      "answerIn": "demo-volume-1.txt",
+      "bridge": "Lewiston Maineiacs",
+      "answerArticle": "Androscoggin Bank Colisée",
+      "bridgeEvidence": [
+        "The team played its home games at the Androscoggin Bank Colisée."
+      ],
+      "answerEvidence": [
+        "The Androscoggin Bank Colisée (formerly Central Maine Civic Center and Lewiston Colisee) is a 4,000 capacity (3,677 seated) multi-purpose arena, in Lewiston, Maine, that opened in 1958."
+      ]
+    },
+    {
+      "id": "KGS-13",
+      "question": "Where is the company that Sachin Warrier worked for as a software engineer headquartered?",
+      "answer": "Mumbai",
+      "askIn": "demo-volume-2.txt",
+      "answerIn": "demo-volume-1.txt",
+      "bridge": "Sachin Warrier",
+      "answerArticle": "Tata Consultancy Services",
+      "bridgeEvidence": [
+        "He was working as a software engineer in Tata Consultancy Services in Kochi."
+      ],
+      "answerEvidence": [
+        "Tata Consultancy Services Limited (TCS) is an Indian multinational information technology (IT) service, consulting and business solutions company Headquartered in Mumbai, Maharashtra."
+      ]
+    },
+    {
+      "id": "KGS-17",
+      "question": "What is the name of the executive producer of the film that has a score composed by Jerry Goldsmith?",
+      "answer": "Ronald Shusett",
+      "askIn": "demo-volume-2.txt",
+      "answerIn": "demo-volume-1.txt",
+      "bridge": "Alien (soundtrack)",
+      "answerArticle": "Alien (film)",
+      "bridgeEvidence": [
+        "The iconic, avant-garde score to the film \"Alien\" was composed by Jerry Goldsmith and is considered by some to be one of his best, most visceral scores."
+      ],
+      "answerEvidence": [
+        "Dan O'Bannon, drawing upon previous works of science fiction and horror, wrote the screenplay from a story he co-authored with Ronald Shusett.",
+        "Shusett was executive producer."
+      ]
+    },
+    {
+      "id": "KGS-23",
+      "question": "Robert Suettinger was the national intelligence officer under which former Governor of Arkansas?",
+      "answer": "William Jefferson Clinton",
+      "askIn": "demo-volume-2.txt",
+      "answerIn": "demo-volume-1.txt",
+      "bridge": "Robert Suettinger",
+      "answerArticle": "Bill Clinton",
+      "bridgeEvidence": [
+        "Robert Suettinger was United States President Bill Clinton's national intelligence officer for East Asia at the National Intelligence Council (NIC) from 1997-1998."
+      ],
+      "answerEvidence": [
+        "William Jefferson Clinton (born William Jefferson Blythe III; August 19, 1946) is an American politician who served as the 42nd President of the United States from 1993 to 2001.",
+        "Prior to the presidency, he was the Governor of Arkansas during two separate terms, from 1979 to 1981, and again from 1983 to 1992."
+      ]
+    }
+  ]
+}

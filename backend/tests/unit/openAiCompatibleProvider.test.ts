@@ -153,6 +153,54 @@ describe('OpenAiCompatibleProvider', () => {
         expect(deltas.join('')).toBe('Hello');
     });
 
+    function sseResponse(lines: string[]): Response {
+        const bytes = new TextEncoder().encode(lines.map((l) => `data: ${l}\n\n`).join(''));
+        let sent = false;
+        return {
+            ok: true,
+            status: 200,
+            body: { getReader: () => ({ read: async () => (sent ? { done: true } : ((sent = true), { done: false, value: bytes })), cancel: async () => {} }) },
+        } as unknown as Response;
+    }
+
+    it('moves a stream refused by a content filter to the next model before any output', async () => {
+        const fetchMock = jest
+            .fn()
+            .mockResolvedValueOnce(sseResponse([JSON.stringify({ error: { message: 'Input data may contain inappropriate content.' } })]))
+            .mockResolvedValueOnce(sseResponse([JSON.stringify({ choices: [{ delta: { content: 'Mumbai [1].' } }] }), '[DONE]']));
+        global.fetch = fetchMock;
+        const provider = new OpenAiCompatibleProvider({ ...cfg, model: 'filtered-model', jsonModel: 'other-model' });
+
+        let text = '';
+        for await (const delta of provider.generateStream([{ role: 'user', content: 'q' }])) text += delta;
+
+        expect(text).toBe('Mumbai [1].');
+        expect(fetchMock.mock.calls.map(([, init]) => JSON.parse(init.body).model)).toEqual(['filtered-model', 'other-model']);
+    });
+
+    it('reports a content-filter refusal from every model as a non-retryable 451', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: false,
+            status: 400,
+            headers: new Headers(),
+            text: async () => '{"error":{"message":"Input data may contain inappropriate content."}}',
+        } as unknown as Response);
+        const provider = new OpenAiCompatibleProvider({ ...cfg, model: 'a', jsonModel: 'b' });
+
+        await expect(provider.generate([{ role: 'user', content: 'q' }])).rejects.toMatchObject({ status: 451 });
+        expect((global.fetch as jest.Mock).mock.calls).toHaveLength(2);
+    });
+
+    it('treats a refusal written as the reply (deepseek-v3 "sensitive information") as a content-filter error', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({ choices: [{ message: { content: '当前输入涉及敏感信息，让我们换个话题。' } }] }),
+        } as unknown as Response);
+        const provider = new OpenAiCompatibleProvider({ ...cfg, model: 'a', jsonModel: 'b' });
+
+        await expect(provider.generate([{ role: 'user', content: 'extract' }], { json: true })).rejects.toMatchObject({ status: 451 });
+    });
+
     it('sends JSON requests to the jsonModel and everything else to the main model', async () => {
         const fetchMock = jest.fn().mockResolvedValue({
             ok: true,
