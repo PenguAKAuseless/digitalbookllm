@@ -31,7 +31,7 @@ supporting-sentence annotations are HotpotQA's, unchanged; only their
 arrangement into volumes is ours. This derived dataset is therefore also
 CC BY-SA 4.0.
 
-## Construction (`eval/ablation/build-series.ts`, deterministic)
+## Construction (`eval/experiments/build-series.ts`, deterministic)
 
 HotpotQA *bridge* questions need two paragraphs: a **bridge paragraph** about
 the entity the question names, which mentions a second entity, and an
@@ -79,7 +79,7 @@ starring → Shirley Temple*; the entity *Shirley Temple* already exists from
 volume 1 (entities are merged by name per user), so the edge leads retrieval
 to the volume 1 passage, which the answer then cites as "Volume 1, page …".
 
-## Evaluation protocol (`eval/ablation/series-ablation.ts`)
+## Evaluation protocol (`eval/experiments/experiment-3-kg-series.ts`)
 
 - Reading order is simulated: a question asked in volume *v* sees a workspace
   of volumes 1..*v* and a knowledge graph extracted from those volumes only.

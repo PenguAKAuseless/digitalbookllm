@@ -24,7 +24,7 @@ turn, the knowledge-graph walk the conversation follows, e.g.
 OpenDialKG's, unchanged; this subset is likewise CC BY-NC 4.0 (non-commercial
 use, with attribution).
 
-## Construction (`eval/ablation/build-chat-benchmark.ts`, deterministic)
+## Construction (`eval/experiments/build-chat-benchmark.ts`, deterministic)
 
 - Dialogues are read in file order. Inverse relations (`~r`) are flipped to
   `r` with subject and object swapped.
@@ -51,7 +51,7 @@ Zodiac → starred_actors → Robert Downey Jr.; Zodiac → starred_actors → J
 End of Watch → starred_actors → Jake Gyllenhaal; End of Watch → written_by → David Ayer;
 End of Watch → has_genre → Thriller.
 
-## Evaluation protocol (`eval/ablation/chat-kg-ablation.ts`)
+## Evaluation protocol (`eval/experiments/experiment-4-kg-chat.ts`)
 
 - The user's graph starts as the graph of the three KG-Series volumes (a
   user who has read those books).
@@ -61,7 +61,7 @@ End of Watch → has_genre → Thriller.
 - Measured: annotated entity and relation recall; share of extracted entities
   named in the dialogue (grounding); new entities per dialogue; share of new
   entities attached by an edge to an entity the graph already held; reuse of
-  entities already in the graph; duplicate entities under the production
-  (case-insensitive) and the previous (exact-name) merge. A no-LLM baseline
-  (capitalised phrases, same-turn co-occurrence edges) is scored on the same
-  dialogues.
+  entities already in the graph (scored on those the extractor named: merged
+  into the existing node rather than duplicated); duplicate entities (same
+  name, other letter case). A no-LLM baseline (capitalised phrases, same-turn
+  co-occurrence edges) is scored on the same dialogues.

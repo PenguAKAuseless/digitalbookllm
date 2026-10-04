@@ -10,6 +10,7 @@ import { VirtualPageViewer, OutlineEntry } from "@/components/reader/virtual-pag
 import { TextPageViewer } from "@/components/reader/text-page-viewer"
 import { SelectionPopover, SelectionInfo } from "@/components/reader/selection-popover"
 import { ReaderSidebar } from "@/components/reader/reader-sidebar"
+import { ResizableSidebar } from "@/components/reader/resizable-sidebar"
 import { ChatPanel } from "@/components/chat/chat-panel"
 import { documentAPI, DocumentDetail } from "@/lib/api/documents"
 import { workspaceAPI } from "@/lib/api/workspaces"
@@ -151,6 +152,12 @@ export default function ReaderPage() {
     }
 
     const handleCitationClick = (citation: Citation) => {
+        // A passage from another book (cross-book retrieval) opens that book at the cited page.
+        if (citation.documentId && citation.documentId !== documentId) {
+            const page = citation.page ? `&page=${citation.page}` : ""
+            router.push(`/workspace/${workspaceId}/book/${citation.documentId}?view=${viewMode}${page}`)
+            return
+        }
         if (citation.page) setJumpToPage(citation.page)
     }
 
@@ -234,14 +241,14 @@ export default function ReaderPage() {
             />
 
             <div className="flex flex-1 min-h-0 overflow-hidden">
-                <div className={`${sidebarOpen ? "flex" : "hidden"} md:flex w-64 flex-shrink-0 border-r border-border bg-sidebar min-h-0`}>
+                <ResizableSidebar className={`${sidebarOpen ? "flex" : "hidden"} md:flex`}>
                     <ReaderSidebar
                         outline={outline}
                         highlights={highlights}
                         onJumpToPage={setJumpToPage}
                         onDeleteHighlight={handleDeleteHighlight}
                     />
-                </div>
+                </ResizableSidebar>
 
                 {viewMode === "split" ? (
                     <PanelGroup key={isNarrow ? "v" : "h"} direction={isNarrow ? "vertical" : "horizontal"} className="flex-1 min-w-0">

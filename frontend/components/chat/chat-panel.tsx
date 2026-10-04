@@ -5,6 +5,7 @@ import { Send, X, Sparkles } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { Button } from "@/components/ui/button"
 import { CitationChip } from "./citation-chip"
+import { CitedAnswer } from "./cited-answer"
 import { streamQuery, ragAPI, Citation, ChatMessage } from "@/lib/api/rag"
 import { speak } from "@/lib/tts"
 
@@ -114,13 +115,23 @@ export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelect
                 {messages.map((m) => (
                     <div key={m.id} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
                         <div className={`max-w-[90%] rounded-lg px-3 py-2 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                            <p className="whitespace-pre-wrap">{m.content || (streaming ? t("chat.thinking") : "")}</p>
+                            {m.role === "assistant" && m.content ? (
+                                <CitedAnswer text={m.content} citations={m.citations ?? []} onCitationClick={onCitationClick} />
+                            ) : (
+                                <p className="whitespace-pre-wrap">{m.content || (streaming ? t("chat.thinking") : "")}</p>
+                            )}
+                            {/* Every retrieved passage, cited or not, stays reachable without crowding the answer. */}
                             {m.citations && m.citations.length > 0 && (
-                                <div className="flex flex-wrap gap-1.5 mt-2">
-                                    {m.citations.map((c, i) => (
-                                        <CitationChip key={c.chunkId} index={i + 1} citation={c} onClick={() => onCitationClick(c)} />
-                                    ))}
-                                </div>
+                                <details className="group mt-2 text-xs">
+                                    <summary className="cursor-pointer select-none text-muted-foreground hover:text-foreground">
+                                        {t("chat.sources").replace("{count}", String(m.citations.length))}
+                                    </summary>
+                                    <div className="flex flex-wrap gap-1.5 mt-2">
+                                        {m.citations.map((c, i) => (
+                                            <CitationChip key={c.chunkId} index={i + 1} citation={c} onClick={() => onCitationClick(c)} />
+                                        ))}
+                                    </div>
+                                </details>
                             )}
                         </div>
                     </div>

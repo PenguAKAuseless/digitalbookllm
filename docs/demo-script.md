@@ -197,15 +197,18 @@ Số liệu trên toàn bộ 40 câu: xem mục 6.
 
 Chi tiết và cách chạy lại: [backend/eval/ablation/README.md](../backend/eval/ablation/README.md).
 
-**Cách lấy mẫu:** mọi mẫu được lấy **theo thứ tự xuất hiện trong dataset, với tiêu chí lọc cố định**;
-không lấy ngẫu nhiên và không chọn tay. Tham số được chọn trên tập *dev* (split train của dataset,
+**Cách lấy mẫu:** không có mẫu nào được chọn tay hay tự viết; mọi câu hỏi và đáp án lấy từ nhãn của dataset.
+- Truy xuất: dùng **toàn bộ** câu của tập test (ViQuAD 306 câu có đáp án, HotpotQA 17 câu).
+- KG-Series, KG-Chat: lấy **theo thứ tự trong dataset** với tiêu chí lọc cố định (xem README của từng bộ).
+- Sinh câu trả lời trên ViQuAD: **ngẫu nhiên có seed cố định** (seed 42, chạy lại ra cùng mẫu):
+  15 trong 306 câu có đáp án và 5 trong 156 câu không có đáp án. Tham số được chọn trên tập *dev* (split train của dataset,
 chỉ dùng để chọn tham số, không huấn luyện gì) rồi chạy **một lần** trên tập *test* (split validation).
 
 | Thí nghiệm | Dữ liệu (n) | Kết quả | Lưu ý |
 |---|---|---|---|
 | Truy xuất trong một sách | HotpotQA test, 17 câu multi-hop, sách 104K ký tự | R@5 = 100% (R@1 94,1%); cả 2 câu bằng chứng trong top-5: 100% | n nhỏ |
 | Truy xuất trong một sách | UIT-ViQuAD 2.0 test, 306 câu, 65,6K ký tự | R@5 = 82,7% (trước cải tiến: 24,5%), R@1 = 41,2% | — |
-| Ảo giác | ViQuAD, **5** câu không có đáp án | Không RAG: 4/5 vẫn trả lời; có RAG: 1/5 | Rất nhỏ; nên nói "4/5 → 1/5" |
+| Ảo giác | ViQuAD test: **5** câu không có đáp án, do người gán nhãn của dataset đánh dấu (`is_impossible`), lấy ngẫu nhiên có seed từ 156 câu | Không RAG: 4/5 vẫn trả lời; có RAG: 1/5 | Rất nhỏ; nên nói "4/5 → 1/5". Bản RAG cũ cũng 1/5, nên đây là tác dụng của RAG nói chung |
 | Trích dẫn | HotpotQA, 17 câu | 89,5% đoạn được trích có câu bằng chứng, so với 24,2% đoạn không được trích | — |
 | KG xuyên sách | KG-Series, 40 câu, 3 tập | Trả lời đúng: chỉ sách đang mở 5%; RAG tìm sang sách trước nhưng không KG 35%; **có KG 57,5%** (+10/−1 câu, McNemar p = 0,012) | Truy xuất như nhau (95%) có hay không có KG: phần đóng góp của KG là các quan hệ nối đưa vào prompt |
 | KG học từ chat | KG-Chat: 40 hội thoại OpenDialKG, 175 thực thể, 137 quan hệ gán nhãn | Thực thể 88,0%, quan hệ 47,4%, so với 82,9% / 23,4% của baseline không dùng LLM (cụm từ viết hoa + đồng xuất hiện) | — |

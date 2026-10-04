@@ -11,7 +11,12 @@
         "test": "jest --runInBand",
         "test:security": "ts-node eval/security-probes.ts",
         "test:load": "ts-node eval/load-test.ts",
-        "eval:rag": "ts-node eval/rag-eval.ts"
+        "eval:rag": "ts-node eval/rag-eval.ts",
+        "experiment:retrieval": "ts-node eval/experiments/experiment-1-retrieval.ts",
+        "experiment:answers": "ts-node eval/experiments/experiment-2-answers.ts",
+        "experiment:kg-series": "ts-node eval/experiments/experiment-3-kg-series.ts",
+        "experiment:kg-chat": "ts-node eval/experiments/experiment-4-kg-chat.ts",
+        "experiment:all": "npm run experiment:retrieval && npm run experiment:answers && npm run experiment:kg-series && npm run experiment:kg-chat"
     },
     "keywords": [
         "rag",

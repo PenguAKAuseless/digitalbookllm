@@ -79,11 +79,11 @@ export interface RetrievalOptions {
     facts?: 'linked' | 'all' | 'none';
 }
 
-/** Chosen on the development splits (eval/ablation/tune-retrieval.ts), not on the reported test books. */
+/** Chosen on the development splits (eval/experiments/tune-retrieval.ts), not on the reported test books. */
 export const DEFAULT_WEIGHTS = { dense: 0.5, lexical: 1 };
 /**
  * Second-pass settings, chosen on the development copies only (KG-Series dev from
- * HotpotQA train; eval/ablation/series-ablation.ts with SERIES=dev, tune-graph.ts):
+ * HotpotQA train; eval/experiments/experiment-3-kg-series.ts with SERIES=dev, tune-graph.ts):
  * re-ranking by the graph with 3 slots gave the best evidence chain (90.0% vs 82.5%
  * for the same pass without the graph), and confining the pass to other books
  * left single-book recall unchanged (ViQuAD dev R@5 84.6%).

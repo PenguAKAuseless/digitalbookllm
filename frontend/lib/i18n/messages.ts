@@ -69,6 +69,8 @@ export const messages: Record<Lang, Record<string, string>> = {
         'chat.suggestion.translate': 'Dịch sang tiếng Việt',
         'chat.citation': 'Trang',
         'chat.citationUncited': 'Đoạn được truy xuất nhưng không được câu trả lời trích dẫn',
+        'chat.citationOpen': 'Bấm để mở đoạn này trong sách',
+        'chat.sources': 'Nguồn đã truy xuất ({count})',
         'chat.thinking': 'Đang suy nghĩ…',
 
         'graph.title': 'Sơ đồ tri thức cá nhân',
@@ -168,6 +170,8 @@ export const messages: Record<Lang, Record<string, string>> = {
         'chat.suggestion.translate': 'Translate to Vietnamese',
         'chat.citation': 'Page',
         'chat.citationUncited': 'Retrieved, but not cited by the answer',
+        'chat.citationOpen': 'Click to open this passage in the book',
+        'chat.sources': 'Retrieved sources ({count})',
         'chat.thinking': 'Thinking…',
 
         'graph.title': 'Personal knowledge graph',
