@@ -152,4 +152,19 @@ describe('OpenAiCompatibleProvider', () => {
         }
         expect(deltas.join('')).toBe('Hello');
     });
+
+    it('sends JSON requests to the jsonModel and everything else to the main model', async () => {
+        const fetchMock = jest.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({ choices: [{ message: { content: '{}' } }] }),
+        } as unknown as Response);
+        global.fetch = fetchMock;
+        const provider = new OpenAiCompatibleProvider({ ...cfg, model: 'reasoning-model', jsonModel: 'instruct-model' });
+
+        await provider.generate([{ role: 'user', content: 'extract' }], { json: true });
+        await provider.generate([{ role: 'user', content: 'chat' }]);
+
+        const models = fetchMock.mock.calls.map(([, init]) => JSON.parse(init.body).model);
+        expect(models).toEqual(['instruct-model', 'reasoning-model']);
+    });
 });

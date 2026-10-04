@@ -56,6 +56,18 @@ class LLMRouter {
                 // Ollama constrains decoding to valid JSON in this mode; small local models need it.
                 jsonMode: true,
             }),
+            // HeFU: paid OpenAI-compatible gateway (pay-as-you-go, USD). Chat uses a reasoning
+            // model (deepseek-v4-flash; its thinking arrives in `reasoning_content`, which is not
+            // read). Graph extraction uses a plain instruction model: on a 6000-char window the
+            // reasoning model timed out three times in a row, deepseek-v3 answered in ~25s.
+            new OpenAiCompatibleProvider({
+                name: 'HeFU',
+                tier: 'operator',
+                baseUrl: 'https://hefu.hk/api/v1/chat/completions',
+                apiKey: process.env.HEFU_API_KEY,
+                model: process.env.HEFU_MODEL || 'deepseek-v4-flash',
+                jsonModel: process.env.HEFU_GRAPH_MODEL || 'deepseek-v3',
+            }),
             new OpenAiCompatibleProvider({
                 name: 'Cerebras',
                 tier: 'operator',

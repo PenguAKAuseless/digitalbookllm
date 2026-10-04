@@ -18,6 +18,12 @@ export interface OpenAiCompatibleConfig {
     authHeader?: 'authorization' | 'api-key';
     /** Sends `response_format: json_object` when a caller asks for JSON (only where the vendor honours it). */
     jsonMode?: boolean;
+    /**
+     * Model tried first for JSON requests (knowledge-graph extraction). A reasoning model that
+     * suits chat can spend minutes thinking over a 6000-character window, where a plain
+     * instruction model returns the JSON in seconds.
+     */
+    jsonModel?: string;
     timeoutMs?: number;
 }
 
@@ -46,7 +52,7 @@ export class OpenAiCompatibleProvider implements LLMProvider {
     constructor(private cfg: OpenAiCompatibleConfig) {
         this.name = cfg.name;
         this.tier = cfg.tier;
-        this.models = [...new Set([cfg.model, ...(cfg.fallbackModels ?? [])])];
+        this.models = [...new Set([cfg.model, ...(cfg.fallbackModels ?? []), ...(cfg.jsonModel ? [cfg.jsonModel] : [])])];
     }
 
     isConfigured(): boolean {
@@ -119,12 +125,14 @@ export class OpenAiCompatibleProvider implements LLMProvider {
      * and moves on to the next one. Throws a 429 carrying the shortest
      * remaining cooldown once every model is throttled.
      */
-    private async post(body: Record<string, unknown>): Promise<Response> {
+    private async post(body: Record<string, unknown>, preferredModel?: string): Promise<Response> {
         const tried = new Set<string>();
         let lastError: ProviderHttpError | undefined;
 
         for (;;) {
-            const model = this.usableModels().find((m) => !tried.has(m));
+            const usable = this.usableModels();
+            const order = preferredModel && usable.includes(preferredModel) ? [preferredModel, ...usable] : usable;
+            const model = order.find((m) => !tried.has(m));
             if (!model) break;
             tried.add(model);
 
@@ -194,7 +202,7 @@ export class OpenAiCompatibleProvider implements LLMProvider {
             temperature: options.temperature ?? 0.7,
             max_tokens: options.maxTokens ?? 800,
             ...(options.json && this.cfg.jsonMode ? { response_format: { type: 'json_object' } } : {}),
-        });
+        }, options.json ? this.cfg.jsonModel : undefined);
         const data: any = await res.json();
         const content: string = data.choices?.[0]?.message?.content ?? '';
         // Reasoning models that inline their thinking must not leak it into answers or JSON.

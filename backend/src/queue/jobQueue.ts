@@ -98,7 +98,7 @@ export async function requeueStaleJobs(): Promise<number> {
 }
 
 export async function markDone(jobId: string): Promise<void> {
-    await pool.query(`UPDATE jobs SET status = 'DONE', updated_at = NOW() WHERE id = $1`, [jobId]);
+    await pool.query(`UPDATE jobs SET status = 'DONE', error = NULL, updated_at = NOW() WHERE id = $1`, [jobId]);
 }
 
 /** Requeues with exponential backoff, or moves to DEAD once max_attempts is exhausted. */
