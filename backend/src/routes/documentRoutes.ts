@@ -30,7 +30,7 @@ const upload = multer({
         if (mime.startsWith('text/') || allowedMimes.has(mime) || allowedExts.has(ext)) {
             cb(null, true);
         } else {
-            cb(new Error('Unsupported file type. Supported: PDF, EPUB, DOCX, TXT, MD.'));
+            cb(Object.assign(new Error('Unsupported file type. Supported: PDF, EPUB, DOCX, TXT, MD.'), { statusCode: 415 }));
         }
     },
     limits: { fileSize: parseInt(process.env.MAX_FILE_SIZE_MB || '100') * 1024 * 1024 },

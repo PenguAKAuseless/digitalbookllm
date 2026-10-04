@@ -35,7 +35,7 @@ describe('Chunker', () => {
     });
 
     it('refines a structural chunk at a semantic boundary between topics', async () => {
-        const chunker = new Chunker(1800, 0, 0.45);
+        const chunker = new Chunker(1800, 0, 0.45, 0);
         const text =
             'The cat sat on the mat. The cat chased a mouse. The cat slept all day. ' +
             'The server crashed at noon. The server logs showed errors. The admin restarted the server.';
@@ -47,6 +47,16 @@ describe('Chunker', () => {
         expect(chunks[0].text).not.toMatch(/server/i);
         expect(chunks[1].text).toMatch(/server/i);
         expect(chunks[1].text).not.toMatch(/cat/i);
+    });
+
+    it('merges semantic pieces shorter than the minimum size into their neighbour', async () => {
+        const text =
+            'The cat sat on the mat. The cat chased a mouse. The cat slept all day. ' +
+            'The server crashed at noon. The server logs showed errors. The admin restarted the server.';
+        const chunks = await new Chunker(1800, 0, 0.45, 1000).chunk(text);
+        expect(chunks).toHaveLength(1);
+        expect(chunks[0].text).toMatch(/cat/);
+        expect(chunks[0].text).toMatch(/server/);
     });
 
     it('does not refine short structural chunks (fewer than 4 sentences)', async () => {

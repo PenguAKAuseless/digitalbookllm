@@ -6,6 +6,11 @@ jest.mock('../../src/db/config', () => ({
         query: jest.fn(async (sql: string, params: unknown[] = []) => {
             mockQueries.push({ sql, params });
             if (sql.includes('SELECT full_text')) return { rows: [{ full_text: mockDocumentText }], rowCount: 1 };
+            // The user's existing graph (e.g. built from a book read earlier).
+            if (sql.includes('SELECT id, name FROM entities WHERE user_id = $1 AND lower(name)')) {
+                return { rows: mockExistingEntities.filter((e) => e.name.toLowerCase() === String(params[1]).toLowerCase()) };
+            }
+            if (sql.includes('SELECT id, name FROM entities WHERE user_id = $1')) return { rows: mockExistingEntities };
             if (sql.includes('INSERT INTO entities')) return { rows: [{ id: `id:${String(params[2]).toLowerCase()}` }], rowCount: 1 };
             return { rows: [], rowCount: 1 };
         }),
@@ -23,6 +28,7 @@ jest.mock('../../src/llm/router', () => ({
 }));
 
 let mockDocumentText = '';
+let mockExistingEntities: Array<{ id: string; name: string }> = [];
 
 import { handleExtractEntities, parseJsonObject, sampleWindows, splitIntoWindows } from '../../src/queue/handlers/extractEntities';
 import { Job } from '../../src/queue/jobQueue';
@@ -76,11 +82,13 @@ describe('handleExtractEntities', () => {
 
         await handleExtractEntities(job({ userId: 'u1', documentId: 'd1' }));
 
-        expect(mockGenerate).toHaveBeenCalledTimes(4);
+        expect(mockGenerate).toHaveBeenCalledTimes(20);
         const entityNames = mockQueries.filter((q) => q.sql.includes('INSERT INTO entities')).map((q) => q.params[2]);
         expect(entityNames).toContain('Beta');
         const relation = mockQueries.find((q) => q.sql.includes('INSERT INTO entity_relations'))!;
-        expect(relation.params.slice(2, 7)).toEqual(['id:alpha', 'id:beta', 'relates to', 'd1', 'Alpha relates to Beta']);
+        // The model's evidence does not occur in the text and no sentence names Alpha or Beta,
+        // so no excerpt is stored rather than an unverifiable quote.
+        expect(relation.params.slice(2, 7)).toEqual(['id:alpha', 'id:beta', 'relates to', 'd1', null]);
     });
 
     it('stops after consecutive failures and fails the job so it is retried', async () => {
@@ -106,5 +114,60 @@ describe('handleExtractEntities', () => {
         mockGenerate.mockResolvedValue({ provider: 'Mock', text: '{"entities":[{"name":"A"' });
 
         await expect(handleExtractEntities(job({ userId: 'u1', text: paragraph(1) }))).rejects.toThrow('unparseable JSON');
+    });
+});
+
+describe('groundEvidence', () => {
+    const { groundEvidence } = jest.requireActual('../../src/queue/handlers/extractEntities');
+    const window = 'Scott Derrickson is an American director. He directed horror films such as "Sinister" and "Deliver Us from Evil". Doctor Strange followed in 2016.';
+
+    it('keeps a quote that occurs verbatim, ignoring case, dash and quote variants', () => {
+        expect(groundEvidence('scott derrickson is an american director', window, 'Scott Derrickson', 'American')).toBe('Scott Derrickson is an American director');
+    });
+
+    it('replaces an elided or paraphrased quote by the source sentence naming both entities', () => {
+        expect(groundEvidence('directed ... "Sinister"', window, 'Scott Derrickson', 'Sinister')).toBe(
+            'He directed horror films such as "Sinister" and "Deliver Us from Evil".'
+        );
+    });
+
+    it('returns null when no sentence names either entity', () => {
+        expect(groundEvidence('made up', window, 'Ed Wood', 'Tim Burton')).toBeNull();
+    });
+});
+
+describe('chat-driven graph growth', () => {
+    beforeEach(() => {
+        mockExistingEntities = [{ id: 'book:rdj', name: 'Robert Downey Jr.' }];
+    });
+    afterEach(() => {
+        mockExistingEntities = [];
+    });
+
+    it('adds the new entity from a conversation and attaches it to the entity already in the graph', async () => {
+        mockGenerate.mockResolvedValue({
+            provider: 'Mock',
+            text: JSON.stringify({
+                entities: [
+                    { name: 'robert downey jr.', type: 'person', description: '' },
+                    { name: 'Zodiac', type: 'film', description: 'A 2007 crime film' },
+                ],
+                relations: [{ source: 'Zodiac', target: 'robert downey jr.', type: 'stars', evidence: 'he also was in Zodiac' }],
+            }),
+        });
+        const chat = ['Do you like Robert Downey Jr.?', 'Yes, did you know he also was in Zodiac, a crime fiction film?'].join('\n\n');
+        await handleExtractEntities(job({ userId: 'u1', documentId: 'd1', text: chat }));
+
+        // The model is told the existing node's exact name, so it can reuse it.
+        const system = mockGenerate.mock.calls[0][0][0].content as string;
+        expect(system).toContain('Robert Downey Jr.');
+
+        // Only the new entity is inserted; the existing one (other letter case) is reused.
+        const inserted = mockQueries.filter((q) => q.sql.includes('INSERT INTO entities')).map((q) => q.params[2]);
+        expect(inserted).toEqual(['Zodiac']);
+
+        // The new edge joins the new node to the existing one, with a verbatim quote of the chat.
+        const relation = mockQueries.find((q) => q.sql.includes('INSERT INTO entity_relations'))!;
+        expect(relation.params.slice(2, 7)).toEqual(['id:zodiac', 'book:rdj', 'stars', 'd1', 'he also was in Zodiac']);
     });
 });

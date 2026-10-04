@@ -9,6 +9,12 @@ import { pool } from '../db/config';
 
 export type JobType = 'INGEST_DOCUMENT' | 'EXTRACT_ENTITIES';
 
+const RETRY_BASE_SECONDS = parseInt(process.env.JOB_RETRY_BASE_SECONDS || '20');
+/** How often a running job refreshes its updated_at. */
+export const HEARTBEAT_MS = 30_000;
+/** A RUNNING job without a heartbeat for this long belongs to a worker that is gone. */
+const STALE_AFTER_MS = 5 * HEARTBEAT_MS;
+
 export interface Job {
     id: string;
     type: JobType;
@@ -51,11 +57,44 @@ export async function claimNext(): Promise<Job | null> {
         await client.query('COMMIT');
         return { ...job, attempts: job.attempts + 1 };
     } catch (err) {
-        await client.query('ROLLBACK');
+        await client.query('ROLLBACK').catch(() => {}); // the connection itself may be what failed
         throw err;
     } finally {
         client.release();
     }
+}
+
+/** Marks a running job as alive, so the stale-job sweep never reclaims it. */
+export async function heartbeat(jobId: string): Promise<void> {
+    await pool.query(`UPDATE jobs SET updated_at = NOW() WHERE id = $1 AND status = 'RUNNING'`, [jobId]);
+}
+
+/**
+ * Returns jobs left RUNNING by a worker that stopped mid-job (process killed,
+ * redeploy, out of memory) to the queue, or to DEAD once their attempts are
+ * spent. Live jobs send a heartbeat every HEARTBEAT_MS, so only jobs silent
+ * for STALE_AFTER_MS are touched.
+ */
+export async function requeueStaleJobs(): Promise<number> {
+    const { rows } = await pool.query(
+        `UPDATE jobs
+         SET status = CASE WHEN attempts >= max_attempts THEN 'DEAD' ELSE 'PENDING' END,
+             error = 'Worker stopped while the job was running',
+             run_after = NOW(), updated_at = NOW()
+         WHERE status = 'RUNNING' AND updated_at < NOW() - ($1 || ' milliseconds')::interval
+         RETURNING type, status, payload->>'documentId' AS document_id`,
+        [String(STALE_AFTER_MS)]
+    );
+    // A document whose ingestion will not be retried must not stay "processing" forever.
+    const deadIngests = rows.filter((r) => r.type === 'INGEST_DOCUMENT' && r.status === 'DEAD' && r.document_id).map((r) => r.document_id);
+    if (deadIngests.length > 0) {
+        await pool.query(
+            `UPDATE documents SET status = 'FAILED', status_detail = 'Processing was interrupted; please upload the file again.', updated_at = NOW()
+             WHERE id = ANY($1::text[]) AND status IN ('UPLOADED', 'PROCESSING')`,
+            [deadIngests]
+        );
+    }
+    return rows.length;
 }
 
 export async function markDone(jobId: string): Promise<void> {
@@ -71,7 +110,9 @@ export async function markFailed(job: Job, error: string): Promise<void> {
         );
         return;
     }
-    const backoffSeconds = Math.min(60, 2 ** job.attempts);
+    // 20s, 40s, ... (capped at 5 min): long enough for a provider to recover from an
+    // outage or a model to reload, where a 2-4s retry would fail the same way.
+    const backoffSeconds = Math.min(300, RETRY_BASE_SECONDS * 2 ** (job.attempts - 1));
     await pool.query(
         `UPDATE jobs SET status = 'PENDING', error = $2, run_after = NOW() + ($3 || ' seconds')::interval, updated_at = NOW()
          WHERE id = $1`,

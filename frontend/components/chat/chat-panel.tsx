@@ -80,6 +80,14 @@ export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelect
                 },
                 onDone: (result) => {
                     if (result.sessionId) setSessionId(result.sessionId)
+                    const cited = new Set(result.citedIndices ?? [])
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantId && m.citations
+                                ? { ...m, citations: m.citations.map((c, i) => ({ ...c, cited: cited.has(i + 1) })) }
+                                : m
+                        )
+                    )
                     setStreaming(false)
                     onClearSelection()
                 },
@@ -109,8 +117,8 @@ export function ChatPanel({ workspaceId, documentId, selectedText, onClearSelect
                             <p className="whitespace-pre-wrap">{m.content || (streaming ? t("chat.thinking") : "")}</p>
                             {m.citations && m.citations.length > 0 && (
                                 <div className="flex flex-wrap gap-1.5 mt-2">
-                                    {m.citations.map((c) => (
-                                        <CitationChip key={c.chunkId} citation={c} onClick={() => onCitationClick(c)} />
+                                    {m.citations.map((c, i) => (
+                                        <CitationChip key={c.chunkId} index={i + 1} citation={c} onClick={() => onCitationClick(c)} />
                                     ))}
                                 </div>
                             )}

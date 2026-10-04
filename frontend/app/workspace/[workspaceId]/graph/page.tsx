@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useCallback, useEffect, useState } from "react"
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useI18n } from "@/lib/i18n"
@@ -8,6 +8,7 @@ import { Crumb, Header, ViewMode } from "@/components/layout/header"
 import { GraphCanvas } from "@/components/graph/graph-canvas"
 import { EntityDetailPanel } from "@/components/graph/entity-detail-panel"
 import { graphAPI, GraphNode, GraphEdge, EntityDetail, ExtractionStatus } from "@/lib/api/graph"
+import { cachedEntityDetail, graphSignature, readCachedGraph, writeCachedGraph } from "@/lib/graph-cache"
 import { documentAPI, DocumentDetail } from "@/lib/api/documents"
 import { workspaceAPI } from "@/lib/api/workspaces"
 import { Button } from "@/components/ui/button"
@@ -40,6 +41,7 @@ function GraphPageContent() {
     const [nodes, setNodes] = useState<GraphNode[]>([])
     const [edges, setEdges] = useState<GraphEdge[]>([])
     const [detail, setDetail] = useState<EntityDetail | null>(null)
+    const [selectedId, setSelectedId] = useState<string | null>(null)
     const [ready, setReady] = useState(false)
     const [doc, setDoc] = useState<DocumentDetail | null>(null)
     const [workspaceName, setWorkspaceName] = useState<string | null>(null)
@@ -57,17 +59,35 @@ function GraphPageContent() {
         if (documentId) documentAPI.getDocument(documentId).then(setDoc).catch(() => undefined)
     }, [user, workspaceId, documentId])
 
+    const scopeKey = `${scope}:${scope === "document" && documentId ? documentId : ""}`
+    const signature = useMemo(() => graphSignature(nodes, edges), [nodes, edges])
+    const signatureRef = useRef(signature)
+    signatureRef.current = signature
+
+    // Show the last copy of this graph straight away; the fetch below refreshes it.
+    useEffect(() => {
+        const cached = readCachedGraph(scopeKey)
+        if (cached) {
+            setNodes(cached.nodes)
+            setEdges(cached.edges)
+            setReady(true)
+        }
+    }, [scopeKey])
+
     const loadGraph = useCallback(
         () =>
             graphAPI
                 .getGraph(scope === "document" && documentId ? documentId : undefined)
                 .then(({ nodes, edges }) => {
+                    writeCachedGraph(scopeKey, { nodes, edges })
+                    // Polling mostly returns the same graph: keep the current objects so nothing re-renders or re-frames.
+                    if (graphSignature(nodes, edges) === signatureRef.current) return
                     setNodes(nodes)
                     setEdges(edges)
                 })
                 .catch(() => undefined)
                 .finally(() => setReady(true)),
-        [scope, documentId]
+        [scope, documentId, scopeKey]
     )
 
     const loadStatus = useCallback(() => {
@@ -115,8 +135,19 @@ function GraphPageContent() {
     }
 
     const handleNodeClick = async (id: string) => {
-        const entityDetail = await graphAPI.getEntity(id)
+        setSelectedId(id)
+        const entityDetail = await cachedEntityDetail(signature, id, () => graphAPI.getEntity(id))
         setDetail(entityDetail)
+    }
+
+    const closeDetail = () => {
+        setDetail(null)
+        setSelectedId(null)
+    }
+
+    /** A relation's citation opens its source book at the quoted passage's page. */
+    const openSource = (workspace: string, document: string, page: number | null) => {
+        router.push(`/workspace/${workspace}/book/${document}${page ? `?page=${page}` : ""}`)
     }
 
     const handleViewModeChange = (mode: ViewMode) => {
@@ -177,10 +208,10 @@ function GraphPageContent() {
                         <p className="text-sm max-w-sm">{emptyMessage}</p>
                     </div>
                 ) : (
-                    <GraphCanvas nodes={nodes} edges={edges} onNodeClick={handleNodeClick} />
+                    <GraphCanvas nodes={nodes} edges={edges} signature={signature} selectedId={selectedId} onNodeClick={handleNodeClick} />
                 )}
 
-                {detail && <EntityDetailPanel detail={detail} onClose={() => setDetail(null)} />}
+                {detail && <EntityDetailPanel detail={detail} onClose={closeDetail} onOpenSource={openSource} onSelectEntity={handleNodeClick} />}
             </div>
         </div>
     )

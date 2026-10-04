@@ -11,6 +11,17 @@ import { Citation } from '../types';
 
 const DOCUMENT_SIMILARITY_THRESHOLD = 0.2;
 
+/** 1-based passage numbers cited in the answer as [n], [n, m] or [n][m], ignoring out-of-range numbers. */
+export function citedPassageIndices(answer: string, passageCount: number): number[] {
+    const cited = new Set<number>();
+    for (const match of answer.matchAll(/\[(\d+(?:\s*[,;]\s*\d+)*)\]/g)) {
+        for (const n of match[1].split(/[,;]/).map((s) => parseInt(s.trim(), 10))) {
+            if (n >= 1 && n <= passageCount) cited.add(n);
+        }
+    }
+    return [...cited].sort((a, b) => a - b);
+}
+
 /** Minimal SSE writer: one named event per call, JSON-encoded payload (NFR02.1). */
 function sseWrite(res: Response, event: string, data: unknown) {
     res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
@@ -42,27 +53,33 @@ export class RAGController {
             const embedding = await embeddingService.generateEmbedding(queryText);
 
             let citations: Citation[] = [];
+            let graphFacts: string[] = [];
+            const retrieval = { userId: req.userId!, queryText, queryEmbedding: embedding, topK: safeTopK, selectedText };
 
             if (documentId?.trim()) {
                 await documentService.assertOwnership(documentId, req.userId!);
-                const docChunks = await vectorRetrievalService.retrieveRelevantChunks(
-                    documentId, req.userId!, embedding, safeTopK, selectedText
-                );
-                if (docChunks.length > 0 && docChunks[0].similarity >= DOCUMENT_SIMILARITY_THRESHOLD) {
-                    citations = docChunks.map((c) => ({
-                        chunkId: c.id, documentId, page: c.page_number, text: c.text, similarity: c.similarity,
+                const result = await vectorRetrievalService.retrieveContext({
+                    ...retrieval, scope: { kind: 'document', documentId, workspaceId },
+                });
+                if (result.chunks.length > 0 && result.topSimilarity >= DOCUMENT_SIMILARITY_THRESHOLD) {
+                    // Passages reached through the knowledge graph may come from another book in the
+                    // workspace; their citation names that book and opens it.
+                    citations = result.chunks.map((c) => ({
+                        chunkId: c.id, documentId: c.document_id,
+                        documentName: c.document_id === documentId ? undefined : c.document_name,
+                        page: c.page_number, text: c.text, similarity: c.similarity,
                     }));
+                    graphFacts = result.graphFacts;
                 }
             }
 
             if (citations.length === 0) {
-                const wsChunks = await vectorRetrievalService.retrieveWorkspaceChunks(
-                    workspaceId, req.userId!, embedding, safeTopK, selectedText
-                );
-                citations = wsChunks.map((c) => ({
+                const result = await vectorRetrievalService.retrieveContext({ ...retrieval, scope: { kind: 'workspace', workspaceId } });
+                citations = result.chunks.map((c) => ({
                     chunkId: c.id, documentId: c.document_id, documentName: c.document_name,
                     page: c.page_number, text: c.text, similarity: c.similarity,
                 }));
+                graphFacts = result.graphFacts;
             }
 
             res.setHeader('Content-Type', 'text/event-stream');
@@ -84,7 +101,7 @@ export class RAGController {
             let usedProvider = 'unknown';
 
             try {
-                for await (const chunk of llmRouter.generateAnswerStream(query, selectedText, citations)) {
+                for await (const chunk of llmRouter.generateAnswerStream(query, selectedText, citations, graphFacts)) {
                     if (chunk.provider) {
                         usedProvider = chunk.provider;
                         sseWrite(res, 'provider', { provider: usedProvider });
@@ -100,6 +117,11 @@ export class RAGController {
             }
 
             await ragService.incrementQueryCount(req.userId!);
+
+            // Which retrieved passages the answer actually cites ([n] markers), so the client
+            // can tell supporting citations apart from passages that were only retrieved.
+            const citedIndices = citedPassageIndices(fullText, citations.length);
+            citations = citations.map((c, i) => ({ ...c, cited: citedIndices.includes(i + 1) }));
 
             const { messageId, sessionId: returnedSessionId } = await ragService.recordChatExchange({
                 workspaceId,
@@ -120,7 +142,7 @@ export class RAGController {
                 [selectedText, query, fullText].filter(Boolean).join('\n\n')
             );
 
-            sseWrite(res, 'done', { messageId, sessionId: returnedSessionId });
+            sseWrite(res, 'done', { messageId, sessionId: returnedSessionId, citedIndices });
             res.end();
         } catch (error) {
             next(error);

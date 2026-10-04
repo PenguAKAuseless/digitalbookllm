@@ -11,7 +11,9 @@ export const errorHandler = (
     res: Response,
     next: NextFunction
 ) => {
-    const statusCode = err.status || err.statusCode || 500;
+    // Multer rejects oversized or malformed uploads without an HTTP status.
+    const multerCode = err.name === 'MulterError' ? (err as ApiError & { code?: string }).code : undefined;
+    const statusCode = err.status || err.statusCode || (multerCode === 'LIMIT_FILE_SIZE' ? 413 : multerCode ? 400 : 500);
     const message = err.message || 'Internal Server Error';
 
     console.error('Error:', {

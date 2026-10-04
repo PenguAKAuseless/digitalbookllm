@@ -1,4 +1,4 @@
-import { API_BASE, apiRequest } from './http';
+import { API_BASE, apiRequest, resolveApiUrl } from './http';
 
 export type DocumentStatus = 'UPLOADED' | 'PROCESSING' | 'READY' | 'FAILED';
 
@@ -50,12 +50,14 @@ class DocumentAPI {
     }
 
     async getFileUrl(documentId: string): Promise<{ url: string; fileType: string }> {
-        return apiRequest(`${API_BASE}/documents/${documentId}/file`);
+        const file = await apiRequest<{ url: string; fileType: string }>(`${API_BASE}/documents/${documentId}/file`);
+        return { ...file, url: resolveApiUrl(file.url) };
     }
 
     async getCoverUrl(documentId: string): Promise<{ url: string } | null> {
         try {
-            return await apiRequest(`${API_BASE}/documents/${documentId}/cover`);
+            const cover = await apiRequest<{ url: string }>(`${API_BASE}/documents/${documentId}/cover`);
+            return { url: resolveApiUrl(cover.url) };
         } catch {
             return null;
         }

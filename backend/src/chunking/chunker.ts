@@ -1,5 +1,8 @@
 import { embeddingService } from '../llm/embeddings';
 
+/** Batch embedding function used by the semantic step; injectable so the evaluation can compare models. */
+export type EmbedFn = (texts: string[]) => Promise<number[][]>;
+
 export interface TextChunk {
     text: string;
     /** Character offset into the page's text; used to resolve page_number. */
@@ -18,13 +21,17 @@ const SENTENCE_SPLIT = /(?<=[.!?])\s+/;
  *  2. Semantic refinement — inside any structural chunk long enough to span
  *     multiple sentences, adjacent sentences are embedded and split further
  *     wherever the cosine distance between them exceeds `semanticThreshold`
- *     (the author has moved to a new idea).
+ *     (the author has moved to a new idea). A piece shorter than
+ *     `minChunkChars` is merged into its neighbour instead: a one-sentence
+ *     fragment carries too little context to be retrieved or cited usefully.
  */
 export class Chunker {
     constructor(
         private chunkSize = parseInt(process.env.CHUNK_SIZE_CHARS || '1800'),
         private chunkOverlap = parseInt(process.env.CHUNK_OVERLAP_CHARS || '200'),
-        private semanticThreshold = parseFloat(process.env.SEMANTIC_CHUNK_THRESHOLD || '0.45')
+        private semanticThreshold = parseFloat(process.env.SEMANTIC_CHUNK_THRESHOLD || '0.45'),
+        private minChunkChars = parseInt(process.env.CHUNK_MIN_CHARS || '900'),
+        private embed: EmbedFn = (texts) => embeddingService.generateEmbeddings(texts)
     ) {}
 
     /** Step 1: structural split by paragraph -> sentence -> word, with overlap. */
@@ -106,7 +113,7 @@ export class Chunker {
         });
 
         const allSentences = sentencesPerChunk.flatMap((s) => s ?? []);
-        const allEmbeddings = await embeddingService.generateEmbeddings(allSentences);
+        const allEmbeddings = await this.embed(allSentences);
 
         const refined: TextChunk[] = [];
         let cursor = 0;
@@ -121,6 +128,7 @@ export class Chunker {
             const embeddings = allEmbeddings.slice(cursor, cursor + sentences.length);
             cursor += sentences.length;
 
+            const pieces: TextChunk[] = [];
             let group: string[] = [sentences[0]];
             let offset = chunk.startOffset;
             let groupStart = offset;
@@ -128,17 +136,32 @@ export class Chunker {
             for (let i = 1; i < sentences.length; i++) {
                 const distance = 1 - cosineSimilarity(embeddings[i - 1], embeddings[i]);
                 if (distance > this.semanticThreshold) {
-                    refined.push({ text: group.join(' ').trim(), startOffset: groupStart });
+                    pieces.push({ text: group.join(' ').trim(), startOffset: groupStart });
                     group = [];
                     groupStart = offset;
                 }
                 group.push(sentences[i]);
                 offset += sentences[i].length + 1;
             }
-            if (group.length) refined.push({ text: group.join(' ').trim(), startOffset: groupStart });
+            if (group.length) pieces.push({ text: group.join(' ').trim(), startOffset: groupStart });
+            refined.push(...this.mergeShortPieces(pieces));
         });
 
         return refined.filter((c) => c.text.length > 0);
+    }
+
+    /** Folds pieces under minChunkChars into the previous piece (or the next one, for a short first piece). */
+    private mergeShortPieces(pieces: TextChunk[]): TextChunk[] {
+        const merged: TextChunk[] = [];
+        for (const piece of pieces) {
+            const last = merged[merged.length - 1];
+            if (last && (piece.text.length < this.minChunkChars || last.text.length < this.minChunkChars)) {
+                last.text = `${last.text} ${piece.text}`;
+            } else {
+                merged.push({ ...piece });
+            }
+        }
+        return merged;
     }
 
     async chunk(text: string): Promise<TextChunk[]> {

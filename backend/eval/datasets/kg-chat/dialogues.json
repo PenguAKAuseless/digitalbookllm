@@ -1,0 +1,2450 @@
+[
+  {
+    "id": "KGC-01",
+    "sourceRow": 1,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you like Iron Man"
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure do! Robert Downey Jr. is a favorite."
+      },
+      {
+        "sender": "user",
+        "text": "Yes i like him too did you know he also was in Zodiac a crime fiction film."
+      },
+      {
+        "sender": "assistant",
+        "text": "I like crime fiction! Didn't know RDJ was in there. Jake Gyllenhaal starred as well."
+      },
+      {
+        "sender": "user",
+        "text": "So he did he also starred in End of Watch have you ever seen that movie?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes I have! I like films directed by David Ayer. How about you?"
+      },
+      {
+        "sender": "user",
+        "text": "I have not what genre is End of Watch"
+      },
+      {
+        "sender": "assistant",
+        "text": "It's a thriller and crime fiction as well."
+      },
+      {
+        "sender": "user",
+        "text": "I will make sure to check it out I like thrillers thank you"
+      },
+      {
+        "sender": "assistant",
+        "text": "Welcome!"
+      }
+    ],
+    "entities": [
+      "Iron Man",
+      "Robert Downey Jr.",
+      "Zodiac (Crime Fiction Film)",
+      "Jake Gyllenhaal",
+      "End of Watch",
+      "David Ayer",
+      "Thriller"
+    ],
+    "triples": [
+      {
+        "subject": "Iron Man",
+        "relation": "starred_actors",
+        "object": "Robert Downey Jr."
+      },
+      {
+        "subject": "Zodiac (Crime Fiction Film)",
+        "relation": "starred_actors",
+        "object": "Robert Downey Jr."
+      },
+      {
+        "subject": "Zodiac (Crime Fiction Film)",
+        "relation": "starred_actors",
+        "object": "Jake Gyllenhaal"
+      },
+      {
+        "subject": "End of Watch",
+        "relation": "starred_actors",
+        "object": "Jake Gyllenhaal"
+      },
+      {
+        "subject": "End of Watch",
+        "relation": "written_by",
+        "object": "David Ayer"
+      },
+      {
+        "subject": "End of Watch",
+        "relation": "has_genre",
+        "object": "Thriller"
+      }
+    ]
+  },
+  {
+    "id": "KGC-02",
+    "sourceRow": 2,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Could you recommend any books like The Secret Life of Bees?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, its a great teen book, have you heard about A walk to remember ? It is also a great teen drama"
+      },
+      {
+        "sender": "user",
+        "text": "I think I have.. is that one with Hunt Lowry?"
+      },
+      {
+        "sender": "assistant",
+        "text": "yes and he also produced White Oleander and it was released in 1999"
+      },
+      {
+        "sender": "user",
+        "text": "Oh, awesome. What genre is that film?"
+      },
+      {
+        "sender": "assistant",
+        "text": "It is film adaption with a melodrama. Do you like Drama movies?"
+      },
+      {
+        "sender": "user",
+        "text": "Great! I love drama movies. I'll check this one out then. Thanks so much!"
+      },
+      {
+        "sender": "assistant",
+        "text": "Cool, hope you enjoy. any m ore recommendations you want ?"
+      },
+      {
+        "sender": "user",
+        "text": "Whoops, I meant books. I love Drama books! And no, I think that's good. Thanks for your help."
+      },
+      {
+        "sender": "assistant",
+        "text": "You are welcome"
+      }
+    ],
+    "entities": [
+      "The Secret Life of Bees",
+      "Teen drama",
+      "A Walk to Remember",
+      "Hunt Lowry",
+      "Film"
+    ],
+    "triples": [
+      {
+        "subject": "The Secret Life of Bees",
+        "relation": "has_genre",
+        "object": "Teen drama"
+      },
+      {
+        "subject": "A Walk to Remember",
+        "relation": "has_genre",
+        "object": "Teen drama"
+      },
+      {
+        "subject": "A Walk to Remember",
+        "relation": "Produced by",
+        "object": "Hunt Lowry"
+      },
+      {
+        "subject": "A Walk to Remember",
+        "relation": "is-a",
+        "object": "Film"
+      }
+    ]
+  },
+  {
+    "id": "KGC-03",
+    "sourceRow": 5,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Could you recommend books similar to Dead to the World?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Do you like this book because of it's author Charlaine Harris?"
+      },
+      {
+        "sender": "user",
+        "text": "Yes. What other books did she write?"
+      },
+      {
+        "sender": "assistant",
+        "text": "A popular book of her's is the Southern Vampire Mysteries"
+      },
+      {
+        "sender": "user",
+        "text": "Thanks for that. I will check out Southern Vampire Mysteries!"
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure thing, hope you enjoy"
+      }
+    ],
+    "entities": [
+      "Dead to the World",
+      "Charlaine Harris",
+      "The Southern Vampire Mysteries"
+    ],
+    "triples": [
+      {
+        "subject": "Dead to the World",
+        "relation": "written_by",
+        "object": "Charlaine Harris"
+      },
+      {
+        "subject": "The Southern Vampire Mysteries",
+        "relation": "written_by",
+        "object": "Charlaine Harris"
+      }
+    ]
+  },
+  {
+    "id": "KGC-04",
+    "sourceRow": 6,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Could you recommend a good movie with Ryan Reynolds?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure! He starred in X-Men Origins:Wolverine, and Turbo. The Proposal was a great movie too."
+      },
+      {
+        "sender": "user",
+        "text": "Who else was starring in Turbo, I think I saw there Snoop Dog?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yep. As well as Ben Schwartz"
+      },
+      {
+        "sender": "user",
+        "text": "How about Kurtwood Smith, is he starring there too?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes."
+      },
+      {
+        "sender": "user",
+        "text": "Ok, add this movie to my watch list, please!"
+      },
+      {
+        "sender": "assistant",
+        "text": "Will do!"
+      }
+    ],
+    "entities": [
+      "Turbo",
+      "Ryan Reynolds",
+      "Kurtwood Smith"
+    ],
+    "triples": [
+      {
+        "subject": "Turbo",
+        "relation": "starred_actors",
+        "object": "Ryan Reynolds"
+      },
+      {
+        "subject": "Turbo",
+        "relation": "starred_actors",
+        "object": "Kurtwood Smith"
+      }
+    ]
+  },
+  {
+    "id": "KGC-05",
+    "sourceRow": 9,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Could you recommend any good books by Neal Stephenson?"
+      },
+      {
+        "sender": "assistant",
+        "text": "He Wrote Zodiac"
+      },
+      {
+        "sender": "user",
+        "text": "Could you tell me about books similar to Zodiac? That book is vaguely familar."
+      },
+      {
+        "sender": "assistant",
+        "text": "The System of the world is similar one"
+      },
+      {
+        "sender": "user",
+        "text": "When was The System of the World released?"
+      },
+      {
+        "sender": "assistant",
+        "text": "It was released in 2004"
+      },
+      {
+        "sender": "user",
+        "text": "Cool! I might have to check that out! Thank you."
+      },
+      {
+        "sender": "assistant",
+        "text": "Welcome"
+      }
+    ],
+    "entities": [
+      "Zodiac",
+      "Neal Stephenson",
+      "The System of the World"
+    ],
+    "triples": [
+      {
+        "subject": "Zodiac",
+        "relation": "written_by",
+        "object": "Neal Stephenson"
+      },
+      {
+        "subject": "The System of the World",
+        "relation": "written_by",
+        "object": "Neal Stephenson"
+      }
+    ]
+  },
+  {
+    "id": "KGC-06",
+    "sourceRow": 11,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you know anything about the author Harper Lee?"
+      },
+      {
+        "sender": "assistant",
+        "text": "He wrote To Kill a Mockingbird, and Go set a Watchman."
+      },
+      {
+        "sender": "user",
+        "text": "I like that book. Do you think its along the same lines as Dark Shadow?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I would say drama written by Raina Telgemeir is more on the same page as Dark Shadows."
+      },
+      {
+        "sender": "user",
+        "text": "Wasn't that written with Seth Grahame-Smith who also wrote Abraham Lincoln: Vampire Hunter?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, and Vampire Hunter was released in 2010. It was also directed by Peter Hyams."
+      },
+      {
+        "sender": "user",
+        "text": "ok. Thanks for that info."
+      },
+      {
+        "sender": "assistant",
+        "text": "You're welcome!"
+      }
+    ],
+    "entities": [
+      "To Kill a Mockingbird",
+      "Harper Lee",
+      "Drama",
+      "Dark Shadows",
+      "Seth Grahame-Smith",
+      "Abraham Lincoln: Vampire Hunter"
+    ],
+    "triples": [
+      {
+        "subject": "To Kill a Mockingbird",
+        "relation": "written_by",
+        "object": "Harper Lee"
+      },
+      {
+        "subject": "To Kill a Mockingbird",
+        "relation": "Subject",
+        "object": "Drama"
+      },
+      {
+        "subject": "Dark Shadows",
+        "relation": "has_genre",
+        "object": "Drama"
+      },
+      {
+        "subject": "Dark Shadows",
+        "relation": "written_by",
+        "object": "Seth Grahame-Smith"
+      },
+      {
+        "subject": "Abraham Lincoln: Vampire Hunter",
+        "relation": "written_by",
+        "object": "Seth Grahame-Smith"
+      }
+    ]
+  },
+  {
+    "id": "KGC-07",
+    "sourceRow": 13,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "I like Pulp Fiction. What do you think about it?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I love it. It was written by  Roger Avary"
+      },
+      {
+        "sender": "user",
+        "text": "I heard he also wrote The Rules of Attraction. Do you know who is in that movie?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Fred Savage is in it"
+      },
+      {
+        "sender": "user",
+        "text": "Oh he stared in The Princess Bride too. Very good fun movie."
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes that is a great movie. It is a romantic comedy film"
+      }
+    ],
+    "entities": [
+      "Pulp Fiction",
+      "Roger Avary",
+      "The Rules of Attraction",
+      "Fred Savage",
+      "The Princess Bride (Romantic comedy Film)"
+    ],
+    "triples": [
+      {
+        "subject": "Pulp Fiction",
+        "relation": "written_by",
+        "object": "Roger Avary"
+      },
+      {
+        "subject": "The Rules of Attraction",
+        "relation": "written_by",
+        "object": "Roger Avary"
+      },
+      {
+        "subject": "The Rules of Attraction",
+        "relation": "starred_actors",
+        "object": "Fred Savage"
+      },
+      {
+        "subject": "The Princess Bride (Romantic comedy Film)",
+        "relation": "starred_actors",
+        "object": "Fred Savage"
+      }
+    ]
+  },
+  {
+    "id": "KGC-08",
+    "sourceRow": 14,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Could you recommend some movies similar to Fight Club?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure, Panic Room is a similar movie"
+      },
+      {
+        "sender": "user",
+        "text": "OK.  Who stars in that?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Jared Leto"
+      },
+      {
+        "sender": "user",
+        "text": "OK.  That sounds good."
+      },
+      {
+        "sender": "assistant",
+        "text": "Do you need any other information?"
+      },
+      {
+        "sender": "user",
+        "text": "No.  Thanks!"
+      },
+      {
+        "sender": "assistant",
+        "text": "OK, You're Welcome"
+      }
+    ],
+    "entities": [
+      "Fight Club",
+      "Jared Leto",
+      "Panic Room"
+    ],
+    "triples": [
+      {
+        "subject": "Fight Club",
+        "relation": "starred_actors",
+        "object": "Jared Leto"
+      },
+      {
+        "subject": "Panic Room",
+        "relation": "starred_actors",
+        "object": "Jared Leto"
+      }
+    ]
+  },
+  {
+    "id": "KGC-09",
+    "sourceRow": 21,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "do you have books by Yann Martel?"
+      },
+      {
+        "sender": "assistant",
+        "text": "He wrote Life of Pi and Beatrice and Virgil. Have you read either of those ?"
+      },
+      {
+        "sender": "user",
+        "text": "no. Beatrice and Virgil sounds good. when was it released?"
+      },
+      {
+        "sender": "assistant",
+        "text": "It was released April of 2010 and is a novel."
+      },
+      {
+        "sender": "user",
+        "text": "isnt 2010 a book thats written by Peter Hyams?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, I do believe he wrote a book called 2010."
+      },
+      {
+        "sender": "user",
+        "text": "Thanks for that info"
+      },
+      {
+        "sender": "assistant",
+        "text": "You're welcome!"
+      }
+    ],
+    "entities": [
+      "Beatrice and Virgil",
+      "Yann Martel",
+      "2010"
+    ],
+    "triples": [
+      {
+        "subject": "Beatrice and Virgil",
+        "relation": "written_by",
+        "object": "Yann Martel"
+      },
+      {
+        "subject": "Beatrice and Virgil",
+        "relation": "release_year",
+        "object": "2010"
+      }
+    ]
+  },
+  {
+    "id": "KGC-10",
+    "sourceRow": 23,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Can you please recommend books like the Ten Little Niggers?"
+      },
+      {
+        "sender": "assistant",
+        "text": "It was written by Agatha Christie and released in 1939"
+      },
+      {
+        "sender": "user",
+        "text": "I am a fan of  Agatha Christie! Do you have other books written by her?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes she wrote quite a few, including Evil Under the Sun, Elephants Can Remember and Death on the Nile"
+      },
+      {
+        "sender": "user",
+        "text": "Cool! Go on with the list of her books please."
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure They Do it with Mirrors is a great o.ne"
+      },
+      {
+        "sender": "user",
+        "text": "Thanks! I will definitely add these books to my reading list."
+      },
+      {
+        "sender": "assistant",
+        "text": "Great can I help you with anything else?"
+      },
+      {
+        "sender": "user",
+        "text": "That'll be all for now."
+      },
+      {
+        "sender": "assistant",
+        "text": "Ok enjoy the books"
+      }
+    ],
+    "entities": [
+      "Ten Little Niggers",
+      "Agatha Christie",
+      "They Do it with Mirrors"
+    ],
+    "triples": [
+      {
+        "subject": "Ten Little Niggers",
+        "relation": "written_by",
+        "object": "Agatha Christie"
+      },
+      {
+        "subject": "They Do it with Mirrors",
+        "relation": "written_by",
+        "object": "Agatha Christie"
+      }
+    ]
+  },
+  {
+    "id": "KGC-11",
+    "sourceRow": 26,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you have some fun facts about the movie There's Something About Mary?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure. It's an all star cast that includes Ben Stiller, Cameron Diaz, Sarah Silverman and Matt Dillon"
+      },
+      {
+        "sender": "user",
+        "text": "I love all of those actors, what else is Sarah Silverman in?"
+      },
+      {
+        "sender": "assistant",
+        "text": "She's a great comedian and comedic actor. She was also in What Planet Are You From and the original Wreck-It Ralph."
+      },
+      {
+        "sender": "user",
+        "text": "I haven't seen what Planet Are You From, Wreck-It Ralph was cute. I heard she was in I Am Comic. Do you know who else stared in that?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I believe that was film that featured several comics. One of my favorites is probably Margaret Cho. She was in the Rugrats Movie as well."
+      }
+    ],
+    "entities": [
+      "There's Something About Mary",
+      "Sarah Silverman",
+      "I Am Comic",
+      "Margaret Cho"
+    ],
+    "triples": [
+      {
+        "subject": "There's Something About Mary",
+        "relation": "starred_actors",
+        "object": "Sarah Silverman"
+      },
+      {
+        "subject": "I Am Comic",
+        "relation": "starred_actors",
+        "object": "Sarah Silverman"
+      },
+      {
+        "subject": "I Am Comic",
+        "relation": "starred_actors",
+        "object": "Margaret Cho"
+      }
+    ]
+  },
+  {
+    "id": "KGC-12",
+    "sourceRow": 27,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you know Damian Lillard?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I think he is a Basketball player, play as a point guard. He might be from Oakland. Are you a fan of his?"
+      },
+      {
+        "sender": "user",
+        "text": "I don't really know much about him. I do like Michael Jordan in Space Jam"
+      },
+      {
+        "sender": "assistant",
+        "text": "I like Space Jam. Such a fun Animation movie by Warner Bros. Do you like the movie more or just Micheal Jordan in general?"
+      },
+      {
+        "sender": "user",
+        "text": "I like both. Do you like animation movies? Who Framed roger rabbit is like Space Jam"
+      },
+      {
+        "sender": "assistant",
+        "text": "I think it's not bad. I'm more of an Action movie fan but will definitely check Space Jam out."
+      }
+    ],
+    "entities": [
+      "Damian Lillard",
+      "Basketball",
+      "Space Jam",
+      "Michael Jordan",
+      "Animation"
+    ],
+    "triples": [
+      {
+        "subject": "Damian Lillard",
+        "relation": "Sport played",
+        "object": "Basketball"
+      },
+      {
+        "subject": "Space Jam",
+        "relation": "has_genre",
+        "object": "Basketball"
+      },
+      {
+        "subject": "Space Jam",
+        "relation": "starred_actors",
+        "object": "Michael Jordan"
+      },
+      {
+        "subject": "Space Jam",
+        "relation": "has_genre",
+        "object": "Animation"
+      }
+    ]
+  },
+  {
+    "id": "KGC-13",
+    "sourceRow": 28,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "What can you tell me about Director Stanley Kubrick?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Stanley Kubrick directed Eyes Wide Shut and Full Metal Jacket. Have you heard of either?"
+      },
+      {
+        "sender": "user",
+        "text": "Eyes Wide Shut I feel starred Nicole Kidman and Full Metal Jacket....Did that have Matthew Modine and Adam Baldwin in it?"
+      },
+      {
+        "sender": "assistant",
+        "text": "You're correct on both of those movies!  Have you seen either of them?"
+      },
+      {
+        "sender": "user",
+        "text": "I have but enjoy them, is there another good one you could recommend from the same director?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I think you would like to watch Clockwork Orange starring George Coulouris."
+      },
+      {
+        "sender": "user",
+        "text": "Great, I will start with that one. Thanks."
+      },
+      {
+        "sender": "assistant",
+        "text": "Enjoy!"
+      }
+    ],
+    "entities": [
+      "Full Metal Jacket",
+      "Stanley Kubrick",
+      "Matthew Modine",
+      "George Coulouris"
+    ],
+    "triples": [
+      {
+        "subject": "Full Metal Jacket",
+        "relation": "directed_by",
+        "object": "Stanley Kubrick"
+      },
+      {
+        "subject": "Full Metal Jacket",
+        "relation": "starred_actors",
+        "object": "Matthew Modine"
+      },
+      {
+        "subject": "Full Metal Jacket",
+        "relation": "written_by",
+        "object": "Stanley Kubrick"
+      }
+    ]
+  },
+  {
+    "id": "KGC-14",
+    "sourceRow": 29,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Can you tell me about the movie Thor: The Dark World?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Oh I love this movie, it stars Natalie Portman, Chris Hemsworth and Anthony Hopkins.  It's a Fantasy movie and the genre is adveture."
+      },
+      {
+        "sender": "user",
+        "text": "Oh, I like all of them, can you tell me what else Natalie Portman has been in?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Natalie was the executive producer in no strings attached, she has starred in Where the Heart is and star wars."
+      },
+      {
+        "sender": "user",
+        "text": "Is Where The Heart Is a comedy or a drama?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Where The Heart genre is Romance/Comedy."
+      },
+      {
+        "sender": "user",
+        "text": "That sounds good, thanks for the help."
+      },
+      {
+        "sender": "assistant",
+        "text": "Another good movie is Beautiful Creatures, it is a romance movie."
+      }
+    ],
+    "entities": [
+      "Thor: The Dark World",
+      "Natalie Portman",
+      "No Strings Attached",
+      "Where the Heart Is",
+      "Drama",
+      "Romance"
+    ],
+    "triples": [
+      {
+        "subject": "Thor: The Dark World",
+        "relation": "starred_actors",
+        "object": "Natalie Portman"
+      },
+      {
+        "subject": "No Strings Attached",
+        "relation": "starred_actors",
+        "object": "Natalie Portman"
+      },
+      {
+        "subject": "Natalie Portman",
+        "relation": "Film Executive Produced",
+        "object": "No Strings Attached"
+      },
+      {
+        "subject": "Where the Heart Is",
+        "relation": "starred_actors",
+        "object": "Natalie Portman"
+      },
+      {
+        "subject": "Where the Heart Is",
+        "relation": "has_genre",
+        "object": "Drama"
+      },
+      {
+        "subject": "Where the Heart Is",
+        "relation": "has_genre",
+        "object": "Romance"
+      }
+    ]
+  },
+  {
+    "id": "KGC-15",
+    "sourceRow": 33,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "I like Jim Butcher"
+      },
+      {
+        "sender": "assistant",
+        "text": "I do too! Jim Butcher wrote Welcome to the Jungle."
+      },
+      {
+        "sender": "user",
+        "text": "What was the released year?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I don't have that information. However, Jim Butcher also wrote White Night, a mystery novel. Have you read that one? It is a great read."
+      },
+      {
+        "sender": "user",
+        "text": "I have to read that.What Genre is that?"
+      },
+      {
+        "sender": "assistant",
+        "text": "White Night is a fiction novel in the mystery genre as I had said before. You should really check it out."
+      }
+    ],
+    "entities": [
+      "Welcome to the Jungle",
+      "Jim Butcher",
+      "White Night",
+      "Mystery",
+      "Fiction"
+    ],
+    "triples": [
+      {
+        "subject": "Welcome to the Jungle",
+        "relation": "written_by",
+        "object": "Jim Butcher"
+      },
+      {
+        "subject": "White Night",
+        "relation": "written_by",
+        "object": "Jim Butcher"
+      },
+      {
+        "subject": "White Night",
+        "relation": "has_genre",
+        "object": "Mystery"
+      },
+      {
+        "subject": "White Night",
+        "relation": "has_genre",
+        "object": "Fiction"
+      }
+    ]
+  },
+  {
+    "id": "KGC-16",
+    "sourceRow": 34,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "I have never heard about Brendon Urie. Have you?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I have not either but he composed a song called Ready To go (get out of my mind), do you know it?"
+      },
+      {
+        "sender": "user",
+        "text": "No way! Seems like he started his career in Las Vegas, where I live. Probably he must have been one of the contestants of the American Idol show?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I love Las Vegas, have you been?"
+      },
+      {
+        "sender": "user",
+        "text": "I live in Las Vegas and it is indeed a great place full of entertainment and celebrities shows. What about Harry James? Was he an actor? Quite insignificant and not like Brad Pitt or Sylvester Stallone the top men of Hollywood."
+      },
+      {
+        "sender": "assistant",
+        "text": "Older star I believe. but maybe an artist like Toby Mac."
+      },
+      {
+        "sender": "user",
+        "text": "Small time actors I guess and not the high payee blockbuster stars.Was tobyMac also an actor?"
+      }
+    ],
+    "entities": [
+      "Ready to Go (Get Me Out of My Mind)",
+      "Brendon Urie",
+      "Harry James",
+      "Artist",
+      "tobyMac",
+      "Actor"
+    ],
+    "triples": [
+      {
+        "subject": "Ready to Go (Get Me Out of My Mind)",
+        "relation": "Composer",
+        "object": "Brendon Urie"
+      },
+      {
+        "subject": "Harry James",
+        "relation": "is-a",
+        "object": "Artist"
+      },
+      {
+        "subject": "tobyMac",
+        "relation": "is-a",
+        "object": "Artist"
+      },
+      {
+        "subject": "tobyMac",
+        "relation": "is-a",
+        "object": "Actor"
+      }
+    ]
+  },
+  {
+    "id": "KGC-17",
+    "sourceRow": 35,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "I like Natalie Babbitt books, does the author release any new books you can recommend?"
+      },
+      {
+        "sender": "assistant",
+        "text": "There are quite a number of books by Natalie Babbitt in different genres. Would you prefer any particular genre?"
+      },
+      {
+        "sender": "user",
+        "text": "Well I do have any preference, but live comedy books"
+      },
+      {
+        "sender": "assistant",
+        "text": "Right now we have Romance, Fiction and Children's Literature and I am sorry it is limited at the moment."
+      },
+      {
+        "sender": "user",
+        "text": "Is Tuck Everlasting an interesting one?"
+      },
+      {
+        "sender": "assistant",
+        "text": "That has a Fiction and Fantasy genre. Do you like those genres?"
+      },
+      {
+        "sender": "user",
+        "text": "Sure, I like Fantasy novels"
+      },
+      {
+        "sender": "assistant",
+        "text": "Then can I be ordering it for you and you will get the download once you pay for it."
+      },
+      {
+        "sender": "user",
+        "text": "Thank you"
+      },
+      {
+        "sender": "assistant",
+        "text": "You're welcome!"
+      }
+    ],
+    "entities": [
+      "Tuck Everlasting",
+      "Natalie Babbitt",
+      "Fiction",
+      "Fantasy"
+    ],
+    "triples": [
+      {
+        "subject": "Tuck Everlasting",
+        "relation": "written_by",
+        "object": "Natalie Babbitt"
+      },
+      {
+        "subject": "Tuck Everlasting",
+        "relation": "has_genre",
+        "object": "Fiction"
+      },
+      {
+        "subject": "Tuck Everlasting",
+        "relation": "has_genre",
+        "object": "Fantasy"
+      }
+    ]
+  },
+  {
+    "id": "KGC-18",
+    "sourceRow": 36,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "My Niece is reading Charlotte's Web and I want some other books like that to give to her. Can you suggest some?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Stuart Little is the next in series of Charlotte's Web. That would be a good book to read."
+      },
+      {
+        "sender": "user",
+        "text": "Sounds good. I know that it's written by Rosemary Wells, what genre is it considered? Something like Speculative Fiction?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Charlotte's web's genre is Speculative Fiction."
+      },
+      {
+        "sender": "user",
+        "text": "ok I think she like books like Zoe's tale and Xenocide. Are they the same genre?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I believe that those books are Science Fiction."
+      }
+    ],
+    "entities": [
+      "Charlotte's Web",
+      "Rosemary Wells",
+      "Speculative fiction",
+      "Xenocide"
+    ],
+    "triples": [
+      {
+        "subject": "Charlotte's Web",
+        "relation": "written_by",
+        "object": "Rosemary Wells"
+      },
+      {
+        "subject": "Charlotte's Web",
+        "relation": "has_genre",
+        "object": "Speculative fiction"
+      },
+      {
+        "subject": "Xenocide",
+        "relation": "has_genre",
+        "object": "Speculative fiction"
+      }
+    ]
+  },
+  {
+    "id": "KGC-19",
+    "sourceRow": 41,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you know who wrote Just Listen?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Sarah Dessen is the author.  do you like to read young adults books?"
+      },
+      {
+        "sender": "user",
+        "text": "I do like young adult books. I am not familiar with Sarah Dessen, did she write any other books?"
+      },
+      {
+        "sender": "assistant",
+        "text": "She wrote a great romance novel called This Lullaby.  I t was released in 2002."
+      },
+      {
+        "sender": "user",
+        "text": "I read that, I guess I never paid attention to who the author was. Did Sarah Dessen also write The Moon and More?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, she did, also wrote Dreamland."
+      },
+      {
+        "sender": "user",
+        "text": "I think I might read Dreamland and This Lullaby. You have been so helpful."
+      },
+      {
+        "sender": "assistant",
+        "text": "My pleasure, let me know if you need more recommendations."
+      }
+    ],
+    "entities": [
+      "Just Listen",
+      "Sarah Dessen",
+      "This Lullaby",
+      "The Moon and More",
+      "Dreamland"
+    ],
+    "triples": [
+      {
+        "subject": "Just Listen",
+        "relation": "written_by",
+        "object": "Sarah Dessen"
+      },
+      {
+        "subject": "This Lullaby",
+        "relation": "written_by",
+        "object": "Sarah Dessen"
+      },
+      {
+        "subject": "The Moon and More",
+        "relation": "written_by",
+        "object": "Sarah Dessen"
+      },
+      {
+        "subject": "Dreamland",
+        "relation": "written_by",
+        "object": "Sarah Dessen"
+      }
+    ]
+  },
+  {
+    "id": "KGC-20",
+    "sourceRow": 43,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "I like the movie The Shawshank Redemption. Do you have any thing similar to recommend?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Are you interested in similar dramas or movies written by Stephen King?"
+      },
+      {
+        "sender": "user",
+        "text": "I like prison movies and ones  in the horror genre, especially those written by Stephen King."
+      },
+      {
+        "sender": "assistant",
+        "text": "You would probably enjoy the Green Mile by Stephen King."
+      },
+      {
+        "sender": "user",
+        "text": "That sounds great. Thank you."
+      },
+      {
+        "sender": "assistant",
+        "text": "Anytime!"
+      }
+    ],
+    "entities": [
+      "The Shawshank Redemption",
+      "Prison",
+      "Horror"
+    ],
+    "triples": [
+      {
+        "subject": "The Shawshank Redemption",
+        "relation": "Subject",
+        "object": "Prison"
+      },
+      {
+        "subject": "Prison",
+        "relation": "has_genre",
+        "object": "Horror"
+      }
+    ]
+  },
+  {
+    "id": "KGC-21",
+    "sourceRow": 45,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Can you tell me what David O. Russell has directed?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure. He directed Three Kings. HE also directed the wonderful film I Heart Huckabees with Lily Tomlin and Dustin Hoffman."
+      },
+      {
+        "sender": "user",
+        "text": "I have never seen I Heart Huckabees. Is it a comedy?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, it an Indie film and as well as a comedy. It really is a great movie. Do you like that genre?"
+      },
+      {
+        "sender": "user",
+        "text": "I do. So you recommend it?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Most definitely.I'd also recommend Three Kings."
+      }
+    ],
+    "entities": [
+      "I Heart Huckabees",
+      "David O. Russell",
+      "Dustin Hoffman"
+    ],
+    "triples": [
+      {
+        "subject": "I Heart Huckabees",
+        "relation": "directed_by",
+        "object": "David O. Russell"
+      },
+      {
+        "subject": "I Heart Huckabees",
+        "relation": "starred_actors",
+        "object": "Dustin Hoffman"
+      }
+    ]
+  },
+  {
+    "id": "KGC-22",
+    "sourceRow": 51,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you know of any books referring to 11/23/63?"
+      },
+      {
+        "sender": "assistant",
+        "text": "1/22/63 is written by Stephen King, and he starred in Pet Sematary. do you like horror films?"
+      },
+      {
+        "sender": "user",
+        "text": "I dislike Horror, it freaks me out, did steven king write anything in the drama genre?"
+      },
+      {
+        "sender": "assistant",
+        "text": "The Dead Zone is written by Stephen King it has drama in it. is that something you are interested in?"
+      },
+      {
+        "sender": "user",
+        "text": "I suppose, if its a drama Ill try it. Do you know who stars in it?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Im not sure who all stars in it, but The Dead Zone has genre Television.  are you interested in tv show?"
+      },
+      {
+        "sender": "user",
+        "text": "Yeah- Ill watch that"
+      },
+      {
+        "sender": "assistant",
+        "text": "ok cool. you should also check out true blood and the x-files as well."
+      }
+    ],
+    "entities": [
+      "Stephen King",
+      "Pet Sematary (Horror Film)",
+      "The Dead Zone",
+      "Drama",
+      "Television"
+    ],
+    "triples": [
+      {
+        "subject": "Pet Sematary (Horror Film)",
+        "relation": "starred_actors",
+        "object": "Stephen King"
+      },
+      {
+        "subject": "The Dead Zone",
+        "relation": "written_by",
+        "object": "Stephen King"
+      },
+      {
+        "subject": "The Dead Zone",
+        "relation": "has_genre",
+        "object": "Drama"
+      },
+      {
+        "subject": "Stephen King",
+        "relation": "TV Program (recurring writer)",
+        "object": "The Dead Zone"
+      },
+      {
+        "subject": "The Dead Zone",
+        "relation": "has_genre",
+        "object": "Television"
+      }
+    ]
+  },
+  {
+    "id": "KGC-23",
+    "sourceRow": 54,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Who was in the movie Mulholland Drive?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Robert Forster, Patrick Fischler and Naomi Watts are a few actors in the movie.  It is a  genre Psychological thriller."
+      },
+      {
+        "sender": "user",
+        "text": "I like Naomi Watts but What else has Robert Forster starred in?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Vigilante action/adventure film.  I have not seen it but have heard about it.  Have you seen it?"
+      },
+      {
+        "sender": "user",
+        "text": "I have not, I heard that he did a movie called Thick as Thieves, did that star Tom Hardy and Morgan Freeman?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, that is a good movie.  I would recommend that one."
+      },
+      {
+        "sender": "user",
+        "text": "Thank you, you have been helpful this evening"
+      },
+      {
+        "sender": "assistant",
+        "text": "enjoy"
+      }
+    ],
+    "entities": [
+      "Mulholland Drive",
+      "Robert Forster",
+      "Vigilante (Action/Adventure Film)",
+      "Thick as Thieves"
+    ],
+    "triples": [
+      {
+        "subject": "Mulholland Drive",
+        "relation": "starred_actors",
+        "object": "Robert Forster"
+      },
+      {
+        "subject": "Vigilante (Action/Adventure Film)",
+        "relation": "starred_actors",
+        "object": "Robert Forster"
+      },
+      {
+        "subject": "Thick as Thieves",
+        "relation": "starred_actors",
+        "object": "Robert Forster"
+      }
+    ]
+  },
+  {
+    "id": "KGC-24",
+    "sourceRow": 55,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you know what Jerry Spinelli wrote? I have have heard a lot about him lately."
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure, he wrote the historical novel Milkweed. Do you enjoy those types of books?"
+      },
+      {
+        "sender": "user",
+        "text": "I have never read one. Could you give me another example of a historical novel?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure I would recommend The Other Boleyn Girl and its sequel The Queen's Fool."
+      },
+      {
+        "sender": "user",
+        "text": "I heard The Queen's Fool is amazing. I am so excited to read it. Thank you for your help."
+      },
+      {
+        "sender": "assistant",
+        "text": "Welcome"
+      }
+    ],
+    "entities": [
+      "Milkweed",
+      "Jerry Spinelli",
+      "Historical novel",
+      "The Other Boleyn Girl",
+      "The Queen's Fool",
+      "Novel"
+    ],
+    "triples": [
+      {
+        "subject": "Milkweed",
+        "relation": "written_by",
+        "object": "Jerry Spinelli"
+      },
+      {
+        "subject": "Milkweed",
+        "relation": "has_genre",
+        "object": "Historical novel"
+      },
+      {
+        "subject": "The Other Boleyn Girl",
+        "relation": "has_genre",
+        "object": "Historical novel"
+      },
+      {
+        "subject": "The Other Boleyn Girl",
+        "relation": "Next in series",
+        "object": "The Queen's Fool"
+      },
+      {
+        "subject": "The Queen's Fool",
+        "relation": "has_genre",
+        "object": "Novel"
+      }
+    ]
+  },
+  {
+    "id": "KGC-25",
+    "sourceRow": 56,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you know anything you could tell me about Radamel Falcao?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Radamel Falcao is a Midfielder and Forward from Santa Marta"
+      },
+      {
+        "sender": "user",
+        "text": "Oh, a soccer midfielder, link Vincent Kompany and Victor Moses."
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes Vincent Kompany also plays Defender right?"
+      },
+      {
+        "sender": "user",
+        "text": "It could be as he is all around in Football."
+      },
+      {
+        "sender": "assistant",
+        "text": "Is he from Belgium?"
+      },
+      {
+        "sender": "user",
+        "text": "Yes, he is a defender from Belgium!"
+      }
+    ],
+    "entities": [
+      "Radamel Falcao",
+      "Midfielder",
+      "Vincent Kompany",
+      "Defender",
+      "Football"
+    ],
+    "triples": [
+      {
+        "subject": "Radamel Falcao",
+        "relation": "Position(s)",
+        "object": "Midfielder"
+      },
+      {
+        "subject": "Vincent Kompany",
+        "relation": "Position(s)",
+        "object": "Midfielder"
+      },
+      {
+        "subject": "Vincent Kompany",
+        "relation": "Position(s)",
+        "object": "Defender"
+      },
+      {
+        "subject": "Defender",
+        "relation": "Sport",
+        "object": "Football"
+      },
+      {
+        "subject": "Vincent Kompany",
+        "relation": "Sport played",
+        "object": "Football"
+      }
+    ]
+  },
+  {
+    "id": "KGC-26",
+    "sourceRow": 58,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you have any books similar to Little Women?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Do you like the author Louisa May Alcott?  She wrote Little Women."
+      },
+      {
+        "sender": "user",
+        "text": "Louisa May Alcott was a writer influenced by Stephenie Meyer, do you have any works by her instead?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I don't, but may I suggest works by William Steig?"
+      },
+      {
+        "sender": "user",
+        "text": "Yes. Didn't he write Shrek 2, an animation?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, he did.  Shrek 2 stared Rupert Everett."
+      },
+      {
+        "sender": "user",
+        "text": "Shrek the Third is another favorite. Did Cameron Diaz star in that?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, she was in it, along with Larry King."
+      }
+    ],
+    "entities": [
+      "Little Women",
+      "Louisa May Alcott",
+      "Writer",
+      "William Steig",
+      "Shrek 2",
+      "Animation"
+    ],
+    "triples": [
+      {
+        "subject": "Little Women",
+        "relation": "written_by",
+        "object": "Louisa May Alcott"
+      },
+      {
+        "subject": "Louisa May Alcott",
+        "relation": "is-a",
+        "object": "Writer"
+      },
+      {
+        "subject": "William Steig",
+        "relation": "is-a",
+        "object": "Writer"
+      },
+      {
+        "subject": "Shrek 2",
+        "relation": "written_by",
+        "object": "William Steig"
+      },
+      {
+        "subject": "Shrek 2",
+        "relation": "has_genre",
+        "object": "Animation"
+      }
+    ]
+  },
+  {
+    "id": "KGC-27",
+    "sourceRow": 59,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "What do you think about FC Bayern Munich?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Unfortunately I don't know much about this other team than they play football and are based out of Germany"
+      },
+      {
+        "sender": "user",
+        "text": "I don;t know much about this sport either. Only soccer player I;m familiar with is David Beckham."
+      },
+      {
+        "sender": "assistant",
+        "text": "I only know David Beckham because of the movie Bend It Like Beckham and the fact that he married one of the Spice Girls."
+      },
+      {
+        "sender": "user",
+        "text": "I enjoyed the movie Bend It Like Beckham. Do you like any other sports?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I like basketball but I hardly have time to watch anymore. How about yourself?"
+      }
+    ],
+    "entities": [
+      "FC Bayern Munich",
+      "Football",
+      "Bend It Like Beckham"
+    ],
+    "triples": [
+      {
+        "subject": "FC Bayern Munich",
+        "relation": "Sport",
+        "object": "Football"
+      },
+      {
+        "subject": "Bend It Like Beckham",
+        "relation": "has_genre",
+        "object": "Football"
+      }
+    ]
+  },
+  {
+    "id": "KGC-28",
+    "sourceRow": 60,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "I like The Fighter"
+      },
+      {
+        "sender": "assistant",
+        "text": "Me, too! Especially because it stars Micky Ward, Mark Wahlberg and Melissa McMeekin. You might like Million Dollar Baby or Against the Ropes, too."
+      },
+      {
+        "sender": "user",
+        "text": "who wrote the fighter"
+      },
+      {
+        "sender": "assistant",
+        "text": "Scott Silver and Paul Tamsay wrote it. Paul Tamsay also wrote Airbud."
+      },
+      {
+        "sender": "user",
+        "text": "Who wrote 8 Mile?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Scott Silver also wrote 8 Mile. It stars Xzibit, Mekhi Phifer and has music by Eminem."
+      },
+      {
+        "sender": "user",
+        "text": "What is The Fighter genre"
+      },
+      {
+        "sender": "assistant",
+        "text": "It fits into a few different ones. It's drama, boxing, biography and sports genres."
+      },
+      {
+        "sender": "user",
+        "text": "Thank you"
+      },
+      {
+        "sender": "assistant",
+        "text": "You're very welcome. Enjoy!"
+      }
+    ],
+    "entities": [
+      "The Fighter",
+      "Micky Ward",
+      "Scott Silver",
+      "8 Mile",
+      "Drama"
+    ],
+    "triples": [
+      {
+        "subject": "The Fighter",
+        "relation": "starred_actors",
+        "object": "Micky Ward"
+      },
+      {
+        "subject": "The Fighter",
+        "relation": "written_by",
+        "object": "Scott Silver"
+      },
+      {
+        "subject": "8 Mile",
+        "relation": "written_by",
+        "object": "Scott Silver"
+      },
+      {
+        "subject": "The Fighter",
+        "relation": "has_genre",
+        "object": "Drama"
+      }
+    ]
+  },
+  {
+    "id": "KGC-29",
+    "sourceRow": 67,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Could you recommend a movie by Guy Ritchie?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Snatch is a popular movie by Guy Ritchie."
+      },
+      {
+        "sender": "user",
+        "text": "Sounds like a good movie. I love Triller. Besides Brad Pitt who star in the movie?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Vinnie Jones was also in it. Since you like thriller movies you might enjoy Shark Night."
+      },
+      {
+        "sender": "user",
+        "text": "That is a Horror genre and Katharine McPee staring in it. Could you recommend other movie starting Katgarine McPee?"
+      }
+    ],
+    "entities": [
+      "Snatch",
+      "Guy Ritchie",
+      "Thriller"
+    ],
+    "triples": [
+      {
+        "subject": "Snatch",
+        "relation": "written_by",
+        "object": "Guy Ritchie"
+      },
+      {
+        "subject": "Snatch",
+        "relation": "has_genre",
+        "object": "Thriller"
+      }
+    ]
+  },
+  {
+    "id": "KGC-30",
+    "sourceRow": 68,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Could you recommend films that Tom Wilkinson did?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure, he has done a bunch. The Gathering Storm is a political drama, and The Full Monty is a Comedy-drama. Do you have a preference?"
+      },
+      {
+        "sender": "user",
+        "text": "The Gathering Storm is interesting. I like political dramas."
+      },
+      {
+        "sender": "assistant",
+        "text": "Did you see Valkyrie? It's a political thriller with Wilkinson."
+      },
+      {
+        "sender": "user",
+        "text": "I will check that and The Gathering Storm too! You have been helpful. Thanks!"
+      },
+      {
+        "sender": "assistant",
+        "text": "Great, enjoy!"
+      }
+    ],
+    "entities": [
+      "The Gathering Storm (Political drama Film)",
+      "Tom Wilkinson",
+      "Valkyrie",
+      "Political thriller"
+    ],
+    "triples": [
+      {
+        "subject": "The Gathering Storm (Political drama Film)",
+        "relation": "starred_actors",
+        "object": "Tom Wilkinson"
+      },
+      {
+        "subject": "Valkyrie",
+        "relation": "starred_actors",
+        "object": "Tom Wilkinson"
+      },
+      {
+        "subject": "Valkyrie",
+        "relation": "has_genre",
+        "object": "Political thriller"
+      }
+    ]
+  },
+  {
+    "id": "KGC-31",
+    "sourceRow": 72,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you know Cesc Fàbregas?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure, Cesc Fabregas is an athlete and plays for the Spain National Football Team. Do you like Football?"
+      },
+      {
+        "sender": "user",
+        "text": "I do like football. Isn't he a player in Spain?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, I believe he is from Barcelona Spain."
+      },
+      {
+        "sender": "user",
+        "text": "Do you know who his coach is? Or if he ever coached?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, the team is coached by Vincente del Bosque and the sponsorship is Iberdrola. Do you know any of the player statistics?"
+      },
+      {
+        "sender": "user",
+        "text": "That's right. I do not know any statistics. I prefer American football. Thanks for your help."
+      },
+      {
+        "sender": "assistant",
+        "text": "I do as well. You are welcome!"
+      }
+    ],
+    "entities": [
+      "Spain national football team",
+      "Cesc Fàbregas",
+      "Spain"
+    ],
+    "triples": [
+      {
+        "subject": "Spain national football team",
+        "relation": "Player statistics",
+        "object": "Cesc Fàbregas"
+      },
+      {
+        "subject": "Spain national football team",
+        "relation": "Sport Team Location",
+        "object": "Spain"
+      }
+    ]
+  },
+  {
+    "id": "KGC-32",
+    "sourceRow": 74,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Could you recommend films similar to 'In Bruges'?"
+      },
+      {
+        "sender": "assistant",
+        "text": "A French film like In Bruges is The Girl on the Train.If you like thrillers, The Descent is also similar."
+      },
+      {
+        "sender": "user",
+        "text": "The Girl on the Train is starring Emilie Dequenne, do you know of any others staring her?"
+      },
+      {
+        "sender": "assistant",
+        "text": "She is great in Brotherhood of the Wolf. Would you like to recommendations for similar science fiction movies?"
+      },
+      {
+        "sender": "user",
+        "text": "I will check that one out! I do not need any further recommendations. Thank you"
+      },
+      {
+        "sender": "assistant",
+        "text": "Great choice"
+      }
+    ],
+    "entities": [
+      "In Bruges",
+      "French",
+      "The Girl on the Train"
+    ],
+    "triples": [
+      {
+        "subject": "In Bruges",
+        "relation": "in_language",
+        "object": "French"
+      },
+      {
+        "subject": "The Girl on the Train",
+        "relation": "has_genre",
+        "object": "French"
+      }
+    ]
+  },
+  {
+    "id": "KGC-33",
+    "sourceRow": 77,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you have any actor recommendations similar to Basher Savage?"
+      },
+      {
+        "sender": "assistant",
+        "text": "No I don't.   I'm sorry.  He stars in Gravity"
+      },
+      {
+        "sender": "user",
+        "text": "Who else is in the movie Gravity?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Ok.  Gravity also stars Phaldut Sharma and Amy Warren."
+      },
+      {
+        "sender": "user",
+        "text": "Does Amy Warren have any other movies similar to Gravity?"
+      },
+      {
+        "sender": "assistant",
+        "text": "She starred in Mistress America as well as playing the character Stubbs the Zombie in 'Rebel Without a Pulse"
+      }
+    ],
+    "entities": [
+      "Gravity",
+      "Basher Savage",
+      "Amy Warren"
+    ],
+    "triples": [
+      {
+        "subject": "Gravity",
+        "relation": "starred_actors",
+        "object": "Basher Savage"
+      },
+      {
+        "subject": "Gravity",
+        "relation": "starred_actors",
+        "object": "Amy Warren"
+      }
+    ]
+  },
+  {
+    "id": "KGC-34",
+    "sourceRow": 78,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Could you recommend any books similar to In the Woods?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure! Do you like books by Tana French? She also wrote The Likeness."
+      },
+      {
+        "sender": "user",
+        "text": "I have never heard of Tana French before. What other books did she write?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Tana French is the author of Into the Woods. She also wrote Faithful Place and Broken Harbor. Do you want other recommendations?"
+      },
+      {
+        "sender": "user",
+        "text": "I know that The Likeness and Into the Woods are both mysteries. Do you know of any similar mysteries by different authors?"
+      },
+      {
+        "sender": "assistant",
+        "text": "You may want to check out The Sleeping Doll, it is written by Jeffery Deaver. The Sleeping Doll also has genre Suspense."
+      }
+    ],
+    "entities": [
+      "In the Woods",
+      "Tana French",
+      "The Likeness",
+      "The Sleeping Doll",
+      "Jeffery Deaver"
+    ],
+    "triples": [
+      {
+        "subject": "In the Woods",
+        "relation": "written_by",
+        "object": "Tana French"
+      },
+      {
+        "subject": "The Likeness",
+        "relation": "written_by",
+        "object": "Tana French"
+      },
+      {
+        "subject": "In the Woods",
+        "relation": "Next in series",
+        "object": "The Likeness"
+      },
+      {
+        "subject": "The Sleeping Doll",
+        "relation": "written_by",
+        "object": "Jeffery Deaver"
+      }
+    ]
+  },
+  {
+    "id": "KGC-35",
+    "sourceRow": 83,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you know about the actor Chris Penn?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, he starred in True Romance and The Wild Life."
+      },
+      {
+        "sender": "user",
+        "text": "Ah. Who else starred in True Romance?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Val Kilmer starred in it as well as Dennis Hopper. Did you know it was written by Quentin Tarantino?"
+      },
+      {
+        "sender": "user",
+        "text": "I did not. Will check it out then. Thanks!"
+      },
+      {
+        "sender": "assistant",
+        "text": "You're welcome."
+      }
+    ],
+    "entities": [
+      "True Romance",
+      "Chris Penn",
+      "Val Kilmer",
+      "Quentin Tarantino"
+    ],
+    "triples": [
+      {
+        "subject": "True Romance",
+        "relation": "starred_actors",
+        "object": "Chris Penn"
+      },
+      {
+        "subject": "True Romance",
+        "relation": "starred_actors",
+        "object": "Val Kilmer"
+      },
+      {
+        "subject": "True Romance",
+        "relation": "written_by",
+        "object": "Quentin Tarantino"
+      }
+    ]
+  },
+  {
+    "id": "KGC-36",
+    "sourceRow": 87,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Could you recommend the movie Hot Fuzz?  I haven't heard much about it."
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure, it stars Simon Pegg and a comedy. Do you like the actor?"
+      },
+      {
+        "sender": "user",
+        "text": "I really like him, he was in Star Trek and Shaun of the Dead correct?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, he did. He starred in Land of the Dead too."
+      },
+      {
+        "sender": "user",
+        "text": "I am not familiar with that one, do you know what year that was released?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes, it was released in 2005"
+      },
+      {
+        "sender": "user",
+        "text": "Very good thanks I will check that one out."
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure"
+      }
+    ],
+    "entities": [
+      "Hot Fuzz",
+      "Simon Pegg",
+      "Star Trek (Science Fiction Film)"
+    ],
+    "triples": [
+      {
+        "subject": "Hot Fuzz",
+        "relation": "starred_actors",
+        "object": "Simon Pegg"
+      },
+      {
+        "subject": "Star Trek (Science Fiction Film)",
+        "relation": "starred_actors",
+        "object": "Simon Pegg"
+      }
+    ]
+  },
+  {
+    "id": "KGC-37",
+    "sourceRow": 88,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Can you recommend any movies like Moonrise Kingdon?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Sure. Is it the romance in the film that interests you? If so may i recommend Win a Date with Tad Hamilton!"
+      },
+      {
+        "sender": "user",
+        "text": "Yes, interesting who stars in it?"
+      },
+      {
+        "sender": "assistant",
+        "text": "It is! It stars Topher Grace and also Sean Hayes."
+      },
+      {
+        "sender": "user",
+        "text": "I see, I like Sean Hayes any other movies with him in it?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Of course, he was also in The Three Stooges."
+      },
+      {
+        "sender": "user",
+        "text": "I see, was he in the newer remake? What year was it released?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I am not able to find that information at the moment."
+      },
+      {
+        "sender": "user",
+        "text": "Okay, no problem. Can you recommend any other movies?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Perhaps the movie 2012. It is an action film."
+      },
+      {
+        "sender": "user",
+        "text": "Great, thanks for the recommendation I'll have to check it out!"
+      },
+      {
+        "sender": "assistant",
+        "text": "Glad to be of service."
+      }
+    ],
+    "entities": [
+      "Win a Date with Tad Hamilton!",
+      "Sean Hayes",
+      "The Three Stooges",
+      "2012",
+      "Action Film"
+    ],
+    "triples": [
+      {
+        "subject": "Win a Date with Tad Hamilton!",
+        "relation": "starred_actors",
+        "object": "Sean Hayes"
+      },
+      {
+        "subject": "The Three Stooges",
+        "relation": "starred_actors",
+        "object": "Sean Hayes"
+      },
+      {
+        "subject": "The Three Stooges",
+        "relation": "release_year",
+        "object": "2012"
+      },
+      {
+        "subject": "2012",
+        "relation": "has_genre",
+        "object": "Action Film"
+      }
+    ]
+  },
+  {
+    "id": "KGC-38",
+    "sourceRow": 92,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Do you have any information on the author, Jean M. Auel?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Jean M Auel is well known for two books, The Valley of the Horses and the Shelters of Stone."
+      },
+      {
+        "sender": "user",
+        "text": "What genre are they?"
+      },
+      {
+        "sender": "assistant",
+        "text": "I can tell you that The Valley of Horses is  historical fiction novel for one."
+      },
+      {
+        "sender": "user",
+        "text": "When was it released? I do like historical fiction!"
+      },
+      {
+        "sender": "assistant",
+        "text": "It was 1982, the year Spielberg directed and released War Horse, another great one."
+      },
+      {
+        "sender": "user",
+        "text": "I think I will check out The Valley of the Horses first, and after that I will try War Horse. Thank you for your help!"
+      },
+      {
+        "sender": "assistant",
+        "text": "My Pleasure."
+      }
+    ],
+    "entities": [
+      "The Valley of Horses",
+      "Jean M. Auel",
+      "1982",
+      "War Horse"
+    ],
+    "triples": [
+      {
+        "subject": "The Valley of Horses",
+        "relation": "written_by",
+        "object": "Jean M. Auel"
+      },
+      {
+        "subject": "The Valley of Horses",
+        "relation": "release_year",
+        "object": "1982"
+      },
+      {
+        "subject": "War Horse",
+        "relation": "release_year",
+        "object": "1982"
+      }
+    ]
+  },
+  {
+    "id": "KGC-39",
+    "sourceRow": 93,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "Can you recommend a book similar to The Mark of Athena?"
+      },
+      {
+        "sender": "assistant",
+        "text": "The Son of Neptune is another Greek mythology book by Rick Riordan."
+      },
+      {
+        "sender": "user",
+        "text": "Is that a fantasy book?"
+      },
+      {
+        "sender": "assistant",
+        "text": "Yes this is a fantasy like Harry Potter."
+      },
+      {
+        "sender": "user",
+        "text": "Ohhhh cool  I like Harry Potter.    Harry Potter and the Prisoner of Azkaban is my favorite."
+      },
+      {
+        "sender": "assistant",
+        "text": "I am a huge J.K. Rowling fan. I love all of her Harry Potter books. Prisoner of Azkaban was a wonderful book."
+      }
+    ],
+    "entities": [
+      "The Son of Neptune",
+      "The Mark of Athena",
+      "Rick Riordan",
+      "Fantasy",
+      "Harry Potter and the Prisoner of Azkaban",
+      "J.K. Rowling"
+    ],
+    "triples": [
+      {
+        "subject": "The Son of Neptune",
+        "relation": "Next in series",
+        "object": "The Mark of Athena"
+      },
+      {
+        "subject": "The Son of Neptune",
+        "relation": "written_by",
+        "object": "Rick Riordan"
+      },
+      {
+        "subject": "The Son of Neptune",
+        "relation": "has_genre",
+        "object": "Fantasy"
+      },
+      {
+        "subject": "Harry Potter and the Prisoner of Azkaban",
+        "relation": "Subject",
+        "object": "Fantasy"
+      },
+      {
+        "subject": "Harry Potter and the Prisoner of Azkaban",
+        "relation": "written_by",
+        "object": "J.K. Rowling"
+      }
+    ]
+  },
+  {
+    "id": "KGC-40",
+    "sourceRow": 98,
+    "turns": [
+      {
+        "sender": "user",
+        "text": "I used to love Madonna back in the day."
+      },
+      {
+        "sender": "assistant",
+        "text": "Me too, I couldn't believe she would marry Sean Penn whoi starred in Fast times at ridgemont High"
+      },
+      {
+        "sender": "user",
+        "text": "She's the Queen of pop for sure! Yea, they were the hot couple back in the day. Sean Penn was in that movie Into the Wild too, with William Hurt."
+      },
+      {
+        "sender": "assistant",
+        "text": "Wasnt William Hurt also the Incredible Hulk?"
+      },
+      {
+        "sender": "user",
+        "text": "Yea, Hurt was the hulk. Poor Stan Lee, sad that he passed. He wrote the Hulk."
+      },
+      {
+        "sender": "assistant",
+        "text": "Didnt he also write SPider man 3?"
+      },
+      {
+        "sender": "user",
+        "text": "Yes, and Thor! He was great at fantasy science-fiction!"
+      },
+      {
+        "sender": "assistant",
+        "text": "And Iron Man 3 Starring Gwenyth altrow who Is amazing"
+      }
+    ],
+    "entities": [
+      "Sean Penn",
+      "Madonna",
+      "Fast Times at Ridgemont High",
+      "Into the Wild",
+      "William Hurt",
+      "The Incredible Hulk",
+      "Stan Lee",
+      "Iron Man 3"
+    ],
+    "triples": [
+      {
+        "subject": "Sean Penn",
+        "relation": "Spouse (or domestic partner)",
+        "object": "Madonna"
+      },
+      {
+        "subject": "Fast Times at Ridgemont High",
+        "relation": "starred_actors",
+        "object": "Sean Penn"
+      },
+      {
+        "subject": "Into the Wild",
+        "relation": "written_by",
+        "object": "Sean Penn"
+      },
+      {
+        "subject": "Into the Wild",
+        "relation": "starred_actors",
+        "object": "William Hurt"
+      },
+      {
+        "subject": "The Incredible Hulk",
+        "relation": "starred_actors",
+        "object": "William Hurt"
+      },
+      {
+        "subject": "The Incredible Hulk",
+        "relation": "written_by",
+        "object": "Stan Lee"
+      },
+      {
+        "subject": "Iron Man 3",
+        "relation": "written_by",
+        "object": "Stan Lee"
+      }
+    ]
+  }
+]

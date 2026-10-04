@@ -2,6 +2,7 @@ import { GenerateOptions, LLMMessage, LLMProvider, ProviderHttpError } from './p
 import { OpenAiCompatibleProvider } from './providers/openAiCompatible';
 import { AnthropicProvider } from './providers/anthropic';
 import { GeminiProvider } from './providers/gemini';
+import { isLanguageSlip, isTransientLLMError, languageFailureNotice, questionLanguage, sleep, TRANSIENT_RETRY_DELAYS_MS } from './retry';
 
 /** Anything with retrievable text — accepts both RetrievedChunk and Citation shapes. */
 interface ContextPassage {
@@ -9,6 +10,15 @@ interface ContextPassage {
 }
 
 const HEALTH_CACHE_TTL_MS = 30_000;
+/** Non-space characters of a streamed reply held back while its language is checked (a few hundred ms of output). */
+const LANGUAGE_CHECK_CHARS = 24;
+/** Re-asks after a reply in the wrong language, before giving up with a notice. */
+const LANGUAGE_RETRIES = 2;
+
+function withLanguageReminder(messages: LLMMessage[], language: string): LLMMessage[] {
+    const reminder = `Reply only in ${language}, the language the question is written in. Do not use Chinese.`;
+    return messages.map((m) => (m.role === 'system' ? { ...m, content: `${m.content} ${reminder}` } : m));
+}
 
 /** Every candidate failed. `retryAfterMs` is the shortest rate-limit wait any of them reported, if one did. */
 export class LLMUnavailableError extends Error {
@@ -34,6 +44,18 @@ class LLMRouter {
         // except Anthropic. Priority order is deliberate: fastest/most-generous free
         // trials first.
         const operatorProviders: LLMProvider[] = [
+            // Self-hosted model via Ollama's OpenAI-compatible API, first when configured:
+            // no quota, so it suits local development and offline evaluation. Ollama needs
+            // no key; any non-empty value marks the provider as configured.
+            new OpenAiCompatibleProvider({
+                name: 'Ollama',
+                tier: 'operator',
+                baseUrl: process.env.OLLAMA_BASE_URL ? `${process.env.OLLAMA_BASE_URL.replace(/\/+$/, '')}/v1/chat/completions` : '',
+                apiKey: process.env.OLLAMA_BASE_URL ? 'ollama' : undefined,
+                model: process.env.OLLAMA_MODEL || 'qwen2.5:7b',
+                // Ollama constrains decoding to valid JSON in this mode; small local models need it.
+                jsonMode: true,
+            }),
             new OpenAiCompatibleProvider({
                 name: 'Cerebras',
                 tier: 'operator',
@@ -137,10 +159,24 @@ class LLMRouter {
         return [...configured.filter((p) => !recentlyFailed(p)), ...configured.filter(recentlyFailed)];
     }
 
-    private buildMessages(query: string, selectedText: string | undefined, retrievedChunks: ContextPassage[]): LLMMessage[] {
+    /**
+     * Prompt = hard context (selected text) + knowledge-graph facts + numbered
+     * passages. The model must cite passages as [n] so each statement can be
+     * traced to its source, and the graph facts only connect entities: every
+     * claim still has to rest on a passage.
+     */
+    buildMessages(
+        query: string,
+        selectedText: string | undefined,
+        retrievedChunks: ContextPassage[],
+        graphFacts: string[] = []
+    ): LLMMessage[] {
         const context = retrievedChunks.map((c, i) => `[${i + 1}] ${c.text}`).join('\n\n');
         const userContent = [
             selectedText ? `**Selected text (hard context — the answer must address this passage):**\n${selectedText}` : null,
+            graphFacts.length > 0
+                ? `**Knowledge graph (relations between entities in the question, extracted from the user's documents):**\n${graphFacts.map((f) => `- ${f}`).join('\n')}`
+                : null,
             context ? `**Retrieved document context:**\n${context}` : null,
             `**Question:** ${query}`,
         ]
@@ -153,24 +189,42 @@ class LLMRouter {
                 content:
                     'You are an assistant embedded in a document reader. Answer strictly from the provided context. ' +
                     'If the selected text is present, treat it as mandatory context the answer must engage with. ' +
-                    'If the answer is not supported by the context, say so. Be concise.',
+                    'Cite the numbered passages you rely on as [1], [2] right after the statement they support; ' +
+                    'cite only passages that actually state what you claim. ' +
+                    'Use the knowledge-graph relations only to connect entities across passages; never state a fact that no passage or the selected text supports. ' +
+                    'If the context does not contain the answer, say that the document does not provide this information instead of guessing. ' +
+                    'Answer in the same language as the question. Be concise.',
             },
             { role: 'user', content: userContent },
         ];
     }
 
-    /** Non-streaming generation, used by the knowledge-extraction worker. */
+    /**
+     * Non-streaming generation, used by the knowledge-extraction worker. A
+     * transient failure (5xx, timeout, dropped connection) is re-sent to the
+     * same provider after a short wait before failing over to the next one.
+     */
     async generate(messages: LLMMessage[], options?: GenerateOptions): Promise<{ text: string; provider: string }> {
         const errors: string[] = [];
         const waits: number[] = [];
         for (const provider of this.candidates()) {
-            try {
-                const text = await provider.generate(messages, options);
-                if (text?.trim()) return { text, provider: provider.name };
-            } catch (err: any) {
-                errors.push(`${provider.name}: ${err?.message || err}`);
-                if (err instanceof ProviderHttpError && err.retryAfterMs !== undefined) waits.push(err.retryAfterMs);
-                this.healthCache.set(provider.name, { ok: false, expiresAt: Date.now() + HEALTH_CACHE_TTL_MS });
+            for (let attempt = 0; ; attempt++) {
+                try {
+                    const text = await provider.generate(messages, options);
+                    if (text?.trim()) return { text, provider: provider.name };
+                    errors.push(`${provider.name}: empty response`);
+                    break;
+                } catch (err: any) {
+                    if (isTransientLLMError(err) && attempt < TRANSIENT_RETRY_DELAYS_MS.length) {
+                        console.warn(`[llm] ${provider.name} transient failure, retry ${attempt + 1}: ${err?.message || err}`);
+                        await sleep(TRANSIENT_RETRY_DELAYS_MS[attempt]);
+                        continue;
+                    }
+                    errors.push(`${provider.name}: ${err?.message || err}`);
+                    if (err instanceof ProviderHttpError && err.retryAfterMs !== undefined) waits.push(err.retryAfterMs);
+                    this.healthCache.set(provider.name, { ok: false, expiresAt: Date.now() + HEALTH_CACHE_TTL_MS });
+                    break;
+                }
             }
         }
         throw new LLMUnavailableError(this.noProviderError(errors), waits.length > 0 ? Math.min(...waits) : undefined);
@@ -180,40 +234,83 @@ class LLMRouter {
     async generateAnswer(
         query: string,
         selectedText: string | undefined,
-        retrievedChunks: ContextPassage[]
+        retrievedChunks: ContextPassage[],
+        graphFacts: string[] = []
     ): Promise<{ text: string; provider: string }> {
-        return this.generate(this.buildMessages(query, selectedText, retrievedChunks));
+        return this.generate(this.buildMessages(query, selectedText, retrievedChunks, graphFacts));
     }
 
     /**
-     * Streaming RAG generation with failover: if the first healthy provider
-     * throws before yielding anything, the router falls through to the next
-     * one automatically (mid-stream failures after partial output are
-     * surfaced to the caller, since a partial answer cannot be silently
-     * restarted).
+     * Streaming RAG generation with three gates, all applied before anything
+     * reaches the client (a partial answer cannot be silently restarted):
+     *  - transient failure before the first token: re-send to the same provider after a wait;
+     *  - persistent failure: fail over to the next provider;
+     *  - language slip (a Chinese reply, or a reply with no Vietnamese in it, to a Vietnamese
+     *    question): the opening of the reply is held back until LANGUAGE_CHECK_CHARS; on a slip
+     *    the request is re-sent with an explicit language instruction, up to LANGUAGE_RETRIES
+     *    times, after which a short notice in the question's language replaces the reply.
      */
     async *generateAnswerStream(
         query: string,
         selectedText: string | undefined,
-        retrievedChunks: ContextPassage[]
+        retrievedChunks: ContextPassage[],
+        graphFacts: string[] = []
     ): AsyncGenerator<{ delta?: string; provider?: string; done?: boolean }> {
-        const messages = this.buildMessages(query, selectedText, retrievedChunks);
+        const baseMessages = this.buildMessages(query, selectedText, retrievedChunks, graphFacts);
         const errors: string[] = [];
+        let messages = baseMessages;
+        let languageRetries = 0;
 
         for (const provider of this.candidates()) {
-            let yieldedAny = false;
-            try {
-                yield { provider: provider.name };
-                for await (const delta of provider.generateStream(messages)) {
-                    yieldedAny = true;
-                    yield { delta };
+            let transientRetries = 0;
+            for (;;) {
+                let yieldedAny = false;
+                let held = '';
+                let slipped = false;
+                try {
+                    yield { provider: provider.name };
+                    for await (const delta of provider.generateStream(messages)) {
+                        if (yieldedAny) {
+                            yield { delta };
+                            continue;
+                        }
+                        held += delta;
+                        const enough = held.replace(/\s/g, '').length >= LANGUAGE_CHECK_CHARS;
+                        if (isLanguageSlip(query, held, enough)) {
+                            slipped = true;
+                            break; // closes the provider stream
+                        }
+                        if (enough) {
+                            yieldedAny = true;
+                            yield { delta: held };
+                        }
+                    }
+                    if (slipped) {
+                        if (languageRetries < LANGUAGE_RETRIES) {
+                            languageRetries++;
+                            console.warn(`[llm] ${provider.name} answered in another language; retry ${languageRetries} with a language reminder`);
+                            messages = withLanguageReminder(baseMessages, questionLanguage(query));
+                            continue;
+                        }
+                        console.warn(`[llm] ${provider.name} still answered in another language; sending a notice instead`);
+                        yield { delta: languageFailureNotice(query) };
+                        yield { done: true };
+                        return;
+                    }
+                    if (!yieldedAny && held) yield { delta: held };
+                    yield { done: true };
+                    return;
+                } catch (err: any) {
+                    if (yieldedAny) throw err; // partial output already sent — cannot silently retry
+                    if (isTransientLLMError(err) && transientRetries < TRANSIENT_RETRY_DELAYS_MS.length) {
+                        console.warn(`[llm] ${provider.name} stream failed before output, retry ${transientRetries + 1}: ${err?.message || err}`);
+                        await sleep(TRANSIENT_RETRY_DELAYS_MS[transientRetries++]);
+                        continue;
+                    }
+                    errors.push(`${provider.name}: ${err?.message || err}`);
+                    this.healthCache.set(provider.name, { ok: false, expiresAt: Date.now() + HEALTH_CACHE_TTL_MS });
+                    break;
                 }
-                yield { done: true };
-                return;
-            } catch (err: any) {
-                errors.push(`${provider.name}: ${err?.message || err}`);
-                this.healthCache.set(provider.name, { ok: false, expiresAt: Date.now() + HEALTH_CACHE_TTL_MS });
-                if (yieldedAny) throw err; // partial output already sent — cannot silently retry
             }
         }
         throw new Error(this.noProviderError(errors));

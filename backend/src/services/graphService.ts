@@ -9,7 +9,10 @@ export interface ExtractionStatus {
 }
 
 /** Document-level jobs carry no `text`; chat-driven ones do. */
-const DOCUMENT_JOB_FILTER = `type = 'EXTRACT_ENTITIES' AND payload->>'documentId' = $1 AND NOT (payload ? 'text')`;
+/** Node cap for the whole-graph view; the canvas switches to dots when zoomed out, so a few hundred stay readable. */
+const WHOLE_GRAPH_MAX_NODES = 500;
+
+const DOCUMENT_JOB_FILTER =`type = 'EXTRACT_ENTITIES' AND payload->>'documentId' = $1 AND NOT (payload ? 'text')`;
 
 /** Knowledge graph queries (UC15), stored relationally per ADR-04. */
 export class GraphService {
@@ -22,6 +25,7 @@ export class GraphService {
                  FROM entity_relations r
                  LEFT JOIN documents d ON d.id = r.source_document_id
                  WHERE r.user_id = $1 AND r.source_document_id = $2
+                 ORDER BY r.id
                  LIMIT 1000`,
                 [userId, documentId]
             );
@@ -31,24 +35,35 @@ export class GraphService {
                      SELECT source_entity_id FROM entity_relations WHERE user_id = $1 AND source_document_id = $2
                      UNION
                      SELECT target_entity_id FROM entity_relations WHERE user_id = $1 AND source_document_id = $2
-                 )`,
+                 )
+                 ORDER BY id`,
                 [userId, documentId]
             );
             return { nodes: nodes.rows, edges: edges.rows };
         }
 
+        // Whole graph: keep the best-connected entities rather than the most recent ones, so the
+        // books read first (the ones cross-book links point back to) stay visible as the graph grows.
         const nodes = await pool.query(
-            `SELECT id, name, type, description FROM entities WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 300`,
+            `SELECT e.id, e.name, e.type, e.description
+             FROM entities e
+             LEFT JOIN entity_relations r ON r.user_id = e.user_id AND (r.source_entity_id = e.id OR r.target_entity_id = e.id)
+             WHERE e.user_id = $1
+             GROUP BY e.id
+             ORDER BY COUNT(r.id) DESC, e.updated_at DESC, e.id
+             LIMIT ${WHOLE_GRAPH_MAX_NODES}`,
             [userId]
         );
+        const ids = nodes.rows.map((n) => n.id);
         const edges = await pool.query(
             `SELECT r.id, r.source_entity_id AS source, r.target_entity_id AS target, r.relation_type,
                     r.source_document_id, d.title AS source_document_title
              FROM entity_relations r
              LEFT JOIN documents d ON d.id = r.source_document_id
-             WHERE r.user_id = $1
-             LIMIT 1000`,
-            [userId]
+             WHERE r.user_id = $1 AND r.source_entity_id = ANY($2::text[]) AND r.target_entity_id = ANY($2::text[])
+             ORDER BY r.id
+             LIMIT 2000`,
+            [userId, ids]
         );
         return { nodes: nodes.rows, edges: edges.rows };
     }
@@ -58,11 +73,21 @@ export class GraphService {
         const entity = await pool.query(`SELECT * FROM entities WHERE id = $1 AND user_id = $2`, [entityId, userId]);
         if (entity.rows.length === 0) return null;
 
+        // Each relation's excerpt is a verbatim quote of its source (see groundEvidence), so the
+        // chunk containing it gives the page the citation opens, as chat citations do (UC13).
         const neighbors = await pool.query(
-            `SELECT e.id, e.name, e.type, r.relation_type, r.excerpt, r.source_document_id, d.title AS source_document_title
+            `SELECT e.id, e.name, e.type, r.relation_type, r.excerpt, r.source_document_id,
+                    d.title AS source_document_title, d.workspace_id AS source_workspace_id, src.page_number AS source_page
              FROM entity_relations r
              JOIN entities e ON e.id = CASE WHEN r.source_entity_id = $1 THEN r.target_entity_id ELSE r.source_entity_id END
-             LEFT JOIN documents d ON d.id = r.source_document_id
+             LEFT JOIN documents d ON d.id = r.source_document_id AND d.user_id = $2
+             LEFT JOIN LATERAL (
+                 SELECT c.page_number FROM chunks c
+                 WHERE c.document_id = r.source_document_id AND c.user_id = $2 AND r.excerpt IS NOT NULL
+                   AND position(lower(regexp_replace(r.excerpt, '\\s+', ' ', 'g')) IN lower(regexp_replace(c.text, '\\s+', ' ', 'g'))) > 0
+                 ORDER BY c.chunk_index
+                 LIMIT 1
+             ) src ON TRUE
              WHERE r.user_id = $2 AND (r.source_entity_id = $1 OR r.target_entity_id = $1)
              LIMIT 50`,
             [entityId, userId]

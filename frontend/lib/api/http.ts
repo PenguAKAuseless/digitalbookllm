@@ -8,6 +8,16 @@ export const API_BASE = configuredApiBase
     ? configuredApiBase.endsWith('/api') ? configuredApiBase : `${configuredApiBase}/api`
     : 'http://localhost:3001/api';
 
+/**
+ * File URLs from the API are absolute signed URLs with object storage, but a
+ * root-relative path (`/api/documents/local-file?...`) with the local storage
+ * driver (docker compose / local dev). That path belongs to the API server, not
+ * to this app's origin.
+ */
+export function resolveApiUrl(url: string): string {
+    return url.startsWith('/') ? new URL(url, API_BASE).toString() : url;
+}
+
 export function authToken(): string | null {
     return typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 }

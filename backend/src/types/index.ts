@@ -61,6 +61,8 @@ export interface Citation {
     page: number | null;
     text: string;
     similarity: number;
+    /** Set after generation: whether the answer cites this passage with an [n] marker. */
+    cited?: boolean;
 }
 
 export interface ChatSession {

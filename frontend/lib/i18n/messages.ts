@@ -68,6 +68,7 @@ export const messages: Record<Lang, Record<string, string>> = {
         'chat.suggestion.explain': 'Giải thích khái niệm khó',
         'chat.suggestion.translate': 'Dịch sang tiếng Việt',
         'chat.citation': 'Trang',
+        'chat.citationUncited': 'Đoạn được truy xuất nhưng không được câu trả lời trích dẫn',
         'chat.thinking': 'Đang suy nghĩ…',
 
         'graph.title': 'Sơ đồ tri thức cá nhân',
@@ -85,6 +86,7 @@ export const messages: Record<Lang, Record<string, string>> = {
         'graph.action.extract': 'Trích xuất',
         'graph.action.reextract': 'Trích xuất lại',
         'graph.detail.relatedTo': 'Liên quan đến',
+        'graph.detail.openSource': 'Mở đoạn nguồn trong sách',
 
         'settings.theme': 'Giao diện',
         'settings.theme.light': 'Sáng',
@@ -165,6 +167,7 @@ export const messages: Record<Lang, Record<string, string>> = {
         'chat.suggestion.explain': 'Explain the difficult concept',
         'chat.suggestion.translate': 'Translate to Vietnamese',
         'chat.citation': 'Page',
+        'chat.citationUncited': 'Retrieved, but not cited by the answer',
         'chat.thinking': 'Thinking…',
 
         'graph.title': 'Personal knowledge graph',
@@ -182,6 +185,7 @@ export const messages: Record<Lang, Record<string, string>> = {
         'graph.action.extract': 'Extract',
         'graph.action.reextract': 'Re-extract',
         'graph.detail.relatedTo': 'Related to',
+        'graph.detail.openSource': 'Open the source passage in the book',
 
         'settings.theme': 'Theme',
         'settings.theme.light': 'Light',

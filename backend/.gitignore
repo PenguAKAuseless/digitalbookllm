@@ -13,3 +13,4 @@ eval/results/
 docker-compose.override.yml
 
 *.traineddata
+eval/ablation/data/

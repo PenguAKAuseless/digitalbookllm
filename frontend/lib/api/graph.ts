@@ -26,6 +26,9 @@ export interface EntityDetail {
         excerpt: string | null;
         source_document_id: string | null;
         source_document_title: string | null;
+        /** Workspace and page of the source passage, for opening the citation in the reader. */
+        source_workspace_id: string | null;
+        source_page: number | null;
     }>;
 }
 

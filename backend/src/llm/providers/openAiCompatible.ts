@@ -16,6 +16,8 @@ export interface OpenAiCompatibleConfig {
     modelParams?: (model: string) => Record<string, unknown>;
     /** Header carrying the key. OpenAI-family APIs use Authorization: Bearer, Azure uses api-key. */
     authHeader?: 'authorization' | 'api-key';
+    /** Sends `response_format: json_object` when a caller asks for JSON (only where the vendor honours it). */
+    jsonMode?: boolean;
     timeoutMs?: number;
 }
 
@@ -23,6 +25,8 @@ export interface OpenAiCompatibleConfig {
 const NON_CHAT_MODEL = /whisper|guard|safeguard|tts|embed|playai|orpheus|audio|moderation/i;
 /** Cooldown for a 429 that does not say how long to wait. */
 const DEFAULT_RATE_LIMIT_MS = 60_000;
+/** Default wait for a provider's response headers; a slow local model on a 6000-char window needs well over a minute. */
+const REQUEST_TIMEOUT_MS = parseInt(process.env.LLM_REQUEST_TIMEOUT_MS || '180000');
 
 /**
  * Chat-completions provider for any OpenAI-schema-compatible endpoint:
@@ -86,13 +90,27 @@ export class OpenAiCompatibleProvider implements LLMProvider {
         }
     }
 
-    private send(model: string, body: Record<string, unknown>): Promise<Response> {
+    /**
+     * Bounded by a timeout until the response headers arrive (for a non-streamed
+     * call that is the whole generation), so a hung provider fails as a
+     * retryable TimeoutError instead of blocking a worker slot forever. A
+     * stream, once started, is not cut short.
+     */
+    private async send(model: string, body: Record<string, unknown>): Promise<Response> {
         const extra = this.plainModels.has(model) ? {} : this.cfg.modelParams?.(model) ?? {};
-        return fetch(this.cfg.baseUrl, {
-            method: 'POST',
-            headers: this.headers(),
-            body: JSON.stringify({ model, ...extra, ...body }),
-        });
+        const controller = new AbortController();
+        const timeoutMs = this.cfg.timeoutMs ?? REQUEST_TIMEOUT_MS;
+        const timer = setTimeout(() => controller.abort(new DOMException(`${this.name} timed out after ${timeoutMs}ms`, 'TimeoutError')), timeoutMs);
+        try {
+            return await fetch(this.cfg.baseUrl, {
+                method: 'POST',
+                headers: this.headers(),
+                body: JSON.stringify({ model, ...extra, ...body }),
+                signal: controller.signal,
+            });
+        } finally {
+            clearTimeout(timer);
+        }
     }
 
     /**
@@ -169,11 +187,13 @@ export class OpenAiCompatibleProvider implements LLMProvider {
     }
 
     async generate(messages: LLMMessage[], options: GenerateOptions = {}): Promise<string> {
-        // `response_format` is not honoured uniformly across these vendors, so JSON is enforced by prompt only.
+        // `response_format` is not honoured uniformly across these vendors, so JSON is enforced by
+        // prompt, plus the vendor's JSON mode where the provider is configured with it.
         const res = await this.post({
             messages,
             temperature: options.temperature ?? 0.7,
             max_tokens: options.maxTokens ?? 800,
+            ...(options.json && this.cfg.jsonMode ? { response_format: { type: 'json_object' } } : {}),
         });
         const data: any = await res.json();
         const content: string = data.choices?.[0]?.message?.content ?? '';
@@ -189,27 +209,35 @@ export class OpenAiCompatibleProvider implements LLMProvider {
         const decoder = new TextDecoder();
         let buffer = '';
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
 
-            const lines = buffer.split('\n');
-            buffer = lines.pop() ?? '';
+                const lines = buffer.split('\n');
+                buffer = lines.pop() ?? '';
 
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed.startsWith('data:')) continue;
-                const payload = trimmed.slice(5).trim();
-                if (payload === '[DONE]') return;
-                try {
-                    const parsed = JSON.parse(payload);
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith('data:')) continue;
+                    const payload = trimmed.slice(5).trim();
+                    if (payload === '[DONE]') return;
+                    let parsed: any;
+                    try {
+                        parsed = JSON.parse(payload);
+                    } catch {
+                        continue; // malformed keep-alive chunk
+                    }
+                    // Some servers (Ollama among them) report a failure inside the stream with a 200 status.
+                    if (parsed.error) throw new ProviderHttpError(`${this.name} stream error: ${parsed.error.message ?? JSON.stringify(parsed.error)}`, 500);
                     const delta = parsed.choices?.[0]?.delta?.content;
                     if (delta) yield delta;
-                } catch {
-                    // Ignore malformed keep-alive chunks.
                 }
             }
+        } finally {
+            // Runs when the consumer stops early too (e.g. the router's language gate): free the connection.
+            Promise.resolve().then(() => reader.cancel()).catch(() => {});
         }
     }
 }

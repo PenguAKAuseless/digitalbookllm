@@ -16,6 +16,8 @@ export interface Citation {
     page: number | null;
     text: string;
     similarity: number;
+    /** Set once the answer is complete: whether it cites this passage as [n]. */
+    cited?: boolean;
 }
 
 export interface ChatMessage {
@@ -40,7 +42,7 @@ export interface StreamHandlers {
     onProvider?: (provider: string) => void;
     onDelta: (text: string) => void;
     onCitations?: (citations: Citation[]) => void;
-    onDone: (result: { messageId: string | null; sessionId: string | null }) => void;
+    onDone: (result: { messageId: string | null; sessionId: string | null; citedIndices?: number[] }) => void;
     onError: (message: string) => void;
 }
 

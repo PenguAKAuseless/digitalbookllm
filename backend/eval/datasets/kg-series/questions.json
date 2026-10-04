@@ -1,0 +1,1157 @@
+[
+  {
+    "id": "KGS-01",
+    "hotpotId": "5a8c7595554299585d9e36b6",
+    "question": "What government position was held by the woman who portrayed Corliss Archer in the film Kiss and Tell?",
+    "answer": "Chief of Protocol",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Kiss and Tell (1945 film)",
+    "answerTitle": "Shirley Temple",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 48,
+          "text": "Kiss and Tell is a 1945 American comedy film starring then 17-year-old Shirley Temple as Corliss Archer."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 37,
+          "text": "Shirley Temple Black (April 23, 1928 – February 10, 2014) was an American actress, singer, dancer, businesswoman, and diplomat who was Hollywood's number one box-office draw as a child actress from 1935 to 1938."
+        },
+        {
+          "volume": 1,
+          "start": 249,
+          "text": "As an adult, she was named United States ambassador to Ghana and to Czechoslovakia and also served as Chief of Protocol of the United States."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-02",
+    "hotpotId": "5a8e3ea95542995a26add48d",
+    "question": "The director of the romantic comedy \"Big Stone Gap\" is based in what New York city?",
+    "answer": "Greenwich Village, New York City",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "Big Stone Gap (film)",
+    "answerTitle": "Adriana Trigiani",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 43,
+          "text": "Big Stone Gap is a 2014 American drama romantic comedy film written and directed by Adriana Trigiani and produced by Donna Gigliotti for Altar Identity Studios, a subsidiary of Media Society."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 1053,
+          "text": "Adriana Trigiani is an Italian American best-selling author of sixteen books, television writer, film director, and entrepreneur based in Greenwich Village, New York City."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-03",
+    "hotpotId": "5a87ab905542996e4f3088c1",
+    "question": "The arena where the Lewiston Maineiacs played their home games can seat how many people?",
+    "answer": "3,677 seated",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Lewiston Maineiacs",
+    "answerTitle": "Androscoggin Bank Colisée",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 2209,
+          "text": "The team played its home games at the Androscoggin Bank Colisée."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 1158,
+          "text": "The Androscoggin Bank Colisée (formerly Central Maine Civic Center and Lewiston Colisee) is a 4,000 capacity (3,677 seated) multi-purpose arena, in Lewiston, Maine, that opened in 1958."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-04",
+    "hotpotId": "5ab6d09255429954757d337d",
+    "question": "The football manager who recruited David Beckham managed Manchester United during what timeframe?",
+    "answer": "from 1986 to 2013",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "1995–96 Manchester United F.C. season",
+    "answerTitle": "Alex Ferguson",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 1641,
+          "text": "Their triumph was made all the more remarkable by the fact that Alex Ferguson had sold experienced players Paul Ince, Mark Hughes and Andrei Kanchelskis before the start of the season, and not made any major signings."
+        },
+        {
+          "volume": 3,
+          "start": 1859,
+          "text": "Instead, he had drafted in young players like Nicky Butt, David Beckham, Paul Scholes and the Neville brothers, Gary and Phil."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 11471,
+          "text": "Sir Alexander Chapman Ferguson, CBE (born 31 December 1941) is a Scottish former football manager and player who managed Manchester United from 1986 to 2013."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-05",
+    "hotpotId": "5a75e05c55429976ec32bc5f",
+    "question": "Brown State Fishing Lake is in a country that has a population of how many inhabitants ?",
+    "answer": "9,984",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Brown State Fishing Lake",
+    "answerTitle": "Brown County, Kansas",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 12536,
+          "text": "Brown State Fishing Lake (sometimes also known as Brown State Fishing Lake And Wildlife Area) is a protected area in Brown County, Kansas in the United States."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 3208,
+          "text": "As of the 2010 census, the county population was 9,984."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-06",
+    "hotpotId": "5ab3e45655429976abd1bcd4",
+    "question": "The Vermont Catamounts men's soccer team currently competes in a conference that was formerly known as what from 1988 to 1996?",
+    "answer": "the North Atlantic Conference",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "Vermont Catamounts men's soccer",
+    "answerTitle": "America East Conference",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 2629,
+          "text": "The Vermont Catamounts men's soccer team represents the University of Vermont in all NCAA Division I men's college soccer competitions."
+        },
+        {
+          "volume": 3,
+          "start": 2765,
+          "text": "The team competes in the America East Conference."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 14059,
+          "text": "The conference was known as the Eastern College Athletic Conference-North from 1979 to 1988 and the North Atlantic Conference from 1988 to 1996."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-07",
+    "hotpotId": "5adddccd5542997dc7907069",
+    "question": "Aside from the Apple Remote, what other device can control the program Apple Remote was originally designed to interact with?",
+    "answer": "keyboard function keys",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Apple Remote",
+    "answerTitle": "Front Row (software)",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 15358,
+          "text": "The Apple Remote is a remote control device released in or after October 2005 by Apple Inc. for use with a number of its products which use infrared capabilities."
+        },
+        {
+          "volume": 2,
+          "start": 15521,
+          "text": "The device was originally designed to interact with the Front Row media program on the iSight iMac G5 and is compatible with some later desktop and portable Macintosh computers."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 4555,
+          "text": "Front Row is a discontinued media center software application for Apple's Macintosh computers and Apple TV for navigating and viewing video, photos, podcasts, and music from a computer, optical disc, or the Internet through a 10-foot user interface (similar to Windows Media Center and Kodi)."
+        },
+        {
+          "volume": 1,
+          "start": 4848,
+          "text": "The software relies on iTunes and iPhoto and is controlled by an Apple Remote or the keyboard function keys."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-08",
+    "hotpotId": "5ae22b8d554299234fd0440f",
+    "question": "What was the father of Kasper Schmeichel voted to be by the IFFHS in 1992?",
+    "answer": "World's Best Goalkeeper",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "Kasper Schmeichel",
+    "answerTitle": "Peter Schmeichel",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 4160,
+          "text": "Kasper Peter Schmeichel (] ; born 5 November 1986) is a Danish professional footballer who plays as a goalkeeper for Premier League club Leicester City and the Denmark national team."
+        },
+        {
+          "volume": 3,
+          "start": 4343,
+          "text": "He is the son of former Manchester United and Danish international goalkeeper Peter Schmeichel."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 17548,
+          "text": "Peter Bolesław Schmeichel MBE (] ; born 18 November 1963) is a Danish former professional footballer who played as a goalkeeper, and was voted the IFFHS World's Best Goalkeeper in 1992 and 1993."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-09",
+    "hotpotId": "5a722b8655429971e9dc9329",
+    "question": "Who was the writer of These Boots Are Made for Walkin' and who died in 2007?",
+    "answer": "Barton Lee Hazlewood",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "These Boots Are Made for Walkin'",
+    "answerTitle": "Lee Hazlewood",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 18640,
+          "text": "\"These Boots Are Made for Walkin' is a hit song written by Lee Hazlewood and recorded by Nancy Sinatra."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 6527,
+          "text": "Barton Lee Hazlewood (July 9, 1929 – August 4, 2007) was an American country and pop singer, songwriter, and record producer, most widely known for his work with guitarist Duane Eddy during the late 1950s and singer Nancy Sinatra in the 1960s."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-10",
+    "hotpotId": "5adf37a95542995ec70e8f97",
+    "question": "The 2011–12 VCU Rams men's basketball team, led by third year head coach Shaka Smart, represented Virginia Commonwealth University which was founded in what year?",
+    "answer": "1838",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "2011–12 VCU Rams men's basketball team",
+    "answerTitle": "Virginia Commonwealth University",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 5916,
+          "text": "Led by third-year head coach Shaka Smart, the Rams were coming off a season marked by a run to the Final Four."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 21043,
+          "text": "VCU was founded in 1838 as the medical department of Hampden–Sydney College, becoming the Medical College of Virginia in 1854."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-11",
+    "hotpotId": "5ae0361155429925eb1afc2c",
+    "question": "Which  French ace pilot and adventurer fly L'Oiseau Blanc",
+    "answer": "Charles Eugène",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "L'Oiseau Blanc",
+    "answerTitle": "Charles Nungesser",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 23265,
+          "text": "The aircraft was flown by French World War I aviation heroes, Charles Nungesser and François Coli."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 7320,
+          "text": "Charles Eugène Jules Marie Nungesser, MC (15 March 1892 – presumably on or after 8 May 1927) was a French ace pilot and adventurer, best remembered as a rival of Charles Lindbergh."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-12",
+    "hotpotId": "5abf63f15542997ec76fd3ea",
+    "question": "Alexander Kerensky was defeated and destroyed by the Bolsheviks in the course of a civil war that ended when ?",
+    "answer": "October 1922",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "Socialist Revolutionary Party",
+    "answerTitle": "Russian Civil War",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 8464,
+          "text": "The anti-Bolshevik faction of this party, known as the Right SRs, which remained loyal to the Provisional Government leader Alexander Kerensky was defeated and destroyed by the Bolsheviks in the course of the Russian Civil War and subsequent persecution."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 24286,
+          "text": "The Russian Civil War (Russian: Гражда́нская война́ в Росси́и , \"Grazhdanskaya voyna v Rossiyi\" ; November 1917 – October 1922) was a multi-party war in the former Russian Empire immediately after the Russian Revolutions of 1917, as many factions vied to determine Russia's political future."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-13",
+    "hotpotId": "5a74106b55429979e288289e",
+    "question": "Where is the company that Sachin Warrier worked for as a software engineer headquartered? ",
+    "answer": "Mumbai",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Sachin Warrier",
+    "answerTitle": "Tata Consultancy Services",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 27763,
+          "text": "He was working as a software engineer in Tata Consultancy Services in Kochi."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 8138,
+          "text": "Tata Consultancy Services Limited (TCS) is an Indian multinational information technology (IT) service, consulting and business solutions company Headquartered in Mumbai, Maharashtra."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-14",
+    "hotpotId": "5ab84bf555429916710eb01f",
+    "question": "In 1991 Euromarché was bought by a chain that operated how any hypermarkets at the end of 2016?",
+    "answer": "1,462",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "Euromarché",
+    "answerTitle": "Carrefour",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 10640,
+          "text": "In June 1991, the group was rebought by its rival, Carrefour, for 5,2 billion francs."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 29017,
+          "text": "It is one of the largest hypermarket chains in the world (with 1,462 hypermarkets at the end of 2016)."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-15",
+    "hotpotId": "5ab96ab755429970cfb8eacd",
+    "question": "Ellie Goulding worked with what other writers on her third studio album, Delirium?",
+    "answer": "Max Martin, Savan Kotecha and Ilya Salmanzadeh",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Delirium (Ellie Goulding album)",
+    "answerTitle": "On My Mind (Ellie Goulding song)",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 31117,
+          "text": "Delirium is the third studio album by English singer and songwriter Ellie Goulding, released on 6 November 2015 by Polydor Records."
+        },
+        {
+          "volume": 2,
+          "start": 31597,
+          "text": "The album spawned three singles: \"On My Mind\", \"Army\" and \"Something in the Way You Move\"."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 9151,
+          "text": "\"On My Mind\" is a song by English singer Ellie Goulding from her third studio album \"Delirium\" (2015)."
+        },
+        {
+          "volume": 1,
+          "start": 9319,
+          "text": "It was written by Goulding, Max Martin, Savan Kotecha and Ilya Salmanzadeh."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-16",
+    "hotpotId": "5a8b20335542996c9b8d5fb3",
+    "question": "What distinction is held by the former NBA player who was a member of the Charlotte Hornets during their 1992-93 season and was head coach for the WNBA team Charlotte Sting?",
+    "answer": "shortest player ever to play in the National Basketball Association",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "1992–93 Charlotte Hornets season",
+    "answerTitle": "Muggsy Bogues",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 11303,
+          "text": "With the addition of Mourning, along with second-year star Larry Johnson and Muggsy Bogues, the Hornets struggled around .500 for most of the season, but won 9 of their final 12 games finishing their season third in the Central Division with a 44–38 record, and qualified for their first ever playoff appearance."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 32485,
+          "text": "The shortest player ever to play in the National Basketball Association, the 5 ft Bogues played point guard for four teams during his 14-season career in the NBA."
+        },
+        {
+          "volume": 2,
+          "start": 32801,
+          "text": "After his NBA career, he served as head coach of the now-defunct WNBA team Charlotte Sting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-17",
+    "hotpotId": "5a85fb085542994775f606de",
+    "question": "What is the name of the executive producer of the film that has a score composed by Jerry Goldsmith?",
+    "answer": "Ronald Shusett",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Alien (soundtrack)",
+    "answerTitle": "Alien (film)",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 34349,
+          "text": "The iconic, avant-garde score to the film \"Alien\" was composed by Jerry Goldsmith and is considered by some to be one of his best, most visceral scores."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 11054,
+          "text": "Dan O'Bannon, drawing upon previous works of science fiction and horror, wrote the screenplay from a story he co-authored with Ronald Shusett."
+        },
+        {
+          "volume": 1,
+          "start": 11410,
+          "text": "Shusett was executive producer."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-18",
+    "hotpotId": "5a77152355429966f1a36c2e",
+    "question": "What was the Roud Folk Song Index of the nursery rhyme inspiring What Are Little Girls Made Of?",
+    "answer": "821",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "What Are Little Girls Made Of?",
+    "answerTitle": "What Are Little Boys Made Of?",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 14082,
+          "text": "The title of the episode is taken from the fourth line of the 19th century nursery rhyme, \"What Are Little Boys Made Of?"
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 36136,
+          "text": "\"What Are Little Boys Made Of?\""
+        },
+        {
+          "volume": 2,
+          "start": 36231,
+          "text": "It has a Roud Folk Song Index number of 821."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-19",
+    "hotpotId": "5a8f4c8d554299458435d5a3",
+    "question": "Scott Parkin has been a vocal critic of Exxonmobil and another corporation that has operations in how many countries ?",
+    "answer": "more than 70 countries",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Scott Parkin",
+    "answerTitle": "Halliburton",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 37036,
+          "text": "He has been a vocal critic of the American invasion of Iraq, and of corporations such as Exxonmobil and Halliburton."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 12813,
+          "text": "One of the world's largest oil field service companies, it has operations in more than 70 countries."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-20",
+    "hotpotId": "5ac2acff55429921a00ab02b",
+    "question": "who is the younger brother of The episode guest stars of The Hard Easy ",
+    "answer": "Bill Murray",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "The Hard Easy (Adventure Time)",
+    "answerTitle": "Brian Doyle-Murray",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 15268,
+          "text": "The episode guest stars Brian Doyle-Murray as Prince Huge and Jonathan Katz as the Mudscamp elder."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 38589,
+          "text": "He is the older brother of actor/comedian Bill Murray, and the two have acted together in several films, including \"Caddyshack\", \"Scrooged\", \"Ghostbusters II\", \"The Razor's Edge\", and \"Groundhog Day\"."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-21",
+    "hotpotId": "5aba7cfe554299232ef4a2fd",
+    "question": "The 2017–18 Wigan Athletic F.C. season will be a year in which the team competes in the league cup known as what for sponsorship reasons?",
+    "answer": "Carabao Cup",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "2017–18 Wigan Athletic F.C. season",
+    "answerTitle": "EFL Cup",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 40187,
+          "text": "Along with competing in the league, the club will also participate in the FA Cup, EFL Cup and EFL Trophy."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 14363,
+          "text": "The EFL Cup (referred to historically, and colloquially, as simply the League Cup), currently known as the Carabao Cup for sponsorship reasons, is an annual knockout football competition in men's domestic English football."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-22",
+    "hotpotId": "5ae1f4cb554299234fd0436d",
+    "question": "What is the inhabitant of the city where  122nd SS-Standarte was formed in2014",
+    "answer": "276,170 inhabitants",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "122nd SS-Standarte",
+    "answerTitle": "Strasbourg",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 16651,
+          "text": "The 122nd SS-Standarte was a regimental command of the Allgemeine-SS that was formed in the city of Strasbourg during World War II."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 42114,
+          "text": "In 2014, the city proper had 276,170 inhabitants and both the Eurométropole de Strasbourg (Greater Strasbourg) and the Arrondissement of Strasbourg had 484,157 inhabitants."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-23",
+    "hotpotId": "5ae33c4d5542992f92d82262",
+    "question": "Robert Suettinger was the national intelligence officer under which former Governor of Arkansas?",
+    "answer": "William Jefferson Clinton",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Robert Suettinger",
+    "answerTitle": "Bill Clinton",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 43334,
+          "text": "Robert Suettinger was United States President Bill Clinton's national intelligence officer for East Asia at the National Intelligence Council (NIC) from 1997-1998."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 15589,
+          "text": "William Jefferson Clinton (born William Jefferson Blythe III; August 19, 1946) is an American politician who served as the 42nd President of the United States from 1993 to 2001."
+        },
+        {
+          "volume": 1,
+          "start": 15767,
+          "text": "Prior to the presidency, he was the Governor of Arkansas during two separate terms, from 1979 to 1981, and again from 1983 to 1992."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-24",
+    "hotpotId": "5a7625e8554299109176e66a",
+    "question": "In which year was the King who made the 1925 Birthday Honours born?",
+    "answer": "1865",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "1925 Birthday Honours",
+    "answerTitle": "George V",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 17254,
+          "text": "The 1925 Birthday Honours were appointments by King George V to various orders and honours to reward and highlight good works by citizens of the British Empire."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 44924,
+          "text": "George V (George Frederick Ernest Albert; 3 June 1865 – 20 January 1936) was King of the United Kingdom and the British Dominions, and Emperor of India, from 6 May 1910 until his death in 1936."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-25",
+    "hotpotId": "5ae2dd2055429928c423950d",
+    "question": "What is the county seat of the county where East Lempster, New Hampshire is located?",
+    "answer": "Newport",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "East Lempster, New Hampshire",
+    "answerTitle": "Sullivan County, New Hampshire",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 46232,
+          "text": "East Lempster is an unincorporated community in the town of Lempster in Sullivan County, New Hampshire, United States."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 17693,
+          "text": "Its county seat is Newport."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-26",
+    "hotpotId": "5a86ebac55429960ec39b6d6",
+    "question": "Handi-Snacks are a snack food product line sold by what American multinational confectionery, food, and beverage company that is based in Illinois?",
+    "answer": "Mondelez International, Inc.",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "Handi-Snacks",
+    "answerTitle": "Mondelez International",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 18579,
+          "text": "Handi-Snacks are a snack food product line sold by Mondelez International."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 47330,
+          "text": "Mondelez International, Inc., styled Mondelēz ( ), is an American multinational confectionery, food, and beverage company based in Illinois which employs about 107,000 people around the world."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-27",
+    "hotpotId": "5ae5736e5542990ba0bbb2b3",
+    "question": "When was the American lawyer, lobbyist and political consultant who was a senior member of the presidential campaign of Donald Trump born?",
+    "answer": "April 1, 1949",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Trump campaign–Russian meeting",
+    "answerTitle": "Paul Manafort",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 48664,
+          "text": "On June 9, 2016, a meeting was held in Trump Tower in New York City between three senior members of the presidential campaign of Donald TrumpDonald Trump Jr., Jared Kushner, and Paul Manafortand at least five other people, including Russian lawyer Natalia Veselnitskaya."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 18859,
+          "text": "Paul John Manafort Jr. (born April 1, 1949) is an American lawyer, lobbyist and political consultant."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-28",
+    "hotpotId": "5a835478554299123d8c20ed",
+    "question": "How many copies of Roald Dahl's variation on a popular anecdote sold?",
+    "answer": "250 million",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "Mrs. Bixby and the Colonel's Coat",
+    "answerTitle": "Roald Dahl",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 20208,
+          "text": "The story is Dahl's variation on a popular anecdote dating back at least to 1939: a married woman receives a glamorous mink coat from a man with whom she had an affair."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 50531,
+          "text": "His books have sold more than 250 million copies worldwide."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-29",
+    "hotpotId": "5a8e0a005542995085b373a1",
+    "question": "Bordan Tkachuk was the CEO of a company that provides what sort of products?",
+    "answer": "IT products and services",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Bordan Tkachuk",
+    "answerTitle": "Viglen",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 51693,
+          "text": "Bordan Tkachuk ( ) is a British business executive, the former CEO of Viglen, also known from his appearances on the BBC-produced British version of \"The Apprentice,\" interviewing for his boss Lord Sugar."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 21541,
+          "text": "Viglen Ltd provides IT products and services, including storage systems, servers, workstations and data/voice communications equipment and services."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-30",
+    "hotpotId": "5ab659e355429954757d324e",
+    "question": "hree Men on a Horse is a play by a playwright born in which year ?",
+    "answer": "1887",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "Three Men on a Horse",
+    "answerTitle": "George Abbott",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 21046,
+          "text": "Three Men on a Horse is a play by George Abbott and John Cecil Holm."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 53490,
+          "text": "George Francis Abbott (June 25, 1887 – January 31, 1995) was an American theater producer and director, playwright, screenwriter, and film director and producer whose career spanned nine decades."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-31",
+    "hotpotId": "5ae7eaf65542994a481bbe1d",
+    "question": "When was the  former Indian cricketer who made his ODI debuts during the 2000 ICC KnockOut Trophy born? ",
+    "answer": "7 October 1978",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "2000 ICC KnockOut Trophy",
+    "answerTitle": "Zaheer Khan",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 55286,
+          "text": "Zaheer Khan, Yuvraj Singh and Marlon Samuels made their ODI debuts during the competition."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 24335,
+          "text": "Zaheer Khan (born 7 October 1978) is a former Indian cricketer who played all forms of the game for Indian national cricket team from 2000 till 2014."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-32",
+    "hotpotId": "5a8c4c625542995e66a475a1",
+    "question": "Which airplane was this Major test-flying after whom the base, that 514th Flight Test Squadron is stated at, is named?",
+    "answer": "B-17 Flying Fortress bomber",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "514th Flight Test Squadron",
+    "answerTitle": "Hill Air Force Base",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 22508,
+          "text": "It is assigned to the Ogden Air Logistics Center (OO-ALC), Air Force Materiel Command, stationed at Hill Air Force Base, Utah."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 57675,
+          "text": "The base was named in honor of Major Ployer Peter Hill of the U.S. Army Air Corps, who died test-flying a prototype of the B-17 Flying Fortress bomber."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-33",
+    "hotpotId": "5ab978855542996be2020512",
+    "question": "Over how many centuries were the \"dwelling place of the dead\" built?",
+    "answer": "three centuries",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Flaming Feather",
+    "answerTitle": "Montezuma Castle National Monument",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 59242,
+          "text": "The film was shot on location around Oak Creek Canyon near Sedona, AZ, and at the Montezuma Castle National Monument near Sedona."
+        },
+        {
+          "volume": 2,
+          "start": 59372,
+          "text": "The local Yavapai Indians, who were employed as extras on the production, refused to enter the cliff-dwellings because they represented the \"dwelling place of the dead.\""
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 25996,
+          "text": "Montezuma Castle National Monument protects a set of well-preserved dwellings located in Camp Verde, Arizona which were built and used by the Sinagua people, a pre-Columbian culture closely related to the Hohokam and other indigenous peoples of the southwestern United States, between approximately 1100 and 1425 AD."
+        },
+        {
+          "volume": 1,
+          "start": 26313,
+          "text": "The main structure comprises five stories and twenty rooms, and was built over the course of three centuries."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-34",
+    "hotpotId": "5ae63dad55429929b0807afe",
+    "question": "When was the British author who wrote the novel on which \"Here We Go Round the Mulberry Bush\" was based born? ",
+    "answer": "7 January 1936",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "Here We Go Round the Mulberry Bush (film)",
+    "answerTitle": "Hunter Davies",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 23282,
+          "text": "Here We Go Round the Mulberry Bush is a 1967 British film made based on the novel of the same name by Hunter Davies."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 60987,
+          "text": "Edward Hunter Davies, OBE (born 7 January 1936) is a British author, journalist and broadcaster."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-35",
+    "hotpotId": "5a887bc0554299206df2b2b6",
+    "question": "The Argentine PGA Championship record holder has won how many tournaments worldwide?",
+    "answer": "230",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Argentine PGA Championship",
+    "answerTitle": "Roberto De Vicenzo",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 62228,
+          "text": "However, the record holder is former British Open champion Roberto De Vicenzo, who recorded 16 victories between 1944 and 1985."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 27508,
+          "text": "He won more than 230 tournaments worldwide in his career including eight on the PGA Tour and most famously the 1967 Open Championship."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-36",
+    "hotpotId": "5a879adb5542996e4f30887f",
+    "question": "What other political position did the person who introduced the DISCLOSE Act hold?",
+    "answer": "United States Senator",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "DISCLOSE Act",
+    "answerTitle": "Chris Van Hollen",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 24600,
+          "text": "The Democracy Is Strengthened by Casting Light On Spending in Elections Act, commonly known as the DISCLOSE Act and also known as H.R. 5175 (S.3628-Senate), was a bill introduced in the U.S. House of Representatives by Chris Van Hollen (D-Maryland) on April 29, 2010 and in the U.S. Senate by Charles Schumer (D-New York) on July 21, 2010."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 63740,
+          "text": "Christopher Van Hollen Jr. (born January 10, 1959) is the junior United States Senator from Maryland, serving since January 3, 2017."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-37",
+    "hotpotId": "5a89f5815542993b751ca9c5",
+    "question": "In which role did Caroline Carver played in a 1999 Hallmark Entertainment made-for-TV fantasy movie?",
+    "answer": "Princess Jessica",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "The Magical Legend of the Leprechauns",
+    "answerTitle": "Caroline Carver (actress)",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 65197,
+          "text": "The Magical Legend of the Leprechauns is a 1999 Hallmark Entertainment made-for-TV fantasy movie."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 28887,
+          "text": "Caroline Carver (born 1976) is an English actress, screenwriter, and producer best known for roles such as Princess Jessica in the TV film \"The Magical Legend of the Leprechauns\" (1999), Ingrid in \"The Aryan Couple\" (2004), and Sandy in \"My First Wedding\" (2006)."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-38",
+    "hotpotId": "5ac120c55542992a796dedfc",
+    "question": "Maxeda has been owned since 2004 by which American multinational equity firm?",
+    "answer": "KKR & Co",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "Maxeda",
+    "answerTitle": "Kohlberg Kravis Roberts",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 25891,
+          "text": "Since 2004 Maxeda is owned by a consortium of investors led by American private equity firm Kohlberg Kravis Roberts."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 66394,
+          "text": "KKR & Co."
+        },
+        {
+          "volume": 2,
+          "start": 66404,
+          "text": "L.P. (formerly known as Kohlberg Kravis Roberts & Co.) is an American multinational private equity firm, specializing in leveraged buyouts, headquartered in New York City."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-39",
+    "hotpotId": "5a7b12a355429927d897bf2a",
+    "question": "When was the palace founded at which Columba de Dunbar died in 1435?",
+    "answer": "the late 12th Century",
+    "group": "A",
+    "askedIn": 2,
+    "answerVolume": 1,
+    "bridgeTitle": "Columba de Dunbar",
+    "answerTitle": "Spynie Palace",
+    "support": {
+      "bridge": [
+        {
+          "volume": 2,
+          "start": 67668,
+          "text": "Columba de Dunbar ( 1386 – 1435) was Bishop of Moray from 1422 until his death at Spynie Palace near Elgin sometime before 7 November 1435."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 1,
+          "start": 29909,
+          "text": "The founding of the palace dates back to the late 12th Century."
+        }
+      ]
+    }
+  },
+  {
+    "id": "KGS-40",
+    "hotpotId": "5a80071f5542992bc0c4a684",
+    "question": "Alice David is the voice of Lara Croft in a video game developed by which company ?",
+    "answer": "Crystal Dynamics",
+    "group": "B",
+    "askedIn": 3,
+    "answerVolume": 2,
+    "bridgeTitle": "Alice David",
+    "answerTitle": "Tomb Raider (2013 video game)",
+    "support": {
+      "bridge": [
+        {
+          "volume": 3,
+          "start": 27155,
+          "text": "She is the voice of the French dub of Lara Croft in the video game \"Tomb Raider\"."
+        }
+      ],
+      "answer": [
+        {
+          "volume": 2,
+          "start": 68488,
+          "text": "Tomb Raider is an action-adventure video game developed by Crystal Dynamics and published by Square Enix."
+        }
+      ]
+    }
+  }
+]

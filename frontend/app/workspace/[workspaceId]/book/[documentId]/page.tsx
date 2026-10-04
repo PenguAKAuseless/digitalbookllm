@@ -40,6 +40,8 @@ export default function ReaderPage() {
     const [askSignal, setAskSignal] = useState(0)
     // Coming back from the graph page restores the mode the reader was in.
     const [viewMode, setViewMode] = useState<ViewMode>(() => (searchParams.get("view") === "reading" ? "reading" : "split"))
+    // A citation from the knowledge graph opens the book at its page instead of the last-read one.
+    const citedPage = Number(searchParams.get("page")) || null
     const [sidebarOpen, setSidebarOpen] = useState(false)
     // Phones get the book on top and the chat below instead of two cramped columns.
     const [isNarrow, setIsNarrow] = useState(false)
@@ -191,7 +193,7 @@ export default function ReaderPage() {
                 <VirtualPageViewer
                     fileUrl={file.url}
                     highlights={highlights}
-                    initialPage={doc.last_read_page}
+                    initialPage={citedPage ?? doc.last_read_page}
                     jumpToPage={jumpToPage}
                     onDocumentLoad={({ outline }) => setOutline(outline)}
                     onPageChange={handlePageChange}
@@ -201,7 +203,7 @@ export default function ReaderPage() {
                 <TextPageViewer
                     text={doc.full_text ?? ""}
                     highlights={highlights}
-                    initialPage={doc.last_read_page}
+                    initialPage={citedPage ?? doc.last_read_page}
                     jumpToPage={jumpToPage}
                     onPageChange={handlePageChange}
                     onSelectionChange={setSelection}

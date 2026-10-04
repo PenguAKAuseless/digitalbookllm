@@ -22,9 +22,11 @@ export const pool = new Pool({
     connectionTimeoutMillis: 5000,
 });
 
+// An idle connection can be dropped by the server (a managed Postgres or its pooler
+// closes idle sessions, a restart, a network blip). The pool discards that client and
+// opens a new one on the next query, so log it rather than taking the API down.
 pool.on('error', (err: Error) => {
-    console.error('Unexpected error on idle client', err);
-    process.exit(-1);
+    console.error('[db] idle client error (connection discarded):', err.message);
 });
 
 export const testConnection = async () => {

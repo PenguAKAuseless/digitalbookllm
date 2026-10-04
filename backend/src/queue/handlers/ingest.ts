@@ -25,14 +25,30 @@ interface IngestPayload {
  * Runs as one step of the PostgreSQL job queue (see ADR-02).
  */
 export async function handleIngestDocument(job: Job): Promise<void> {
-    const { documentId, storageKey, fileType, fileName, userId } = job.payload as unknown as IngestPayload;
+    const { documentId } = job.payload as unknown as IngestPayload;
+    try {
+        await ingest(job.payload as unknown as IngestPayload);
+    } catch (err: any) {
+        // On the last attempt, say so on the document; otherwise the reader would show
+        // "processing" forever. Earlier attempts keep PROCESSING while the queue retries.
+        if (job.attempts >= job.max_attempts) {
+            await setStatus(documentId, 'FAILED', `Processing failed: ${String(err?.message || err).slice(0, 300)}`).catch(() => {});
+        }
+        throw err;
+    }
+}
 
+async function ingest({ documentId, storageKey, fileType, fileName, userId }: IngestPayload): Promise<void> {
     await setStatus(documentId, 'PROCESSING');
 
     const fileBuffer = await storage().get(storageKey);
     const isPdf = fileType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf');
 
-    let extracted = await extractText(fileBuffer, fileType, fileName).catch(() => null);
+    let extractError: string | undefined;
+    let extracted = await extractText(fileBuffer, fileType, fileName).catch((err) => {
+        extractError = err?.message || String(err);
+        return null;
+    });
     let usedOcr = false;
 
     if (isPdf && (!extracted || extracted.fullText.trim().length < 20)) {
@@ -47,7 +63,12 @@ export async function handleIngestDocument(job: Job): Promise<void> {
     }
 
     if (!extracted || !extracted.fullText.trim()) {
-        await setStatus(documentId, 'FAILED', 'No extractable text found in the uploaded file.');
+        console.warn(`[ingest] no text from ${fileName}${extractError ? `: ${extractError}` : ''}`);
+        await setStatus(
+            documentId,
+            'FAILED',
+            extractError ? `Could not read the file: ${extractError.slice(0, 200)}` : 'No extractable text found in the uploaded file.'
+        );
         return;
     }
 
