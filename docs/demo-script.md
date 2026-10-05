@@ -195,31 +195,24 @@ Số liệu trên toàn bộ 40 câu: xem mục 6.
 
 ## 6. Số liệu đánh giá để trả lời hội đồng
 
-Chi tiết và cách chạy lại: [backend/eval/ablation/README.md](../backend/eval/ablation/README.md).
+Chi tiết (thiết lập, dữ liệu, cách lấy mẫu, bảng đầy đủ, giới hạn): **[experiments.md](./experiments.md)**.
+Mọi câu hỏi và đáp án lấy từ nhãn của dataset; không có câu nào tự viết hay chọn tay.
+Câu trả lời được sinh bằng qwen2.5:7b chạy local (temperature 0); production dùng deepseek-v4-flash qua HeFU.
 
-**Cách lấy mẫu:** không có mẫu nào được chọn tay hay tự viết; mọi câu hỏi và đáp án lấy từ nhãn của dataset.
-- Truy xuất: dùng **toàn bộ** câu của tập test (ViQuAD 306 câu có đáp án, HotpotQA 17 câu).
-- KG-Series, KG-Chat: lấy **theo thứ tự trong dataset** với tiêu chí lọc cố định (xem README của từng bộ).
-- Sinh câu trả lời trên ViQuAD: **ngẫu nhiên có seed cố định** (seed 42, chạy lại ra cùng mẫu):
-  15 trong 306 câu có đáp án và 5 trong 156 câu không có đáp án. Tham số được chọn trên tập *dev* (split train của dataset,
-chỉ dùng để chọn tham số, không huấn luyện gì) rồi chạy **một lần** trên tập *test* (split validation).
+| Thí nghiệm | Dữ liệu (n) | Kết quả |
+|---|---|---|
+| Truy xuất trong một sách | HotpotQA test, 17 câu multi-hop | R@5 = 100% (R@1 94,1%) |
+| Truy xuất trong một sách | UIT-ViQuAD 2.0 test, 306 câu | R@5 = 82,7% (chỉ dense: 36,3%) |
+| Ảo giác | ViQuAD test, 156 câu không có đáp án (toàn bộ) | Không RAG 91,0% → có RAG **38,5%** (đổi lại, từ chối nhầm 26,3% câu có đáp án) |
+| Trả lời đúng | ViQuAD 156 câu có đáp án; HotpotQA 17 câu | 10,9% → 47,4%; 17,6% → 64,7% |
+| Trích dẫn | HotpotQA 17; ViQuAD 156 | Đoạn được trích có bằng chứng 85,7% / 65,8%, so với 23,4% / 8,0% ở đoạn không được trích |
+| Hỏi xuyên sách | KG-Series, 40 câu, 3 tập | Chỉ sách đang mở 2,5% → hệ thống **52,5%** (p < 0,001) |
+| Đóng góp của KG | KG-Series: cùng prompt, cùng 5 đoạn văn, chỉ thêm khối quan hệ KG | 45,0% → **52,5%** (test, +4/−1, p = 0,375); 37,5% → 55,0% (dev, p = 0,039); từ chối giảm. Xếp hạng lại bằng KG không cộng thêm gì: giá trị nằm ở thông tin quan hệ |
+| KG học từ chat | KG-Chat, 40 hội thoại, 175 thực thể, 137 quan hệ | 88,0% thực thể, 47,4% quan hệ (baseline không LLM: 82,9% / 23,4%) |
 
-| Thí nghiệm | Dữ liệu (n) | Kết quả | Lưu ý |
-|---|---|---|---|
-| Truy xuất trong một sách | HotpotQA test, 17 câu multi-hop, sách 104K ký tự | R@5 = 100% (R@1 94,1%); cả 2 câu bằng chứng trong top-5: 100% | n nhỏ |
-| Truy xuất trong một sách | UIT-ViQuAD 2.0 test, 306 câu, 65,6K ký tự | R@5 = 82,7% (trước cải tiến: 24,5%), R@1 = 41,2% | — |
-| Ảo giác | ViQuAD test: **5** câu không có đáp án, do người gán nhãn của dataset đánh dấu (`is_impossible`), lấy ngẫu nhiên có seed từ 156 câu | Không RAG: 4/5 vẫn trả lời; có RAG: 1/5 | Rất nhỏ; nên nói "4/5 → 1/5". Bản RAG cũ cũng 1/5, nên đây là tác dụng của RAG nói chung |
-| Trích dẫn | HotpotQA, 17 câu | 89,5% đoạn được trích có câu bằng chứng, so với 24,2% đoạn không được trích | — |
-| KG xuyên sách | KG-Series, 40 câu, 3 tập | Trả lời đúng: chỉ sách đang mở 5%; RAG tìm sang sách trước nhưng không KG 35%; **có KG 57,5%** (+10/−1 câu, McNemar p = 0,012) | Truy xuất như nhau (95%) có hay không có KG: phần đóng góp của KG là các quan hệ nối đưa vào prompt |
-| KG học từ chat | KG-Chat: 40 hội thoại OpenDialKG, 175 thực thể, 137 quan hệ gán nhãn | Thực thể 88,0%, quan hệ 47,4%, so với 82,9% / 23,4% của baseline không dùng LLM (cụm từ viết hoa + đồng xuất hiện) | — |
-| Dùng lại node cũ | 7 thực thể gán nhãn đã có sẵn trong đồ thị trước hội thoại | 6/6 thực thể được trích ra đều gộp vào node cũ; thực thể còn lại (*Actor*) không được trích | n rất nhỏ; 4/7 là khái niệm chung (Actor, Fiction, Drama, Fantasy) |
-
-**Giới hạn cần nói rõ:**
-- Câu trả lời trong các thí nghiệm trên được sinh bằng qwen2.5:7b chạy local (temperature 0, nhưng
-  không hoàn toàn tất định); production dùng deepseek-v4-flash qua HeFU.
-- Các tập test nhỏ (5–40 câu): chênh lệch dưới khoảng 10 điểm là nhiễu, trừ khi kiểm định cặp cho kết quả có ý nghĩa.
-- Trong quá trình làm đã phát hiện và sửa một số lỗi đo lường của chính mình (đo sai top-k,
-  chưa nhận diện câu từ chối bằng tiếng Trung, so khớp tên thực thể quá lỏng).
+**Nếu hội đồng hỏi về KG:** chỉ ra phép thử "cùng prompt, chỉ thêm khối KG" và ví dụ KGS-34 (mục 5.2 của experiments.md):
+quan hệ "based on → Hunter Davies" giúp model nối tên ở hai cuốn sách. Giới hạn: đồ thị dựng bằng model 7B chỉ chứa 14/40 liên kết
+cần thiết, nên mức tăng trên test chưa có ý nghĩa thống kê với 40 câu (mục 5.4).
 
 ## 7. Sau buổi demo
 

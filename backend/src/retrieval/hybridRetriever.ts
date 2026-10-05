@@ -188,7 +188,9 @@ export async function hybridRetrieve(
             const targets = [...bridges, ...seeds].sort((a, b) => b.score - a.score);
 
             if (mode === 'rerank') {
-                // KG as a re-ranker of the plain second pass: no extra searches.
+                // KG as a re-ranker of the plain second pass: no extra searches. The bridges are
+                // recorded all the same, so the caller can see what the graph pointed to.
+                hopEntities.push(...bridges.map((b) => b.entity.name));
                 const plain = (await searchSecond(queryText, queryEmbedding)).filter(eligible).slice(0, candidates);
                 const names = targets.map((t) => ({ name: normalizeText(t.entity.name).trim(), score: t.score }));
                 const graphOrder = plain
@@ -254,7 +256,7 @@ export async function hybridRetrieve(
  * from another book, the other in the question or in a passage of the book in
  * scope. Empty when every passage comes from the book in scope.
  */
-function linkFacts(
+export function linkFacts(
     queryText: string,
     chunks: Array<CorpusChunk & { similarity: number }>,
     corpus: ScopeCorpus,
